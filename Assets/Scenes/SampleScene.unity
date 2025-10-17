@@ -812,8 +812,8 @@ MonoBehaviour:
   highAlertDecreaseRate: 5
   timeToStartDecreasing: 3
   movementThreshold: 0.1
-  patrolSpeed: 2
-  chaseSpeed: 5
+  patrolSpeed: 5
+  chaseSpeed: 10
   currentAlertLevel: 0
 --- !u!195 &593485720
 NavMeshAgent:
