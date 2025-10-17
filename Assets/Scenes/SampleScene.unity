@@ -398,13 +398,13 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MovementAnimator
   modelTransform: {fileID: 1108952196}
-  rotationShakeMultiplier: 50
+  frequencyMultiplier: 1.5
   overallIntensity: 1
   bobFrequencyX: 12
-  bobAmplitudeX: 0.02
   bobFrequencyY: 15
-  bobAmplitudeY: 0.03
   bobFrequencyZ: 9
+  bobAmplitudeX: 0.02
+  bobAmplitudeY: 0.03
   bobAmplitudeZ: 0.02
 --- !u!114 &340754702
 MonoBehaviour:
@@ -1125,13 +1125,13 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MovementAnimator
   modelTransform: {fileID: 78840897}
-  rotationShakeMultiplier: 50
+  frequencyMultiplier: 1.5
   overallIntensity: 1
   bobFrequencyX: 12
-  bobAmplitudeX: 0.02
   bobFrequencyY: 15
-  bobAmplitudeY: 0.03
   bobFrequencyZ: 9
+  bobAmplitudeX: 0.02
+  bobAmplitudeY: 0.03
   bobAmplitudeZ: 0.02
 --- !u!114 &1190774499
 MonoBehaviour:
@@ -1378,7 +1378,6 @@ GameObject:
   m_Component:
   - component: {fileID: 1402469980}
   - component: {fileID: 1402469984}
-  - component: {fileID: 1402469983}
   - component: {fileID: 1402469982}
   - component: {fileID: 1402469981}
   m_Layer: 6
@@ -1418,7 +1417,7 @@ MonoBehaviour:
   FollowTarget: {fileID: 957414671}
   offsetZ: 4
   offsetY: 2
-  rotateSpeed: 0.3
+  rotateSpeed: 1
   rotateLerp: 8
   pitchMin: -85
   pitchMax: 85
@@ -1466,14 +1465,6 @@ MonoBehaviour:
     m_VarianceClampScale: 0.9
     m_ContrastAdaptiveSharpening: 0
   m_Version: 2
---- !u!81 &1402469983
-AudioListener:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1402469979}
-  m_Enabled: 1
 --- !u!20 &1402469984
 Camera:
   m_ObjectHideFlags: 0
@@ -1586,7 +1577,6 @@ GameObject:
   m_Component:
   - component: {fileID: 1746449003}
   - component: {fileID: 1746449007}
-  - component: {fileID: 1746449006}
   - component: {fileID: 1746449005}
   - component: {fileID: 1746449004}
   m_Layer: 6
@@ -1626,7 +1616,7 @@ MonoBehaviour:
   FollowTarget: {fileID: 643507237}
   offsetZ: 4
   offsetY: 0.5
-  rotateSpeed: 0.3
+  rotateSpeed: 1
   rotateLerp: 8
   pitchMin: -85
   pitchMax: 85
@@ -1674,14 +1664,6 @@ MonoBehaviour:
     m_VarianceClampScale: 0.9
     m_ContrastAdaptiveSharpening: 0
   m_Version: 2
---- !u!81 &1746449006
-AudioListener:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1746449002}
-  m_Enabled: 1
 --- !u!20 &1746449007
 Camera:
   m_ObjectHideFlags: 0
