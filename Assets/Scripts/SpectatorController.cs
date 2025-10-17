@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
-using System.Collections.Generic; // 需要這個來使用 List
-using System.Linq; // 需要這個來使用 Linq
+using System.Collections.Generic;
+using System.Linq;
 
 [RequireComponent(typeof(Camera))]
 public class SpectatorController : MonoBehaviour
@@ -12,9 +12,20 @@ public class SpectatorController : MonoBehaviour
 
     [Header("References")]
     [SerializeField] private TeamManager teamManager;
+
     [Header("Highlighting")]
-    [Tooltip("將你做好的黃色高亮 Material 拖到這裡")]
+    [Tooltip("高亮材質的模板")]
     [SerializeField] private Material highlightMaterial;
+
+    // ▼▼▼ 新增的動態輪廓參數 ▼▼▼
+    [Header("Dynamic Outline")]
+    [Tooltip("輪廓的最小寬度")]
+    [SerializeField] private float minOutlineWidth = 0.003f;
+    [Tooltip("輪廓的最大寬度")]
+    [SerializeField] private float maxOutlineWidth = 0.04f;
+    [Tooltip("達到最大寬度所需的距離")]
+    [SerializeField] private float maxDistanceForOutline = 50f;
+    // ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
 
     private InputSystem_Actions inputActions;
     private Camera spectatorCamera;
@@ -22,9 +33,10 @@ public class SpectatorController : MonoBehaviour
     private float yaw;
     private float pitch;
 
-    // --- 新增的變數，用來管理高亮狀態 ---
+    // --- 管理高亮狀態的變數 ---
     private Renderer currentlyHighlighted;
     private Material[] originalMaterials;
+    private Material highlightInstance; // 我們動態創建的材質實例
 
     void Awake()
     {
@@ -44,7 +56,6 @@ public class SpectatorController : MonoBehaviour
     {
         inputActions.Spectator.Disable();
         inputActions.Spectator.Select.performed -= OnSelectPerformed;
-        // 確保離開模式時，清除所有高亮
         RestoreOriginalMaterials();
     }
 
@@ -58,7 +69,7 @@ public class SpectatorController : MonoBehaviour
     {
         HandleLook();
         HandleMovement();
-        HandleHighlight(); // 在每一幀都處理高亮邏輯
+        HandleHighlight();
     }
 
     private void HandleLook()
@@ -80,47 +91,57 @@ public class SpectatorController : MonoBehaviour
         transform.position += moveDirection * moveSpeed * Time.deltaTime;
     }
 
-    // ▼▼▼ 全新的高亮處理邏輯 ▼▼▼
     private void HandleHighlight()
     {
         Ray ray = spectatorCamera.ScreenPointToRay(Mouse.current.position.ReadValue());
 
-        if (Physics.Raycast(ray, out RaycastHit hit, 200f))
+        // 偵測滑鼠指向的物件
+        if (Physics.Raycast(ray, out RaycastHit hit, 200f) && hit.collider.CompareTag("Controllable"))
         {
-            // 檢查是否射中了帶有 "Controllable" Tag 的物件
-            if (hit.collider.CompareTag("Controllable"))
+            var renderer = hit.transform.GetComponentInChildren<Renderer>();
+            if (renderer != null)
             {
-                // 獲取物件上的第一個 Renderer 元件
-                var renderer = hit.transform.GetComponentInChildren<Renderer>();
-                if (renderer != null)
+                // 如果指向了一個新的物件，就切換高亮
+                if (currentlyHighlighted != renderer)
                 {
-                    // 如果這是一個新的物件，就切換高亮
-                    if (currentlyHighlighted != renderer)
-                    {
-                        RestoreOriginalMaterials(); // 先移除舊的高亮
-                        currentlyHighlighted = renderer;
-                        StoreAndApplyHighlight(); // 再套用新的高亮
-                    }
-                    return; // 處理完畢，直接返回
+                    RestoreOriginalMaterials();
+                    currentlyHighlighted = renderer;
+                    StoreAndApplyHighlight();
                 }
+
+                // --- 核心修改：每一幀都更新輪廓寬度 ---
+                if (highlightInstance != null)
+                {
+                    float distance = Vector3.Distance(transform.position, currentlyHighlighted.transform.position);
+                    // InverseLerp 會將距離映射到 0-1 的範圍
+                    float t = Mathf.InverseLerp(0, maxDistanceForOutline, distance);
+                    // Lerp 根據 0-1 的範圍，計算出在 min 和 max 之間對應的寬度
+                    float newWidth = Mathf.Lerp(minOutlineWidth, maxOutlineWidth, t);
+
+                    // 使用 SetFloat 更新 Shader 中的 _OutlineWidth 屬性
+                    highlightInstance.SetFloat("_OutlineWidth", newWidth);
+                }
+                return;
             }
         }
 
-        // 如果射線沒打到任何東西，或打到的不是可操控物件，就清除高亮
+        // 如果沒打到任何可操控物件，就清除高亮
         RestoreOriginalMaterials();
-        currentlyHighlighted = null;
     }
 
     private void StoreAndApplyHighlight()
     {
         if (currentlyHighlighted == null || highlightMaterial == null) return;
 
-        // 儲存原始的材質列表
+        // 儲存原始材質
         originalMaterials = currentlyHighlighted.materials;
 
-        // 創建一個新的材質列表，包含所有原始材質，再加上我們的高亮材質
+        // 創建高亮材質的實例
+        highlightInstance = new Material(highlightMaterial);
+
+        // 套用新材質列表（原始材質 + 高亮實例）
         var newMaterials = originalMaterials.ToList();
-        newMaterials.Add(highlightMaterial);
+        newMaterials.Add(highlightInstance);
         currentlyHighlighted.materials = newMaterials.ToArray();
     }
 
@@ -128,18 +149,23 @@ public class SpectatorController : MonoBehaviour
     {
         if (currentlyHighlighted != null && originalMaterials != null)
         {
-            // 還原原始的材質列表
             currentlyHighlighted.materials = originalMaterials;
         }
-        // 清空狀態
+
+        // 清理狀態
         currentlyHighlighted = null;
         originalMaterials = null;
+
+        // 如果存在材質實例，就銷毀它，避免記憶體洩漏
+        if (highlightInstance != null)
+        {
+            Destroy(highlightInstance);
+            highlightInstance = null;
+        }
     }
-    // ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
 
     private void OnSelectPerformed(InputAction.CallbackContext context)
     {
-        // 只有當高亮了一個物件時，點擊才有效
         if (currentlyHighlighted != null)
         {
             teamManager.PossessCharacter(currentlyHighlighted.transform.root.gameObject);
