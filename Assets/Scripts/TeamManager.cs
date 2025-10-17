@@ -1,26 +1,28 @@
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.InputSystem; // 導入新的 Input System 命名空間
+using UnityEngine.InputSystem;
 
-// 輔助類別保持不變
 [System.Serializable]
 public class ControllableUnit
 {
-    [Tooltip("角色物件 (必須掛載 PlayerMovement 腳本)")]
     public PlayerMovement character;
-    [Tooltip("這個角色專屬的攝影機 (必須掛載 CamControl 腳本)")]
     public CamControl characterCamera;
-    [Tooltip("攝影機實際要跟隨的點")]
     public Transform cameraFollowTarget;
 }
 
 public class TeamManager : MonoBehaviour
 {
-    [Header("團隊列表")]
-    public List<ControllableUnit> team;
+    public enum GameState { Spectator, Possessing }
 
-    private int activeCharacterIndex = 0;
-    private InputSystem_Actions playerActions; // 新增 Input System Action 實例
+    [Header("Game State")]
+    [SerializeField] private GameState currentState = GameState.Spectator;
+
+    [Header("Team & Scene References")]
+    public List<ControllableUnit> team;
+    public GameObject spectatorCameraObject;
+
+    private int activeCharacterIndex = -1;
+    private InputSystem_Actions playerActions;
 
     void Awake()
     {
@@ -30,7 +32,8 @@ public class TeamManager : MonoBehaviour
     private void OnEnable()
     {
         playerActions.Player.Enable();
-        // 訂閱切換事件
+        // ▼▼▼ 核心修改：移除 Unpossess 的訂閱 ▼▼▼
+        // playerActions.Player.Unpossess.performed += OnUnpossess; 
         playerActions.Player.Next.performed += ctx => SwitchNextCharacter();
         playerActions.Player.Previous.performed += ctx => SwitchPreviousCharacter();
     }
@@ -38,86 +41,116 @@ public class TeamManager : MonoBehaviour
     private void OnDisable()
     {
         playerActions.Player.Disable();
-        // 取消訂閱
+        // ▼▼▼ 核心修改：移除 Unpossess 的取消訂閱 ▼▼▼
+        // playerActions.Player.Unpossess.performed -= OnUnpossess;
         playerActions.Player.Next.performed -= ctx => SwitchNextCharacter();
         playerActions.Player.Previous.performed -= ctx => SwitchPreviousCharacter();
     }
 
     void Start()
     {
-        if (team == null || team.Count == 0)
-        {
-            Debug.LogError("TeamManager 的團隊列表是空的！", this);
-            return;
-        }
+        if (team == null || team.Count == 0) return;
+        if (spectatorCameraObject == null) return;
 
-        // 初始化所有角色狀態
         foreach (var unit in team)
         {
-            if (unit.character != null)
+            SetUnitControl(unit, false);
+        }
+
+        EnterSpectatorMode();
+    }
+
+    void Update() { }
+
+    public void PossessCharacter(GameObject characterObject)
+    {
+        int characterIndex = -1;
+        for (int i = 0; i < team.Count; i++)
+        {
+            if (team[i].character.gameObject == characterObject)
             {
-                unit.character.enabled = false;
-                var animator = unit.character.GetComponent<MovementAnimator>();
-                if (animator != null) animator.enabled = false;
-            }
-            if (unit.characterCamera != null)
-            {
-                unit.characterCamera.gameObject.SetActive(false);
+                characterIndex = i;
+                break;
             }
         }
 
-        SwitchToCharacter(0);
+        if (characterIndex != -1)
+        {
+            EnterPossessingMode(characterIndex);
+        }
     }
 
-    // Update 函式現在是空的，因為我們不再需要它來輪詢輸入
-    void Update() { }
+    // ▼▼▼ 核心修改：整個 OnUnpossess 函式被移除 ▼▼▼
+    /*
+    private void OnUnpossess(InputAction.CallbackContext context)
+    {
+        if (currentState == GameState.Possessing)
+        {
+            EnterSpectatorMode();
+        }
+    }
+    */
 
-    // --- 新的事件處理函式 ---
+    private void EnterSpectatorMode()
+    {
+        currentState = GameState.Spectator;
+        if (activeCharacterIndex != -1)
+        {
+            SetUnitControl(team[activeCharacterIndex], false);
+            activeCharacterIndex = -1;
+        }
+        spectatorCameraObject.SetActive(true);
+        Debug.Log("Entered Spectator Mode.");
+    }
+
+    private void EnterPossessingMode(int newIndex)
+    {
+        currentState = GameState.Possessing;
+        spectatorCameraObject.SetActive(false);
+        SwitchToCharacter(newIndex);
+        Debug.Log($"Possessing {team[newIndex].character.name}.");
+    }
+
     private void SwitchNextCharacter()
     {
-        if (team.Count <= 1) return;
+        if (currentState != GameState.Possessing || team.Count <= 1) return;
         int nextIndex = (activeCharacterIndex + 1) % team.Count;
         SwitchToCharacter(nextIndex);
     }
 
     private void SwitchPreviousCharacter()
     {
-        if (team.Count <= 1) return;
+        if (currentState != GameState.Possessing || team.Count <= 1) return;
         int prevIndex = (activeCharacterIndex - 1 + team.Count) % team.Count;
         SwitchToCharacter(prevIndex);
     }
 
     private void SwitchToCharacter(int newIndex)
     {
-        // 停用舊的
-        if (team[activeCharacterIndex].character != null)
+        if (activeCharacterIndex != -1)
         {
-            team[activeCharacterIndex].character.enabled = false;
-            var oldAnimator = team[activeCharacterIndex].character.GetComponent<MovementAnimator>();
-            if (oldAnimator != null) oldAnimator.enabled = false;
+            SetUnitControl(team[activeCharacterIndex], false);
         }
-        if (team[activeCharacterIndex].characterCamera != null)
-        {
-            team[activeCharacterIndex].characterCamera.gameObject.SetActive(false);
-        }
-
-        // 更新索引並啟用新的
         activeCharacterIndex = newIndex;
-        ControllableUnit newUnit = team[activeCharacterIndex];
+        SetUnitControl(team[activeCharacterIndex], true);
+    }
 
-        if (newUnit.character != null && newUnit.characterCamera != null && newUnit.cameraFollowTarget != null)
+    private void SetUnitControl(ControllableUnit unit, bool isActive)
+    {
+        if (unit.character != null)
         {
-            newUnit.characterCamera.gameObject.SetActive(true);
-            newUnit.character.enabled = true;
-            var newAnimator = newUnit.character.GetComponent<MovementAnimator>();
-            if (newAnimator != null) newAnimator.enabled = true;
-
-            newUnit.character.cameraTransform = newUnit.characterCamera.transform;
-            newUnit.characterCamera.FollowTarget = newUnit.cameraFollowTarget;
+            unit.character.enabled = isActive;
+            var animator = unit.character.GetComponent<MovementAnimator>();
+            if (animator != null) animator.enabled = isActive;
         }
-        else
+        if (unit.characterCamera != null)
         {
-            Debug.LogError($"團隊中索引為 {newIndex} 的單位設定不完整！");
+            unit.characterCamera.gameObject.SetActive(isActive);
+            if (isActive)
+            {
+                unit.character.cameraTransform = unit.characterCamera.transform;
+                unit.characterCamera.FollowTarget = unit.cameraFollowTarget;
+            }
         }
     }
 }
