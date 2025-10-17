@@ -1418,7 +1418,7 @@ MonoBehaviour:
   FollowTarget: {fileID: 957414671}
   offsetZ: 4
   offsetY: 2
-  rotateSpeed: 1
+  rotateSpeed: 0.3
   rotateLerp: 8
   pitchMin: -85
   pitchMax: 85
@@ -1626,7 +1626,7 @@ MonoBehaviour:
   FollowTarget: {fileID: 643507237}
   offsetZ: 4
   offsetY: 0.5
-  rotateSpeed: 3
+  rotateSpeed: 0.3
   rotateLerp: 8
   pitchMin: -85
   pitchMax: 85
