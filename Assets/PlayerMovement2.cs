@@ -1,30 +1,29 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-[RequireComponent(typeof(Rigidbody), typeof(CapsuleCollider))] // 改回 CapsuleCollider
+[RequireComponent(typeof(Rigidbody), typeof(CapsuleCollider))]
 public class PlayerMovement2 : MonoBehaviour
 {
     [Header("元件參考")]
     public Transform cameraTransform;
     private Rigidbody rb;
-    private CapsuleCollider capsuleCollider; // 我們需要明確引用它
+    private CapsuleCollider capsuleCollider;
 
-    // ... (移動、跳躍、重力等參數保持不變) ...
     [Header("移動設定")]
     [SerializeField] private float playerSpeed = 5.0f;
     [SerializeField] private float fastSpeed = 10.0f;
+
     [Header("跳躍與重力")]
     [SerializeField] private float jumpHeight = 1.5f;
     [SerializeField] private float gravityMultiplier = 2.5f;
 
-    [Header("地面檢測 (自適應)")]
-    [Tooltip("檢測球體的半徑，會自動匹配碰撞體。這個值是額外的縮放。")]
+    [Header("地面檢測 (全適應性)")]
+    [Tooltip("檢測球體半徑相對於碰撞體的縮放")]
     [SerializeField][Range(0.1f, 1f)] private float groundCheckRadiusModifier = 0.9f;
-    [Tooltip("額外的射線長度，提供一點容錯空間")]
+    [Tooltip("提供一點額外的射線長度以應對斜坡")]
     [SerializeField] private float groundCheckLeeway = 0.1f;
     [SerializeField] private LayerMask groundLayer;
 
-    // --- 輸入系統 ---
     private InputSystem_Actions playerActions;
     private Vector2 moveInput;
 
@@ -35,7 +34,7 @@ public class PlayerMovement2 : MonoBehaviour
     void Awake()
     {
         rb = GetComponent<Rigidbody>();
-        capsuleCollider = GetComponent<CapsuleCollider>(); // 取得 CapsuleCollider 的參考
+        capsuleCollider = GetComponent<CapsuleCollider>();
         rb.freezeRotation = true;
         playerActions = new InputSystem_Actions();
     }
@@ -63,22 +62,44 @@ public class PlayerMovement2 : MonoBehaviour
         ApplyExtraGravity();
     }
 
-    // ▼▼▼▼▼ 核心修改：全新的 GroundCheck ▼▼▼▼▼
+    // ▼▼▼▼▼ 【最終真理】 GroundCheck ▼▼▼▼▼
     private void GroundCheck()
     {
-        // 1. 計算射線的起點：物件的世界座標 + 碰撞體的中心偏移
-        Vector3 castOrigin = transform.position + capsuleCollider.center;
-
-        // 2. 計算射線需要行進的距離：從碰撞體中心到其底部邊緣的距離 + 一點額外空間
-        float castDistance = (capsuleCollider.height / 2f) - capsuleCollider.radius + groundCheckLeeway;
-
-        // 3. 計算 SphereCast 的半徑：匹配碰撞體的半徑，並稍微縮小一點避免卡牆
+        Vector3 castOrigin;
         float castRadius = capsuleCollider.radius * groundCheckRadiusModifier;
+        float castDistance;
 
-        // 4. 執行 SphereCast
+        // 根據 CapsuleCollider 的方向，使用不同的計算邏輯
+        switch (capsuleCollider.direction)
+        {
+            // 水平: X-Axis
+            case 0:
+                castOrigin = transform.position + new Vector3(capsuleCollider.center.x, capsuleCollider.center.y + (capsuleCollider.height / 2f) - castRadius, capsuleCollider.center.z);
+                castDistance = (capsuleCollider.height / 2f) - castRadius + groundCheckLeeway;
+                break;
+
+            // 垂直: Y-Axis (預設)
+            case 1:
+                castOrigin = transform.position + capsuleCollider.center;
+                castDistance = (capsuleCollider.height / 2f) - castRadius + groundCheckLeeway;
+                break;
+
+            // 水平: Z-Axis
+            case 2:
+                castOrigin = transform.position + new Vector3(capsuleCollider.center.x, capsuleCollider.center.y + (capsuleCollider.height / 2f) - castRadius, capsuleCollider.center.z);
+                castDistance = (capsuleCollider.height / 2f) - castRadius + groundCheckLeeway;
+                break;
+
+            default: // 備用
+                castOrigin = transform.position + capsuleCollider.center;
+                castDistance = (capsuleCollider.height / 2f) - castRadius + groundCheckLeeway;
+                break;
+        }
+
+        // 執行 SphereCast
         IsGrounded = Physics.SphereCast(castOrigin, castRadius, Vector3.down, out _, castDistance, groundLayer);
     }
-    // ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
+    // ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
 
     private void HandleMovement()
     {
@@ -111,16 +132,35 @@ public class PlayerMovement2 : MonoBehaviour
         }
     }
 
-    // ▼▼▼ 同步更新 Gizmos，讓你看見真實的檢測範圍 ▼▼▼
     private void OnDrawGizmosSelected()
     {
-        if (capsuleCollider == null) return; // 確保在編輯模式下不會報錯
+        if (capsuleCollider == null) capsuleCollider = GetComponent<CapsuleCollider>();
 
         Gizmos.color = IsGrounded ? Color.green : Color.red;
 
-        Vector3 castOrigin = transform.position + capsuleCollider.center;
-        float castDistance = (capsuleCollider.height / 2f) - capsuleCollider.radius + groundCheckLeeway;
+        Vector3 castOrigin;
         float castRadius = capsuleCollider.radius * groundCheckRadiusModifier;
+        float castDistance;
+
+        switch (capsuleCollider.direction)
+        {
+            case 0:
+                castOrigin = transform.position + new Vector3(capsuleCollider.center.x, capsuleCollider.center.y + (capsuleCollider.height / 2f) - castRadius, capsuleCollider.center.z);
+                castDistance = (capsuleCollider.height / 2f) - castRadius + groundCheckLeeway;
+                break;
+            case 1:
+                castOrigin = transform.position + capsuleCollider.center;
+                castDistance = (capsuleCollider.height / 2f) - castRadius + groundCheckLeeway;
+                break;
+            case 2:
+                castOrigin = transform.position + new Vector3(capsuleCollider.center.x, capsuleCollider.center.y + (capsuleCollider.height / 2f) - castRadius, capsuleCollider.center.z);
+                castDistance = (capsuleCollider.height / 2f) - castRadius + groundCheckLeeway;
+                break;
+            default:
+                castOrigin = transform.position + capsuleCollider.center;
+                castDistance = (capsuleCollider.height / 2f) - castRadius + groundCheckLeeway;
+                break;
+        }
 
         Gizmos.DrawWireSphere(castOrigin + Vector3.down * castDistance, castRadius);
     }
