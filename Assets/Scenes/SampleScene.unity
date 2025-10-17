@@ -398,7 +398,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MovementAnimator
   modelTransform: {fileID: 1108952196}
-  frequencyMultiplier: 1.5
+  frequencyMultiplier: 0.5
   overallIntensity: 1
   bobFrequencyX: 12
   bobFrequencyY: 15
@@ -1125,7 +1125,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MovementAnimator
   modelTransform: {fileID: 78840897}
-  frequencyMultiplier: 1.5
+  frequencyMultiplier: 0.5
   overallIntensity: 1
   bobFrequencyX: 12
   bobFrequencyY: 15
