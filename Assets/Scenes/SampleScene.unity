@@ -679,6 +679,7 @@ GameObject:
   m_Component:
   - component: {fileID: 593485718}
   - component: {fileID: 593485717}
+  - component: {fileID: 593485719}
   m_Layer: 0
   m_Name: NPC
   m_TagString: Untagged
@@ -723,6 +724,22 @@ Transform:
   - {fileID: 1889966510}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &593485719
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 593485716}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2ab86e1cd39a3aa448af852623c7dd70, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::NpcAI
+  alertIncreaseRate: 25
+  alertDecreaseRate: 10
+  movementThreshold: 0.1
+  currentAlertLevel: 0
 --- !u!1 &643507236
 GameObject:
   m_ObjectHideFlags: 0
