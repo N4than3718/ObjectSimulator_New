@@ -22,7 +22,9 @@ public class CamControl : MonoBehaviour
     private InputSystem_Actions playerActions;
     private float yaw = 0f;
     private float pitch = 0f;
+    private Vector2 lookInput; // 只用來儲存輸入值
 
+    // 這個公開屬性依然保留，給 MovementAnimator 使用
     public Vector2 RotationInput { get; private set; }
 
     void Awake()
@@ -33,14 +35,12 @@ public class CamControl : MonoBehaviour
     private void OnEnable()
     {
         playerActions.Player.Enable();
-        // ▼▼▼ 訂閱新的 UnlockCursor 事件 ▼▼▼
         playerActions.Player.UnlockCursor.performed += OnUnlockCursor;
     }
 
     private void OnDisable()
     {
         playerActions.Player.Disable();
-        // ▼▼▼ 取消訂閱事件，這是好習慣 ▼▼▼
         playerActions.Player.UnlockCursor.performed -= OnUnlockCursor;
     }
 
@@ -54,32 +54,35 @@ public class CamControl : MonoBehaviour
         Cursor.visible = false;
     }
 
+    // ▼▼▼ Update 現在只負責讀取輸入，不進行任何計算 ▼▼▼
     void Update()
     {
-        RotationInput = playerActions.Player.Look.ReadValue<Vector2>();
-
-        yaw += RotationInput.x * rotateSpeed;
-        pitch -= RotationInput.y * rotateSpeed;
-        pitch = Mathf.Clamp(pitch, pitchMin, pitchMax);
-
-        // 舊的 GetKeyDown 已經被移除
+        lookInput = playerActions.Player.Look.ReadValue<Vector2>();
+        RotationInput = lookInput; // 更新給 MovementAnimator 用的值
     }
 
-    // ▼▼▼ 這是新的事件處理函式 ▼▼▼
     private void OnUnlockCursor(InputAction.CallbackContext context)
     {
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
     }
-    // ▲▲▲▲▲▲▲▲▲▲▲▲▲▲
 
+    // ▼▼▼ 所有的計算和移動都發生在 FixedUpdate ▼▼▼
     void FixedUpdate()
     {
+        // 1. 在物理幀中，計算目標旋轉角度
+        yaw += lookInput.x * rotateSpeed;
+        pitch -= lookInput.y * rotateSpeed;
+        pitch = Mathf.Clamp(pitch, pitchMin, pitchMax);
+
+        // 2. 如果沒有目標，就什麼都不做
         if (FollowTarget == null) return;
 
+        // 3. 計算並平滑地更新旋轉
         Quaternion targetRotation = Quaternion.Euler(pitch, yaw, 0);
         transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, Time.fixedDeltaTime * rotateLerp);
 
+        // 4. 計算並更新位置
         Vector3 targetPos = FollowTarget.position;
         targetPos.y += offsetY;
         transform.position = targetPos - (transform.rotation * new Vector3(0, 0, offsetZ));
