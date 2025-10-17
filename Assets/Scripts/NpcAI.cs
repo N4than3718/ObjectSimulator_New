@@ -15,15 +15,10 @@ public class NpcAI : MonoBehaviour
     private int currentPatrolIndex = 0;
 
     [Header("警戒值設定")]
-    [Tooltip("低警戒度(0-99)下的警戒值上升速度")]
     [SerializeField] private float lowAlertIncreaseRate = 20f;
-    [Tooltip("低警戒度(0-99)下的警戒值下降速度")]
     [SerializeField] private float lowAlertDecreaseRate = 10f;
-    [Tooltip("中警戒度(100-199)下的警戒值上升速度")]
-    [SerializeField] private float mediumAlertIncreaseRate = 40f; // 速度提升
-    [Tooltip("中警戒度(100-199)下的警戒值下降速度")]
+    [SerializeField] private float mediumAlertIncreaseRate = 40f;
     [SerializeField] private float mediumAlertDecreaseRate = 15f;
-    [Tooltip("高警戒度(200)下的警戒值下降速度")]
     [SerializeField] private float highAlertDecreaseRate = 10f;
     [Tooltip("在中警戒度下，多久沒看到動靜就開始降警戒")]
     [SerializeField] private float timeToStartDecreasing = 3f;
@@ -79,29 +74,24 @@ public class NpcAI : MonoBehaviour
 
         if (movingTarget != null)
         {
-            // --- 核心修改：根據警戒等級使用不同上升速度 ---
             if (currentAlertLevel < 100)
             {
                 currentAlertLevel += lowAlertIncreaseRate * Time.deltaTime;
             }
             else
             {
-                // 進入中警戒，加速上升
                 currentAlertLevel += mediumAlertIncreaseRate * Time.deltaTime;
             }
             timeSinceLastSighting = 0f;
         }
         else
         {
-            // --- 核心修改：根據警戒等級使用不同下降邏輯 ---
             if (currentAlertLevel < 100)
             {
-                // 低警戒，直接下降
                 currentAlertLevel -= lowAlertDecreaseRate * Time.deltaTime;
             }
             else
             {
-                // 中警戒，計時後才下降
                 timeSinceLastSighting += Time.deltaTime;
                 if (timeSinceLastSighting >= timeToStartDecreasing)
                 {
@@ -110,7 +100,6 @@ public class NpcAI : MonoBehaviour
             }
         }
 
-        // 狀態轉換
         if (currentAlertLevel >= 200)
         {
             threatTarget = movingTarget;
@@ -127,10 +116,13 @@ public class NpcAI : MonoBehaviour
         navAgent.speed = chaseSpeed;
         currentAlertLevel -= highAlertDecreaseRate * Time.deltaTime;
 
+        // 判斷當前鎖定的威脅目標是否還在視野內
         if (threatTarget != null && fov.visibleTargets.Contains(threatTarget))
         {
+            // --- 情況 A: 目標還在視野內 ---
             navAgent.SetDestination(threatTarget.position);
-            lastSightingPosition = threatTarget.position;
+            lastSightingPosition = threatTarget.position; // 持續更新最後看到它的位置
+
             if (Vector3.Distance(transform.position, threatTarget.position) < 1.5f)
             {
                 Debug.Log($"抓住目標: {threatTarget.name}!");
@@ -138,16 +130,35 @@ public class NpcAI : MonoBehaviour
         }
         else
         {
+            // --- 情況 B: 目標已丟失 (不在視野內或不存在了) ---
+
+            // 前往最後一次看到目標的位置進行搜索
             navAgent.SetDestination(lastSightingPosition);
+
+            // 在前往搜索的途中，檢查是否有新的動靜
+            Transform newMovingTarget = CheckForMovingTargets();
+            if (newMovingTarget != null)
+            {
+                Debug.Log($"主要目標丟失！在前往調查時發現新目標: {newMovingTarget.name}");
+                threatTarget = newMovingTarget; // 切換到新的威脅目標
+                currentAlertLevel = 200f; // 重置警戒值，開始一次全新的追擊
+                // 直接返回，避免執行下面的「到達目的地」判斷
+                return;
+            }
+
+            // 如果已經到達最後已知位置，並且沒有發現新目標，則返回搜索狀態
             if (!navAgent.pathPending && navAgent.remainingDistance < 0.5f)
             {
+                Debug.Log("在最後已知位置未發現目標，返回搜索狀態。");
                 threatTarget = null;
                 currentState = NpcState.Searching;
             }
         }
 
+        // 如果警戒值自然下降到 100 以下，也返回搜索狀態
         if (currentAlertLevel < 100)
         {
+            Debug.Log("警戒值下降，解除警戒狀態。");
             threatTarget = null;
             currentState = NpcState.Searching;
         }
@@ -167,7 +178,7 @@ public class NpcAI : MonoBehaviour
             if (distanceMoved / Time.deltaTime > movementThreshold)
             {
                 detectedMovingTarget = target;
-                lastSightingPosition = target.position;
+                lastSightingPosition = target.position; // 只要看到移動，就更新最後動靜位置
             }
             lastKnownPositions[target] = target.position;
         }
