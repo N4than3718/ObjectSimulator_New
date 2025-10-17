@@ -8,16 +8,25 @@ public class MovementAnimator : MonoBehaviour
     public Transform modelTransform;
     private PlayerMovement playerMovement;
 
-    [Header("總體晃動強度")]
+    [Header("晃動設定")]
+    [Tooltip("將移動速度轉換為晃動頻率的基礎倍率")]
+    [SerializeField] private float frequencyMultiplier = 1.5f;
+    [Tooltip("總體晃動強度")]
     [SerializeField][Range(0f, 2f)] private float overallIntensity = 1f;
 
-    [Header("X/Y/Z 晃動參數")]
-    [SerializeField] private float bobFrequencyX = 12f;
+    [Header("X/Y/Z 晃動參數 (基礎頻率)")]
+    [Tooltip("X 軸的基礎晃動頻率")]
+    [SerializeField] private float bobFrequencyX = 1.0f;
+    [Tooltip("Y 軸的基礎晃動頻率")]
+    [SerializeField] private float bobFrequencyY = 1.2f; // 讓頻率錯開
+    [Tooltip("Z 軸的基礎晃動頻率")]
+    [SerializeField] private float bobFrequencyZ = 0.9f;
+
+    [Header("X/Y/Z 晃動幅度")]
     [SerializeField] private float bobAmplitudeX = 0.02f;
-    [SerializeField] private float bobFrequencyY = 15f;
     [SerializeField] private float bobAmplitudeY = 0.03f;
-    [SerializeField] private float bobFrequencyZ = 9f;
     [SerializeField] private float bobAmplitudeZ = 0.02f;
+
 
     private float timer = 0f;
     private Vector3 initialModelPosition;
@@ -33,7 +42,6 @@ public class MovementAnimator : MonoBehaviour
         initialModelPosition = modelTransform.localPosition;
     }
 
-    // OnEnable 函式現在是空的，可以移除，但我暫時保留以防未來擴充
     void OnEnable()
     {
         if (playerMovement == null) playerMovement = GetComponent<PlayerMovement>();
@@ -47,9 +55,9 @@ public class MovementAnimator : MonoBehaviour
 
         if (moveSpeed > 0.1f && playerMovement.IsGrounded)
         {
-            // 抖動頻率現在可以只跟一個基礎頻率關聯，或也可以跟速度掛鉤
-            timer += Time.fixedDeltaTime;
+            timer += Time.fixedDeltaTime * moveSpeed * frequencyMultiplier;
 
+            // 基礎頻率現在與速度決定的計時器相乘，產生最終的晃動頻率
             float offsetX = Mathf.Sin(timer * bobFrequencyX) * bobAmplitudeX;
             float offsetY = Mathf.Cos(timer * bobFrequencyY) * bobAmplitudeY;
             float offsetZ = Mathf.Sin(timer * bobFrequencyZ) * bobAmplitudeZ;
@@ -58,7 +66,6 @@ public class MovementAnimator : MonoBehaviour
         }
         else
         {
-            // 停止時平滑回到原位
             timer = 0;
             modelTransform.localPosition = Vector3.Lerp(modelTransform.localPosition, initialModelPosition, Time.fixedDeltaTime * 10f);
         }
