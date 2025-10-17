@@ -1,12 +1,12 @@
 using UnityEngine;
 
-[RequireComponent(typeof(PlayerMovement2))]
+[RequireComponent(typeof(PlayerMovement))]
 public class MovementAnimator : MonoBehaviour
 {
     // ... (所有參數和參考保持不變) ...
     [Header("元件參考")]
     public Transform modelTransform;
-    private PlayerMovement2 playerMovement;
+    private PlayerMovement playerMovement;
     private CamControl camControl;
     [Header("晃動設定")]
     [Tooltip("由旋轉視角產生的抖動強度倍率")]
@@ -26,7 +26,7 @@ public class MovementAnimator : MonoBehaviour
 
     void Start()
     {
-        playerMovement = GetComponent<PlayerMovement2>();
+        playerMovement = GetComponent<PlayerMovement>();
         if (modelTransform == null)
         {
             Debug.LogError("MovementAnimator 的 'Model Transform' 欄位是空的！", this);
@@ -37,7 +37,7 @@ public class MovementAnimator : MonoBehaviour
 
     void OnEnable()
     {
-        if (playerMovement == null) playerMovement = GetComponent<PlayerMovement2>();
+        if (playerMovement == null) playerMovement = GetComponent<PlayerMovement>();
         if (playerMovement != null && playerMovement.cameraTransform != null)
         {
             camControl = playerMovement.cameraTransform.GetComponent<CamControl>();

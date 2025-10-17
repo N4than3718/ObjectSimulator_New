@@ -6,8 +6,8 @@ using UnityEngine.InputSystem; // 導入新的 Input System 命名空間
 [System.Serializable]
 public class ControllableUnit
 {
-    [Tooltip("角色物件 (必須掛載 PlayerMovement2 腳本)")]
-    public PlayerMovement2 character;
+    [Tooltip("角色物件 (必須掛載 PlayerMovement 腳本)")]
+    public PlayerMovement character;
     [Tooltip("這個角色專屬的攝影機 (必須掛載 CamControl 腳本)")]
     public CamControl characterCamera;
     [Tooltip("攝影機實際要跟隨的點")]
