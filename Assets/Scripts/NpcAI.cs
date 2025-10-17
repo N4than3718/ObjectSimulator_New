@@ -5,7 +5,6 @@ using UnityEngine.AI;
 [RequireComponent(typeof(FieldOfView), typeof(NavMeshAgent))]
 public class NpcAI : MonoBehaviour
 {
-    // --- 移除 Idle，Searching 現在是基礎狀態 ---
     public enum NpcState { Searching, Alerted }
 
     [Header("AI 狀態")]
@@ -16,10 +15,17 @@ public class NpcAI : MonoBehaviour
     private int currentPatrolIndex = 0;
 
     [Header("警戒值設定")]
-    [SerializeField] private float increaseRate = 30f; // 統一的上升速度
-    [SerializeField] private float searchDecreaseRate = 15f; // Searching 狀態下的下降速度
-    [SerializeField] private float alertDecreaseRate = 10f;  // Alerted 狀態下的下降速度
-    [Tooltip("在 Searching 狀態下，多久沒看到動靜就開始降低警戒值")]
+    [Tooltip("低警戒度(0-99)下的警戒值上升速度")]
+    [SerializeField] private float lowAlertIncreaseRate = 20f;
+    [Tooltip("低警戒度(0-99)下的警戒值下降速度")]
+    [SerializeField] private float lowAlertDecreaseRate = 10f;
+    [Tooltip("中警戒度(100-199)下的警戒值上升速度")]
+    [SerializeField] private float mediumAlertIncreaseRate = 40f; // 速度提升
+    [Tooltip("中警戒度(100-199)下的警戒值下降速度")]
+    [SerializeField] private float mediumAlertDecreaseRate = 15f;
+    [Tooltip("高警戒度(200)下的警戒值下降速度")]
+    [SerializeField] private float highAlertDecreaseRate = 10f;
+    [Tooltip("在中警戒度下，多久沒看到動靜就開始降警戒")]
     [SerializeField] private float timeToStartDecreasing = 3f;
     [SerializeField] private float movementThreshold = 0.1f;
 
@@ -36,10 +42,7 @@ public class NpcAI : MonoBehaviour
     private Dictionary<Transform, Vector3> lastKnownPositions = new Dictionary<Transform, Vector3>();
     private float timeSinceLastSighting = 0f;
     private Vector3 lastSightingPosition;
-
-    // ▼▼▼ 關鍵新增：用來鎖定威脅目標 ▼▼▼
     private Transform threatTarget;
-    // ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
 
     void Awake()
     {
@@ -49,7 +52,6 @@ public class NpcAI : MonoBehaviour
 
     void Start()
     {
-        // 遊戲一開始就進入巡邏狀態
         currentState = NpcState.Searching;
         navAgent.speed = patrolSpeed;
     }
@@ -68,8 +70,6 @@ public class NpcAI : MonoBehaviour
         currentAlertLevel = Mathf.Clamp(currentAlertLevel, 0f, 200f);
     }
 
-    // --- 狀態邏輯 ---
-
     private void SearchingState()
     {
         navAgent.speed = patrolSpeed;
@@ -79,36 +79,45 @@ public class NpcAI : MonoBehaviour
 
         if (movingTarget != null)
         {
-            // 看到移動目標，增加警戒值
-            currentAlertLevel += increaseRate * Time.deltaTime;
+            // --- 核心修改：根據警戒等級使用不同上升速度 ---
+            if (currentAlertLevel < 100)
+            {
+                currentAlertLevel += lowAlertIncreaseRate * Time.deltaTime;
+            }
+            else
+            {
+                // 進入中警戒，加速上升
+                currentAlertLevel += mediumAlertIncreaseRate * Time.deltaTime;
+            }
             timeSinceLastSighting = 0f;
         }
         else
         {
-            // 沒看到，開始計時並下降警戒值
-            timeSinceLastSighting += Time.deltaTime;
-            if (timeSinceLastSighting >= timeToStartDecreasing)
+            // --- 核心修改：根據警戒等級使用不同下降邏輯 ---
+            if (currentAlertLevel < 100)
             {
-                currentAlertLevel -= searchDecreaseRate * Time.deltaTime;
+                // 低警戒，直接下降
+                currentAlertLevel -= lowAlertDecreaseRate * Time.deltaTime;
+            }
+            else
+            {
+                // 中警戒，計時後才下降
+                timeSinceLastSighting += Time.deltaTime;
+                if (timeSinceLastSighting >= timeToStartDecreasing)
+                {
+                    currentAlertLevel -= mediumAlertDecreaseRate * Time.deltaTime;
+                }
             }
         }
 
-        // 狀態轉換：當警戒值達到 200
+        // 狀態轉換
         if (currentAlertLevel >= 200)
         {
-            // ▼▼▼ 鎖定當前造成威脅的目標 ▼▼▼
             threatTarget = movingTarget;
             if (threatTarget != null)
             {
                 currentState = NpcState.Alerted;
                 Debug.Log($"狀態改變: Searching -> Alerted! 鎖定目標: {threatTarget.name}");
-            }
-            else
-            {
-                // 如果在達到200的瞬間目標剛好消失，做個保險，直接去最後的位置
-                currentState = NpcState.Alerted;
-                threatTarget = null; // 清空目標
-                Debug.Log("狀態改變: Searching -> Alerted! 目標已消失，前往最後已知位置。");
             }
         }
     }
@@ -116,51 +125,37 @@ public class NpcAI : MonoBehaviour
     private void AlertedState()
     {
         navAgent.speed = chaseSpeed;
-        currentAlertLevel -= alertDecreaseRate * Time.deltaTime;
+        currentAlertLevel -= highAlertDecreaseRate * Time.deltaTime;
 
-        // --- 核心修改：只追擊鎖定的 threatTarget ---
         if (threatTarget != null && fov.visibleTargets.Contains(threatTarget))
         {
-            // 如果威脅目標還在視野內，就持續追擊它
             navAgent.SetDestination(threatTarget.position);
-            lastSightingPosition = threatTarget.position; // 持續更新最後看到它的位置
-
+            lastSightingPosition = threatTarget.position;
             if (Vector3.Distance(transform.position, threatTarget.position) < 1.5f)
             {
                 Debug.Log($"抓住目標: {threatTarget.name}!");
-                // 可以在這裡觸發抓住後的邏輯
             }
         }
         else
         {
-            // 如果威脅目標不在視野內 (跟丟了)
             navAgent.SetDestination(lastSightingPosition);
-
-            // 如果已經到達最後位置，就解除鎖定並回到搜索狀態
             if (!navAgent.pathPending && navAgent.remainingDistance < 0.5f)
             {
-                Debug.Log("目標丟失，解除警戒。");
                 threatTarget = null;
                 currentState = NpcState.Searching;
             }
         }
 
-        // 狀態轉換：當警戒值降回 100 以下
         if (currentAlertLevel < 100)
         {
-            Debug.Log("警戒值下降，解除警戒。");
-            threatTarget = null; // 解除目標鎖定
+            threatTarget = null;
             currentState = NpcState.Searching;
         }
     }
 
-    // --- 輔助函式 ---
-
-    // 這個函式現在回傳第一個被偵測到移動的目標
     private Transform CheckForMovingTargets()
     {
         Transform detectedMovingTarget = null;
-
         foreach (Transform target in fov.visibleTargets)
         {
             if (!lastKnownPositions.ContainsKey(target))
@@ -177,7 +172,6 @@ public class NpcAI : MonoBehaviour
             lastKnownPositions[target] = target.position;
         }
 
-        // 清理不在視野內的目標
         var targetsToForget = new List<Transform>();
         foreach (var pair in lastKnownPositions) { if (!fov.visibleTargets.Contains(pair.Key)) targetsToForget.Add(pair.Key); }
         foreach (Transform target in targetsToForget) { lastKnownPositions.Remove(target); }
