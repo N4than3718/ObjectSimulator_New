@@ -1,5 +1,7 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
+using System.Collections.Generic; // 需要這個來使用 List
+using System.Linq; // 需要這個來使用 Linq
 
 [RequireComponent(typeof(Camera))]
 public class SpectatorController : MonoBehaviour
@@ -10,12 +12,19 @@ public class SpectatorController : MonoBehaviour
 
     [Header("References")]
     [SerializeField] private TeamManager teamManager;
+    [Header("Highlighting")]
+    [Tooltip("將你做好的黃色高亮 Material 拖到這裡")]
+    [SerializeField] private Material highlightMaterial;
 
     private InputSystem_Actions inputActions;
     private Camera spectatorCamera;
 
     private float yaw;
     private float pitch;
+
+    // --- 新增的變數，用來管理高亮狀態 ---
+    private Renderer currentlyHighlighted;
+    private Material[] originalMaterials;
 
     void Awake()
     {
@@ -29,13 +38,14 @@ public class SpectatorController : MonoBehaviour
         inputActions.Spectator.Select.performed += OnSelectPerformed;
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
-        Debug.Log("Spectator Mode Enabled.");
     }
 
     private void OnDisable()
     {
         inputActions.Spectator.Disable();
         inputActions.Spectator.Select.performed -= OnSelectPerformed;
+        // 確保離開模式時，清除所有高亮
+        RestoreOriginalMaterials();
     }
 
     void Start()
@@ -48,6 +58,7 @@ public class SpectatorController : MonoBehaviour
     {
         HandleLook();
         HandleMovement();
+        HandleHighlight(); // 在每一幀都處理高亮邏輯
     }
 
     private void HandleLook()
@@ -59,33 +70,79 @@ public class SpectatorController : MonoBehaviour
         transform.localRotation = Quaternion.Euler(pitch, yaw, 0);
     }
 
-    // ▼▼▼ 核心修改在這裡 ▼▼▼
     private void HandleMovement()
     {
-        // 1. 讀取水平移動輸入
         Vector2 moveInput = inputActions.Spectator.Move.ReadValue<Vector2>();
-        Vector3 horizontalMove = (transform.forward * moveInput.y + transform.right * moveInput.x);
-
-        // 2. 讀取垂直移動輸入
         float ascendInput = inputActions.Spectator.Ascend.ReadValue<float>();
         float descendInput = inputActions.Spectator.Descend.ReadValue<float>();
-        Vector3 verticalMove = Vector3.up * (ascendInput - descendInput);
 
-        // 3. 合併移動向量並應用
-        Vector3 finalMove = (horizontalMove + verticalMove).normalized;
-        transform.position += finalMove * moveSpeed * Time.deltaTime;
+        Vector3 moveDirection = (transform.forward * moveInput.y + transform.right * moveInput.x + Vector3.up * (ascendInput - descendInput)).normalized;
+        transform.position += moveDirection * moveSpeed * Time.deltaTime;
     }
-    // ▲▲▲▲▲▲▲▲▲▲▲▲▲▲
+
+    // ▼▼▼ 全新的高亮處理邏輯 ▼▼▼
+    private void HandleHighlight()
+    {
+        Ray ray = spectatorCamera.ScreenPointToRay(Mouse.current.position.ReadValue());
+
+        if (Physics.Raycast(ray, out RaycastHit hit, 200f))
+        {
+            // 檢查是否射中了帶有 "Controllable" Tag 的物件
+            if (hit.collider.CompareTag("Controllable"))
+            {
+                // 獲取物件上的第一個 Renderer 元件
+                var renderer = hit.transform.GetComponentInChildren<Renderer>();
+                if (renderer != null)
+                {
+                    // 如果這是一個新的物件，就切換高亮
+                    if (currentlyHighlighted != renderer)
+                    {
+                        RestoreOriginalMaterials(); // 先移除舊的高亮
+                        currentlyHighlighted = renderer;
+                        StoreAndApplyHighlight(); // 再套用新的高亮
+                    }
+                    return; // 處理完畢，直接返回
+                }
+            }
+        }
+
+        // 如果射線沒打到任何東西，或打到的不是可操控物件，就清除高亮
+        RestoreOriginalMaterials();
+        currentlyHighlighted = null;
+    }
+
+    private void StoreAndApplyHighlight()
+    {
+        if (currentlyHighlighted == null || highlightMaterial == null) return;
+
+        // 儲存原始的材質列表
+        originalMaterials = currentlyHighlighted.materials;
+
+        // 創建一個新的材質列表，包含所有原始材質，再加上我們的高亮材質
+        var newMaterials = originalMaterials.ToList();
+        newMaterials.Add(highlightMaterial);
+        currentlyHighlighted.materials = newMaterials.ToArray();
+    }
+
+    private void RestoreOriginalMaterials()
+    {
+        if (currentlyHighlighted != null && originalMaterials != null)
+        {
+            // 還原原始的材質列表
+            currentlyHighlighted.materials = originalMaterials;
+        }
+        // 清空狀態
+        currentlyHighlighted = null;
+        originalMaterials = null;
+    }
+    // ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
 
     private void OnSelectPerformed(InputAction.CallbackContext context)
     {
-        Ray ray = spectatorCamera.ScreenPointToRay(Mouse.current.position.ReadValue());
-        if (Physics.Raycast(ray, out RaycastHit hit, 200f))
+        // 只有當高亮了一個物件時，點擊才有效
+        if (currentlyHighlighted != null)
         {
-            if (hit.collider.CompareTag("Controllable"))
-            {
-                teamManager.PossessCharacter(hit.transform.root.gameObject);
-            }
+            teamManager.PossessCharacter(currentlyHighlighted.transform.root.gameObject);
         }
     }
 }
