@@ -381,6 +381,7 @@ MonoBehaviour:
   moveSpeed: 30
   lookSensitivity: 0.3
   teamManager: {fileID: 1493841722}
+  highlightMaterial: {fileID: 2100000, guid: 6539271f926886640a9e4ca63e350961, type: 2}
 --- !u!1 &340754700
 GameObject:
   m_ObjectHideFlags: 0
