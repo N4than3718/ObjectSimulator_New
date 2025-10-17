@@ -3,16 +3,17 @@ using UnityEngine;
 [RequireComponent(typeof(PlayerMovement))]
 public class MovementAnimator : MonoBehaviour
 {
-    // ... (所有參數和參考保持不變) ...
     [Header("元件參考")]
     public Transform modelTransform;
     private PlayerMovement playerMovement;
     private CamControl camControl;
+
     [Header("晃動設定")]
     [Tooltip("由旋轉視角產生的抖動強度倍率")]
     [SerializeField] private float rotationShakeMultiplier = 50f;
     [Header("總體晃動強度")]
     [SerializeField][Range(0f, 2f)] private float overallIntensity = 1f;
+
     [Header("X/Y/Z 晃動參數")]
     [SerializeField] private float bobFrequencyX = 12f;
     [SerializeField] private float bobAmplitudeX = 0.02f;
@@ -48,11 +49,12 @@ public class MovementAnimator : MonoBehaviour
         }
     }
 
-    void Update()
+    void FixedUpdate()
     {
         if (modelTransform == null || playerMovement == null) return;
 
         float moveSpeed = playerMovement.CurrentHorizontalSpeed;
+
         float rotationSpeed = 0f;
         if (camControl != null)
         {
@@ -61,20 +63,20 @@ public class MovementAnimator : MonoBehaviour
 
         float totalSpeed = moveSpeed + rotationSpeed;
 
-        // ▼▼▼ 關鍵修改：新增 playerMovement.IsGrounded 判斷 ▼▼▼
         if (totalSpeed > 0.1f && playerMovement.IsGrounded)
         {
-            timer += Time.deltaTime * totalSpeed * 0.5f;
+            timer += Time.fixedDeltaTime;
+
             float offsetX = Mathf.Sin(timer * bobFrequencyX) * bobAmplitudeX;
             float offsetY = Mathf.Cos(timer * bobFrequencyY) * bobAmplitudeY;
             float offsetZ = Mathf.Sin(timer * bobFrequencyZ) * bobAmplitudeZ;
+
             modelTransform.localPosition = initialModelPosition + new Vector3(offsetX, offsetY, offsetZ) * overallIntensity;
         }
         else
         {
             timer = 0;
-            modelTransform.localPosition = Vector3.Lerp(modelTransform.localPosition, initialModelPosition, Time.deltaTime * 10f);
+            modelTransform.localPosition = Vector3.Lerp(modelTransform.localPosition, initialModelPosition, Time.fixedDeltaTime * 10f);
         }
-        // ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
     }
 }
