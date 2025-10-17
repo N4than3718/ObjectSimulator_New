@@ -130,7 +130,7 @@ PrefabInstance:
   serializedVersion: 2
   m_Modification:
     serializedVersion: 3
-    m_TransformParent: {fileID: 0}
+    m_TransformParent: {fileID: 593485718}
     m_Modifications:
     - target: {fileID: -8679921383154817045, guid: 03626e18c9d2f7b45bab3d11d6f2c5c6, type: 3}
       propertyPath: m_LocalScale.x
@@ -146,7 +146,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 03626e18c9d2f7b45bab3d11d6f2c5c6, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 2.4123974
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 03626e18c9d2f7b45bab3d11d6f2c5c6, type: 3}
       propertyPath: m_LocalPosition.y
@@ -154,7 +154,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 03626e18c9d2f7b45bab3d11d6f2c5c6, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 7.1409464
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 03626e18c9d2f7b45bab3d11d6f2c5c6, type: 3}
       propertyPath: m_LocalRotation.w
@@ -166,7 +166,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 03626e18c9d2f7b45bab3d11d6f2c5c6, type: 3}
       propertyPath: m_LocalRotation.y
-      value: 0
+      value: -0
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 03626e18c9d2f7b45bab3d11d6f2c5c6, type: 3}
       propertyPath: m_LocalRotation.z
@@ -347,7 +347,7 @@ GameObject:
   - component: {fileID: 340754703}
   - component: {fileID: 340754702}
   - component: {fileID: 340754701}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: Mug
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -533,6 +533,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Mug
       objectReference: {fileID: 0}
+    - target: {fileID: 4095986134187499740, guid: 8c2e97a1190b9df40bfdeef2410d812f, type: 3}
+      propertyPath: m_Layer
+      value: 6
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -665,6 +669,60 @@ MonoBehaviour:
   m_ShadowLayerMask: 1
   m_RenderingLayers: 1
   m_ShadowRenderingLayers: 1
+--- !u!1 &593485716
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 593485718}
+  - component: {fileID: 593485717}
+  m_Layer: 0
+  m_Name: NPC
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &593485717
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 593485716}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a8d2ad11ebd0bf94cba4e042d708c38c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::FieldOfView
+  viewRadius: 30
+  viewAngle: 120
+  targetMask:
+    serializedVersion: 2
+    m_Bits: 64
+  obstacleMask:
+    serializedVersion: 2
+    m_Bits: 129
+  visibleTargets: []
+--- !u!4 &593485718
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 593485716}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 8}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 1889966510}
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &643507236
 GameObject:
   m_ObjectHideFlags: 0
@@ -674,7 +732,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 643507237}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: Hammer FollowTarget
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -757,6 +815,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Hammer
       objectReference: {fileID: 0}
+    - target: {fileID: 8440785667469639183, guid: 41df444ea3a5a6047bf25530f442a1c3, type: 3}
+      propertyPath: m_Layer
+      value: 6
+      objectReference: {fileID: 0}
     - target: {fileID: 9108637429346870453, guid: 41df444ea3a5a6047bf25530f442a1c3, type: 3}
       propertyPath: m_LocalScale.x
       value: 5
@@ -827,7 +889,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 957414671}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: Mug FollowTarget
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -867,7 +929,7 @@ GameObject:
   - component: {fileID: 1190774500}
   - component: {fileID: 1190774499}
   - component: {fileID: 1190774498}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: Hammer
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1110,7 +1172,7 @@ GameObject:
   - component: {fileID: 1402469983}
   - component: {fileID: 1402469982}
   - component: {fileID: 1402469981}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: Mug Cam
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1318,7 +1380,7 @@ GameObject:
   - component: {fileID: 1746449006}
   - component: {fileID: 1746449005}
   - component: {fileID: 1746449004}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: Hammer Cam
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1462,6 +1524,11 @@ Camera:
   m_OcclusionCulling: 1
   m_StereoConvergence: 10
   m_StereoSeparation: 0.022
+--- !u!4 &1889966510 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 03626e18c9d2f7b45bab3d11d6f2c5c6, type: 3}
+  m_PrefabInstance: {fileID: 151013341}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
@@ -1473,4 +1540,4 @@ SceneRoots:
   - {fileID: 1363107013}
   - {fileID: 340754705}
   - {fileID: 1190774502}
-  - {fileID: 151013341}
+  - {fileID: 593485718}
