@@ -319,8 +319,8 @@ MonoBehaviour:
   fastSpeed: 10
   jumpHeight: 1.5
   gravityMultiplier: 2.5
-  groundCheckRadius: 0.4
-  groundCheckDistance: 0.6
+  groundCheckRadiusModifier: 0.9
+  groundCheckLeeway: 0.1
   groundLayer:
     serializedVersion: 2
     m_Bits: 256
@@ -839,8 +839,8 @@ MonoBehaviour:
   fastSpeed: 10
   jumpHeight: 1.5
   gravityMultiplier: 2.5
-  groundCheckRadius: 0.4
-  groundCheckDistance: 0.6
+  groundCheckRadiusModifier: 0.9
+  groundCheckLeeway: 0.1
   groundLayer:
     serializedVersion: 2
     m_Bits: 256
