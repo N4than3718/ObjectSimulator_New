@@ -4,13 +4,10 @@ using UnityEngine;
 public class MovementAnimator : MonoBehaviour
 {
     [Header("元件參考")]
+    [Tooltip("要晃動的模型 Transform")]
     public Transform modelTransform;
     private PlayerMovement playerMovement;
-    private CamControl camControl;
 
-    [Header("晃動設定")]
-    [Tooltip("由旋轉視角產生的抖動強度倍率")]
-    [SerializeField] private float rotationShakeMultiplier = 50f;
     [Header("總體晃動強度")]
     [SerializeField][Range(0f, 2f)] private float overallIntensity = 1f;
 
@@ -36,17 +33,10 @@ public class MovementAnimator : MonoBehaviour
         initialModelPosition = modelTransform.localPosition;
     }
 
+    // OnEnable 函式現在是空的，可以移除，但我暫時保留以防未來擴充
     void OnEnable()
     {
         if (playerMovement == null) playerMovement = GetComponent<PlayerMovement>();
-        if (playerMovement != null && playerMovement.cameraTransform != null)
-        {
-            camControl = playerMovement.cameraTransform.GetComponent<CamControl>();
-        }
-        if (camControl == null)
-        {
-            Debug.LogError("MovementAnimator 在啟用時找不到 CamControl 腳本！", this);
-        }
     }
 
     void FixedUpdate()
@@ -55,16 +45,9 @@ public class MovementAnimator : MonoBehaviour
 
         float moveSpeed = playerMovement.CurrentHorizontalSpeed;
 
-        float rotationSpeed = 0f;
-        if (camControl != null)
+        if (moveSpeed > 0.1f && playerMovement.IsGrounded)
         {
-            rotationSpeed = camControl.RotationInput.magnitude * rotationShakeMultiplier;
-        }
-
-        float totalSpeed = moveSpeed + rotationSpeed;
-
-        if (totalSpeed > 0.1f && playerMovement.IsGrounded)
-        {
+            // 抖動頻率現在可以只跟一個基礎頻率關聯，或也可以跟速度掛鉤
             timer += Time.fixedDeltaTime;
 
             float offsetX = Mathf.Sin(timer * bobFrequencyX) * bobAmplitudeX;
@@ -75,6 +58,7 @@ public class MovementAnimator : MonoBehaviour
         }
         else
         {
+            // 停止時平滑回到原位
             timer = 0;
             modelTransform.localPosition = Vector3.Lerp(modelTransform.localPosition, initialModelPosition, Time.fixedDeltaTime * 10f);
         }
