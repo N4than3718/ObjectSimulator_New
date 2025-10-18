@@ -2,13 +2,15 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
+// ▼▼▼ 核心修改：確保 ControllableUnit 定義在 TeamManager 外部 ▼▼▼
 [System.Serializable]
 public class ControllableUnit
 {
-    public PlayerMovement character;
+    public PlayerMovement character; // 確認是 PlayerMovement
     public CamControl characterCamera;
     public Transform cameraFollowTarget;
 }
+// ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
 
 public class TeamManager : MonoBehaviour
 {
@@ -19,6 +21,7 @@ public class TeamManager : MonoBehaviour
 
     [Header("Team Setup")]
     private const int MaxTeamSize = 8;
+    // 現在這裡可以正確找到 ControllableUnit 了
     public ControllableUnit[] team = new ControllableUnit[MaxTeamSize];
 
     [Header("Scene References")]
@@ -27,120 +30,106 @@ public class TeamManager : MonoBehaviour
     private int activeCharacterIndex = -1;
     private InputSystem_Actions playerActions;
 
+    // --- Awake ---
     void Awake()
     {
         playerActions = new InputSystem_Actions();
         for (int i = 0; i < team.Length; i++) team[i] = null;
     }
 
+    // --- OnEnable ---
     private void OnEnable()
     {
+        // 確保 playerActions 實例存在
+        if (playerActions == null) playerActions = new InputSystem_Actions();
         playerActions.Player.Enable();
-        playerActions.Player.Next.performed += ctx => SwitchNextCharacter();
-        playerActions.Player.Previous.performed += ctx => SwitchPreviousCharacter();
+
+        // ▼▼▼ 核心修改：檢查 Action 是否存在 ▼▼▼
+        if (playerActions.Player.Next != null)
+            playerActions.Player.Next.performed += ctx => SwitchNextCharacter();
+        else
+            Debug.LogError("Input Action 'SwitchNext' not found in Player map!");
+
+        if (playerActions.Player.Previous != null)
+            playerActions.Player.Previous.performed += ctx => SwitchPreviousCharacter();
+        else
+            Debug.LogError("Input Action 'SwitchPrevious' not found in Player map!");
+        // ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
     }
 
+    // --- OnDisable ---
     private void OnDisable()
     {
-        playerActions.Player.Disable();
-        playerActions.Player.Next.performed -= ctx => SwitchNextCharacter();
-        playerActions.Player.Previous.performed -= ctx => SwitchPreviousCharacter();
+        if (playerActions != null)
+        {
+            playerActions.Player.Disable();
+            // 同樣加上 null 檢查
+            if (playerActions.Player.Next != null)
+                playerActions.Player.Next.performed -= ctx => SwitchNextCharacter();
+            if (playerActions.Player.Previous != null)
+                playerActions.Player.Previous.performed -= ctx => SwitchPreviousCharacter();
+        }
     }
 
+    // --- Start ---
     void Start()
     {
         if (spectatorCameraObject == null) { Debug.LogError("Spectator Camera Object not assigned!"); return; }
+
+        // 禁用場景中所有 PlayerMovement (假設它們一開始就在場景裡)
         var allCharacters = FindObjectsByType<PlayerMovement>(FindObjectsSortMode.None);
         foreach (var characterScript in allCharacters)
         {
             var unit = FindUnitByCharacter(characterScript.gameObject);
-            SetUnitControl(unit, false, true);
+            SetUnitControl(unit, false, true); // 強制禁用
         }
         EnterSpectatorMode();
     }
 
-    // ▼▼▼ 新增的公開方法 ▼▼▼
-    public bool IsInTeam(GameObject characterObject)
-    {
-        for (int i = 0; i < team.Length; i++)
-        {
-            if (team[i] != null && team[i].character != null && team[i].character.gameObject == characterObject)
-            {
-                return true; // 找到了
-            }
-        }
-        return false; // 沒找到
-    }
-    // ▲▲▲▲▲▲▲▲▲▲▲▲▲
+    // --- Update (空的) ---
+    void Update() { }
 
-    // PossessCharacter 現在只負責「附身」，不再包含「加入」邏輯
+    // --- PossessCharacter ---
     public void PossessCharacter(GameObject characterObject)
     {
-        // 檢查是否已在隊伍中
         for (int i = 0; i < team.Length; i++)
         {
-            if (team[i] != null && team[i].character != null && team[i].character.gameObject == characterObject)
-            {
-                EnterPossessingMode(i); // 直接附身
-                return;
-            }
+            if (team[i]?.character?.gameObject == characterObject) { EnterPossessingMode(i); return; }
         }
-        // 如果不在隊伍中 (Spectator 點擊了一個未加入的物件)，嘗試加入
-        TryAddCharacterToTeam(characterObject, true); // 傳入 true 表示加入後立刻附身
+        TryAddCharacterToTeam(characterObject, true);
     }
 
-    // ▼▼▼ 新增的公開方法，供 PlayerMovement 呼叫 ▼▼▼
+    // --- TryAddCharacterToTeam ---
     public bool TryAddCharacterToTeam(GameObject characterObject, bool possessAfterAdding = false)
     {
-        // 1. 檢查是否已在隊伍中
         for (int i = 0; i < team.Length; i++)
         {
-            if (team[i] != null && team[i].character != null && team[i].character.gameObject == characterObject)
+            if (team[i]?.character?.gameObject == characterObject)
             {
                 Debug.Log($"{characterObject.name} is already in the team.");
-                // 如果要求加入後附身，就直接附身
                 if (possessAfterAdding) EnterPossessingMode(i);
-                return false; // 告知 PlayerMovement 其實沒加成功 (因為本來就在)
+                return false;
             }
         }
-
-        // 2. 尋找空格
         int emptySlotIndex = -1;
         for (int i = 0; i < team.Length; i++) { if (team[i] == null || team[i].character == null) { emptySlotIndex = i; break; } }
-
-        // 3. 加入隊伍
         if (emptySlotIndex != -1)
         {
             PlayerMovement pm = characterObject.GetComponent<PlayerMovement>();
             CamControl cam = characterObject.GetComponentInChildren<CamControl>(true);
             Transform followTarget = FindInChildren(characterObject.transform, "CameraFollowTarget") ?? characterObject.transform;
-
             if (pm == null || cam == null) { Debug.LogError($"Object {characterObject.name} cannot be added, missing components!"); return false; }
-
             ControllableUnit newUnit = new ControllableUnit { character = pm, characterCamera = cam, cameraFollowTarget = followTarget };
             team[emptySlotIndex] = newUnit;
             Debug.Log($"Added {characterObject.name} to team slot {emptySlotIndex}.");
-
-            // 根據參數決定是否立刻附身
-            if (possessAfterAdding)
-            {
-                EnterPossessingMode(emptySlotIndex);
-            }
-            else
-            {
-                // 如果不立刻附身，要確保新加入的成員的控制是關閉的
-                SetUnitControl(newUnit, false, true);
-            }
-            return true; // 告知 PlayerMovement 添加成功
+            if (possessAfterAdding) { EnterPossessingMode(emptySlotIndex); }
+            else { SetUnitControl(newUnit, false, true); }
+            return true;
         }
-        else
-        {
-            Debug.Log("Team is full!");
-            return false; // 告知 PlayerMovement 隊伍已滿
-        }
+        else { Debug.Log("Team is full!"); return false; }
     }
-    // ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
 
+    // --- EnterSpectatorMode ---
     private void EnterSpectatorMode()
     {
         currentState = GameState.Spectator;
@@ -152,6 +141,7 @@ public class TeamManager : MonoBehaviour
         spectatorCameraObject.SetActive(true);
     }
 
+    // --- EnterPossessingMode ---
     private void EnterPossessingMode(int newIndex)
     {
         currentState = GameState.Possessing;
@@ -160,6 +150,7 @@ public class TeamManager : MonoBehaviour
         Debug.Log($"Possessing {team[newIndex].character.name} (Slot {newIndex}).");
     }
 
+    // --- SwitchNextCharacter ---
     private void SwitchNextCharacter()
     {
         if (currentState != GameState.Possessing || team.Length <= 1) return;
@@ -167,10 +158,12 @@ public class TeamManager : MonoBehaviour
         int nextIndex = (activeCharacterIndex + 1) % team.Length;
         while (nextIndex != initialIndex)
         {
-            if (team[nextIndex] != null && team[nextIndex].character != null) { SwitchToCharacter(nextIndex); return; }
+            if (team[nextIndex]?.character != null) { SwitchToCharacter(nextIndex); return; } // 簡化 null 檢查
             nextIndex = (nextIndex + 1) % team.Length;
         }
     }
+
+    // --- SwitchPreviousCharacter ---
     private void SwitchPreviousCharacter()
     {
         if (currentState != GameState.Possessing || team.Length <= 1) return;
@@ -178,11 +171,12 @@ public class TeamManager : MonoBehaviour
         int prevIndex = (activeCharacterIndex - 1 + team.Length) % team.Length;
         while (prevIndex != initialIndex)
         {
-            if (team[prevIndex] != null && team[prevIndex].character != null) { SwitchToCharacter(prevIndex); return; }
+            if (team[prevIndex]?.character != null) { SwitchToCharacter(prevIndex); return; } // 簡化 null 檢查
             prevIndex = (prevIndex - 1 + team.Length) % team.Length;
         }
     }
 
+    // --- SwitchToCharacter ---
     private void SwitchToCharacter(int newIndex)
     {
         if (activeCharacterIndex != -1 && activeCharacterIndex < team.Length && team[activeCharacterIndex] != null)
@@ -193,9 +187,10 @@ public class TeamManager : MonoBehaviour
         SetUnitControl(team[activeCharacterIndex], true);
     }
 
+    // --- SetUnitControl ---
     private void SetUnitControl(ControllableUnit unit, bool isActive, bool forceDisable = false)
     {
-        if (unit == null || unit.character == null) return;
+        if (unit?.character == null) return; // 簡化 null 檢查
 
         unit.character.enabled = isActive;
         var animator = unit.character.GetComponent<MovementAnimator>();
@@ -216,6 +211,7 @@ public class TeamManager : MonoBehaviour
         }
     }
 
+    // --- FindInChildren ---
     private Transform FindInChildren(Transform parent, string name)
     {
         foreach (Transform child in parent)
@@ -227,13 +223,21 @@ public class TeamManager : MonoBehaviour
         return null;
     }
 
+    // --- FindUnitByCharacter ---
     private ControllableUnit FindUnitByCharacter(GameObject charObject)
     {
-        for (int i = 0; i < team.Length; ++i) { if (team[i] != null && team[i].character != null && team[i].character.gameObject == charObject) { return team[i]; } }
+        for (int i = 0; i < team.Length; ++i) { if (team[i]?.character?.gameObject == charObject) { return team[i]; } } // 簡化 null 檢查
         PlayerMovement pm = charObject.GetComponent<PlayerMovement>();
         CamControl cam = charObject.GetComponentInChildren<CamControl>(true);
         Transform followTarget = FindInChildren(charObject.transform, "CameraFollowTarget") ?? charObject.transform;
         if (pm != null && cam != null) { return new ControllableUnit { character = pm, characterCamera = cam, cameraFollowTarget = followTarget }; }
         return null;
+    }
+
+    // --- IsInTeam ---
+    public bool IsInTeam(GameObject characterObject)
+    {
+        for (int i = 0; i < team.Length; i++) { if (team[i]?.character?.gameObject == characterObject) { return true; } } // 簡化 null 檢查
+        return false;
     }
 }
