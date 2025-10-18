@@ -160,7 +160,7 @@ public class TeamManager : MonoBehaviour
         {
             PlayerMovement pm = characterObject.GetComponent<PlayerMovement>();
             CamControl cam = characterObject.GetComponentInChildren<CamControl>(true);
-            Transform followTarget = FindInChildren(characterObject.transform, "CameraFollowTarget") ?? characterObject.transform;
+            Transform followTarget = FindInChildren(characterObject.transform, "Cam FollowTarget") ?? characterObject.transform;
             if (pm == null || cam == null) { Debug.LogError($"Object {characterObject.name} cannot be added, missing components!"); return false; }
             ControllableUnit newUnit = new ControllableUnit { character = pm, characterCamera = cam, cameraFollowTarget = followTarget };
             team[emptySlotIndex] = newUnit;
