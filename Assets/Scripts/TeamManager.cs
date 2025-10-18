@@ -2,15 +2,13 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-// ▼▼▼ 確保 ControllableUnit 定義在 TeamManager 外部 ▼▼▼
 [System.Serializable]
 public class ControllableUnit
 {
-    public PlayerMovement character; // 確保引用的是 PlayerMovement
+    public PlayerMovement character;
     public CamControl characterCamera;
     public Transform cameraFollowTarget;
 }
-// ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
 
 public class TeamManager : MonoBehaviour
 {
@@ -29,6 +27,8 @@ public class TeamManager : MonoBehaviour
 
     [Header("References (Add HighlightManager)")]
     [SerializeField] private HighlightManager highlightManager; // 把 HighlightManager 拖到這裡
+
+    private SpectatorController spectatorController;
 
     private int activeCharacterIndex = -1;
     private InputSystem_Actions playerActions;
@@ -71,10 +71,14 @@ public class TeamManager : MonoBehaviour
     {
         playerActions = new InputSystem_Actions();
         for (int i = 0; i < team.Length; i++) team[i] = null;
-        // ▼▼▼ 自動查找 HighlightManager ▼▼▼
         if (highlightManager == null) highlightManager = FindAnyObjectByType<HighlightManager>();
         if (highlightManager == null) Debug.LogError("TeamManager cannot find HighlightManager!");
-        // ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
+
+        if (spectatorCameraObject != null)
+        {
+            spectatorController = spectatorCameraObject.GetComponent<SpectatorController>();
+        }
+        if (spectatorController == null) Debug.LogError("TeamManager cannot find SpectatorController on SpectatorCameraObject!");
     }
 
     // --- OnEnable ---
@@ -83,7 +87,6 @@ public class TeamManager : MonoBehaviour
         if (playerActions == null) playerActions = new InputSystem_Actions();
         playerActions.Player.Enable();
 
-        // ▼▼▼ 加入 Action 存在性檢查 ▼▼▼
         InputAction switchNextAction = playerActions.Player.Next;
         if (switchNextAction != null)
             switchNextAction.performed += ctx => SwitchNextCharacter();
@@ -95,7 +98,6 @@ public class TeamManager : MonoBehaviour
             switchPrevAction.performed += ctx => SwitchPreviousCharacter();
         else
             Debug.LogError("Input Action 'SwitchPrevious' not found in Player map! Please check InputSystem_Actions asset.");
-        // ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
     }
 
     // --- OnDisable ---
@@ -176,16 +178,13 @@ public class TeamManager : MonoBehaviour
             if (possessAfterAdding) { EnterPossessingMode(emptySlotIndex); }
             else { SetUnitControl(newUnit, false, true); }
 
-            // ▼▼▼ 加入新成員後，也強制更新一次高亮 ▼▼▼
             if (highlightManager != null) highlightManager.ForceHighlightUpdate();
-            // ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
 
             return true;
         }
         else { Debug.Log("Team is full!"); return false; }
     }
 
-    // ▼▼▼ 新增：移除角色的公開方法 ▼▼▼
     public void RemoveCharacterFromTeam(GameObject characterObject)
     {
         int foundIndex = -1;
@@ -226,7 +225,6 @@ public class TeamManager : MonoBehaviour
         else { Debug.LogWarning($"Attempted to remove {characterObject.name}, but it wasn't found."); }
     }
 
-    // ▼▼▼ 新增：尋找下一個可用角色的輔助方法 ▼▼▼
     private void SwitchToPreviousOrSpectator(int removedIndex)
     {
         int nextAvailableIndex = -1;
@@ -258,34 +256,70 @@ public class TeamManager : MonoBehaviour
     // --- EnterSpectatorMode ---
     private void EnterSpectatorMode()
     {
+        Debug.Log("Attempting to enter Spectator Mode...");
         currentState = GameState.Spectator;
-        // 在重置 index 之前，先禁用當前活躍的角色 (如果有的話)
+
+        // 1. 強制停用當前活躍角色（如果有的話）
         if (activeCharacterIndex >= 0 && activeCharacterIndex < team.Length && team[activeCharacterIndex] != null)
         {
-            Debug.Log($"Disabling character {team[activeCharacterIndex].character.name} before entering Spectator.");
-            SetUnitControl(team[activeCharacterIndex], false, true); // Use forceDisable = true
+            Debug.Log($"Disabling character in slot {activeCharacterIndex}: {team[activeCharacterIndex].character?.name}");
+            SetUnitControl(team[activeCharacterIndex], false, true); // Force disable
         }
-        activeCharacterIndex = -1; // 然後才重置 index
-        spectatorCameraObject.SetActive(true);
+        activeCharacterIndex = -1; // 重置索引
+
+        // 2. 啟用觀察者攝影機 GameObject
+        if (spectatorCameraObject != null)
+        {
+            spectatorCameraObject.SetActive(true);
+            Debug.Log("Spectator Camera GameObject Activated.");
+        }
+        else { Debug.LogError("Spectator Camera Object is null!"); return; }
+
+        // 3. 啟用觀察者控制器腳本
+        if (spectatorController != null)
+        {
+            spectatorController.enabled = true;
+            Debug.Log("SpectatorController Script Enabled.");
+        }
+        else { Debug.LogError("SpectatorController reference is null!"); return; }
+
+
+        // 4. 更新高亮
         if (highlightManager != null) highlightManager.ForceHighlightUpdate();
-        Debug.Log("Entered Spectator Mode.");
     }
 
-    // --- EnterPossessingMode ---
     private void EnterPossessingMode(int newIndex)
     {
-        // 在附身前，確保要附身的 unit 是有效的
+        // 附身前檢查
         if (newIndex < 0 || newIndex >= team.Length || team[newIndex]?.character == null)
         {
             Debug.LogError($"Attempted to possess invalid team index {newIndex}. Switching to Spectator.");
-            EnterSpectatorMode(); // 保險措施
+            EnterSpectatorMode();
             return;
         }
 
+        Debug.Log($"Attempting to possess {team[newIndex].character.name} (Slot {newIndex})...");
         currentState = GameState.Possessing;
-        spectatorCameraObject.SetActive(false);
+
+        // 1. 停用觀察者控制器腳本
+        if (spectatorController != null)
+        {
+            spectatorController.enabled = false;
+            Debug.Log("SpectatorController Script Disabled.");
+        }
+        else { Debug.LogError("SpectatorController reference is null!"); }
+
+        // 2. 停用觀察者攝影機 GameObject
+        if (spectatorCameraObject != null)
+        {
+            spectatorCameraObject.SetActive(false);
+            Debug.Log("Spectator Camera GameObject Deactivated.");
+        }
+        else { Debug.LogError("Spectator Camera Object is null!"); }
+
+
+        // 3. 切換到新角色 (SwitchToCharacter 會啟用新角色並更新高亮)
         SwitchToCharacter(newIndex);
-        Debug.Log($"Possessing {team[newIndex].character.name} (Slot {newIndex}).");
     }
 
     // --- SwitchNextCharacter ---
@@ -324,7 +358,6 @@ public class TeamManager : MonoBehaviour
         activeCharacterIndex = newIndex;
         SetUnitControl(team[activeCharacterIndex], true);
 
-        // ▼▼▼ 核心修改：切換完成後，立刻強制更新高亮 ▼▼▼
         if (highlightManager != null)
         {
             highlightManager.ForceHighlightUpdate();
@@ -333,7 +366,6 @@ public class TeamManager : MonoBehaviour
         {
             Debug.LogError("HighlightManager reference is missing in TeamManager!");
         }
-        // ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
     }
 
     // --- SetUnitControl ---
