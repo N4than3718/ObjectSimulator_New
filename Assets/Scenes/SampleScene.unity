@@ -867,7 +867,7 @@ GameObject:
   m_Component:
   - component: {fileID: 643507237}
   m_Layer: 6
-  m_Name: Hammer FollowTarget
+  m_Name: Cam FollowTarget
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1024,7 +1024,7 @@ GameObject:
   m_Component:
   - component: {fileID: 957414671}
   m_Layer: 6
-  m_Name: Mug FollowTarget
+  m_Name: Cam FollowTarget
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
