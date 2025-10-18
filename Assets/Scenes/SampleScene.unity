@@ -441,7 +441,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerMovement2
   cameraTransform: {fileID: 1402469980}
-  myCameraControl: {fileID: 1402469981}
+  myCharacterCamera: {fileID: 1402469981}
+  myFollowTarget: {fileID: 957414671}
   playerSpeed: 5
   fastSpeed: 10
   rotationSpeed: 10
@@ -1227,7 +1228,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerMovement2
   cameraTransform: {fileID: 1746449003}
-  myCameraControl: {fileID: 1746449004}
+  myCharacterCamera: {fileID: 1746449004}
+  myFollowTarget: {fileID: 643507237}
   playerSpeed: 5
   fastSpeed: 10
   rotationSpeed: 10
@@ -1687,27 +1689,35 @@ MonoBehaviour:
   - character: {fileID: 0}
     characterCamera: {fileID: 0}
     cameraFollowTarget: {fileID: 0}
+    isAvailable: 0
   - character: {fileID: 0}
     characterCamera: {fileID: 0}
     cameraFollowTarget: {fileID: 0}
+    isAvailable: 0
   - character: {fileID: 0}
     characterCamera: {fileID: 0}
     cameraFollowTarget: {fileID: 0}
+    isAvailable: 0
   - character: {fileID: 0}
     characterCamera: {fileID: 0}
     cameraFollowTarget: {fileID: 0}
+    isAvailable: 0
   - character: {fileID: 0}
     characterCamera: {fileID: 0}
     cameraFollowTarget: {fileID: 0}
+    isAvailable: 0
   - character: {fileID: 0}
     characterCamera: {fileID: 0}
     cameraFollowTarget: {fileID: 0}
+    isAvailable: 0
   - character: {fileID: 0}
     characterCamera: {fileID: 0}
     cameraFollowTarget: {fileID: 0}
+    isAvailable: 0
   - character: {fileID: 0}
     characterCamera: {fileID: 0}
     cameraFollowTarget: {fileID: 0}
+    isAvailable: 0
   spectatorCameraObject: {fileID: 330585543}
   highlightManager: {fileID: 2135395960}
 --- !u!4 &1493841723
