@@ -181,6 +181,15 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""AddToTeam"",
+                    ""type"": ""Button"",
+                    ""id"": ""1ef4e839-a440-48a2-87e5-7257f5cc39c4"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
                 }
             ],
             ""bindings"": [
@@ -577,6 +586,17 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""groups"": """",
                     ""action"": ""UnlockCursor"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""f4cac4c2-cf08-44d6-92ab-3695cc07f00f"",
+                    ""path"": ""<Keyboard>/t"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""AddToTeam"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 }
@@ -1370,6 +1390,7 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
         m_Player_Next = m_Player.FindAction("Next", throwIfNotFound: true);
         m_Player_Sprint = m_Player.FindAction("Sprint", throwIfNotFound: true);
         m_Player_UnlockCursor = m_Player.FindAction("UnlockCursor", throwIfNotFound: true);
+        m_Player_AddToTeam = m_Player.FindAction("AddToTeam", throwIfNotFound: true);
         // Spectator
         m_Spectator = asset.FindActionMap("Spectator", throwIfNotFound: true);
         m_Spectator_Move = m_Spectator.FindAction("Move", throwIfNotFound: true);
@@ -1481,6 +1502,7 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
     private readonly InputAction m_Player_Next;
     private readonly InputAction m_Player_Sprint;
     private readonly InputAction m_Player_UnlockCursor;
+    private readonly InputAction m_Player_AddToTeam;
     /// <summary>
     /// Provides access to input actions defined in input action map "Player".
     /// </summary>
@@ -1532,6 +1554,10 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
         /// Provides access to the underlying input action "Player/UnlockCursor".
         /// </summary>
         public InputAction @UnlockCursor => m_Wrapper.m_Player_UnlockCursor;
+        /// <summary>
+        /// Provides access to the underlying input action "Player/AddToTeam".
+        /// </summary>
+        public InputAction @AddToTeam => m_Wrapper.m_Player_AddToTeam;
         /// <summary>
         /// Provides access to the underlying input action map instance.
         /// </summary>
@@ -1588,6 +1614,9 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
             @UnlockCursor.started += instance.OnUnlockCursor;
             @UnlockCursor.performed += instance.OnUnlockCursor;
             @UnlockCursor.canceled += instance.OnUnlockCursor;
+            @AddToTeam.started += instance.OnAddToTeam;
+            @AddToTeam.performed += instance.OnAddToTeam;
+            @AddToTeam.canceled += instance.OnAddToTeam;
         }
 
         /// <summary>
@@ -1629,6 +1658,9 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
             @UnlockCursor.started -= instance.OnUnlockCursor;
             @UnlockCursor.performed -= instance.OnUnlockCursor;
             @UnlockCursor.canceled -= instance.OnUnlockCursor;
+            @AddToTeam.started -= instance.OnAddToTeam;
+            @AddToTeam.performed -= instance.OnAddToTeam;
+            @AddToTeam.canceled -= instance.OnAddToTeam;
         }
 
         /// <summary>
@@ -2139,6 +2171,13 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
         /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
         /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
         void OnUnlockCursor(InputAction.CallbackContext context);
+        /// <summary>
+        /// Method invoked when associated input action "AddToTeam" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnAddToTeam(InputAction.CallbackContext context);
     }
     /// <summary>
     /// Interface to implement callback methods for all input action callbacks associated with input actions defined by "Spectator" which allows adding and removing callbacks.
