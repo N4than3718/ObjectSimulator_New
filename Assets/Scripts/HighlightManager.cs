@@ -1,6 +1,7 @@
-using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
+using Unity.VisualScripting;
+using UnityEngine;
 
 public class HighlightManager : MonoBehaviour
 {
@@ -19,8 +20,22 @@ public class HighlightManager : MonoBehaviour
     [SerializeField] private float maxOutlineWidth = 0.03f;
     [SerializeField] private float maxDistanceForOutline = 50f;
 
-    private List<HighlightableObject> allHighlightables = new List<HighlightableObject>();
-    private Coroutine updateCoroutine; // 儲存協程的引用
+    private HashSet<HighlightableObject> allHighlightables = new HashSet<HighlightableObject>();
+    private Coroutine updateCoroutine;
+
+    public static HighlightManager Instance { get; private set; }
+
+    void Awake()
+    {
+        if (Instance == null)
+        {
+            Instance = this;
+        }
+        else
+        {
+            Destroy(gameObject); // 防止重複
+        }
+    }
 
     void Start()
     {
@@ -45,13 +60,30 @@ public class HighlightManager : MonoBehaviour
         updateCoroutine = StartCoroutine(UpdateAvailableHighlightsLoop());
     }
 
-    // ▼▼▼ 新增：公開的強制更新方法 ▼▼▼
+    public void RegisterHighlightable(HighlightableObject obj)
+    {
+        if (obj != null && allHighlightables.Add(obj))
+        {
+            // 在這裡設定模板
+            obj.availableHighlightTemplate = this.availableHighlightTemplate;
+            obj.inactiveTeamHighlightTemplate = this.inactiveTeamHighlightTemplate;
+        }
+    }
+
+    public void UnregisterHighlightable(HighlightableObject obj)
+    {
+        if (obj != null)
+        {
+            allHighlightables.Remove(obj);
+        }
+    }
+
+    // 公開的強制更新方法
     public void ForceHighlightUpdate()
     {
         // Debug.Log("HighlightManager: Forcing Highlight Update!"); // 除錯用
         UpdateAllHighlights();
     }
-    // ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
 
     // 定期更新的協程迴圈
     IEnumerator UpdateAvailableHighlightsLoop()
@@ -63,7 +95,7 @@ public class HighlightManager : MonoBehaviour
         }
     }
 
-    // ▼▼▼ 核心邏輯被抽離到這個方法 ▼▼▼
+    // 核心邏輯
     private void UpdateAllHighlights()
     {
         Transform currentCameraTransform = teamManager.CurrentCameraTransform;
