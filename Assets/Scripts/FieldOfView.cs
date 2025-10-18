@@ -16,12 +16,19 @@ public class FieldOfView : MonoBehaviour
     [HideInInspector]
     public List<Transform> visibleTargets = new List<Transform>();
 
-    // ▼▼▼ 核心修改：從協程改成 Update ▼▼▼
-    void Update()
+    void Start()
     {
-        FindVisibleTargets();
+        StartCoroutine(FindTargetsWithDelay(0.1f)); // 每 0.1 秒檢查一次
     }
-    // ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
+
+    IEnumerator FindTargetsWithDelay(float delay)
+    {
+        while (true)
+        {
+            FindVisibleTargets();
+            yield return new WaitForSeconds(delay);
+        }
+    }
 
     void FindVisibleTargets()
     {
