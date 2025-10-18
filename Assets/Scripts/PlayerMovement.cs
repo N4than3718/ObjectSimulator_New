@@ -1,13 +1,13 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
-using System.Collections.Generic;
-using System.Linq;
 
 [RequireComponent(typeof(Rigidbody), typeof(CapsuleCollider))]
 public class PlayerMovement : MonoBehaviour
 {
     [Header("元件參考")]
     public Transform cameraTransform;
+    [Tooltip("將與此角色配對的【獨立】攝影機上的 CamControl 元件拖到這裡")]
+    public CamControl myCameraControl;
     private Rigidbody rb;
     private CapsuleCollider capsuleCollider;
     private TeamManager teamManager;
