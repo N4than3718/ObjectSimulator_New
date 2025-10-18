@@ -20,20 +20,20 @@ public class TeamManager : MonoBehaviour
 
     [Header("Team Setup")]
     private const int MaxTeamSize = 8;
-    // 現在這裡可以正確找到 ControllableUnit 了
+    // 陣列會在 Start 時被視為 "空" (因為 .character 都是 null)
     public TeamUnit[] team = new TeamUnit[MaxTeamSize];
 
     [Header("Scene References")]
     public GameObject spectatorCameraObject;
-    private SpectatorController spectatorController; // !! <-- [修復] 宣告變數
+    private SpectatorController spectatorController; // !! <-- [修復] 必須宣告
 
     [Header("References (Add HighlightManager)")]
-    [SerializeField] private HighlightManager highlightManager; // 把 HighlightManager 拖到這裡
+    [SerializeField] private HighlightManager highlightManager;
 
     private int activeCharacterIndex = -1;
     private InputSystem_Actions playerActions;
 
-    // --- 新增公開屬性，供 HighlightManager 使用 ---
+    // --- 公開屬性 ---
     public Transform CurrentCameraTransform
     {
         get
@@ -42,7 +42,7 @@ public class TeamManager : MonoBehaviour
             {
                 return spectatorCameraObject.transform;
             }
-            // !! [修復] 移除 team[activeCharacterIndex] 後面的 '?'
+            // !! [修復] struct 不能用 '?'
             else if (currentState == GameState.Possessing && activeCharacterIndex >= 0 && activeCharacterIndex < team.Length && team[activeCharacterIndex].characterCamera != null)
             {
                 return team[activeCharacterIndex].characterCamera.transform;
@@ -59,12 +59,12 @@ public class TeamManager : MonoBehaviour
     {
         get
         {
-            // !! [修復] 移除 team[activeCharacterIndex] 後面的 '?'
+            // !! [修復] struct 不能用 '?'
             if (currentState == GameState.Possessing && activeCharacterIndex >= 0 && activeCharacterIndex < team.Length && team[activeCharacterIndex].character != null)
             {
                 return team[activeCharacterIndex].character.gameObject;
             }
-            return null; // 如果不在操控狀態或索引無效，返回 null
+            return null;
         }
     }
 
@@ -73,10 +73,9 @@ public class TeamManager : MonoBehaviour
     {
         playerActions = new InputSystem_Actions();
 
-        // !! [修復] 刪除 `team[i] = null;` 這行，`struct` 陣列不能存 `null`
-        // for (int i = 0; i < team.Length; i++) team[i] = null; // <-- 這是錯誤的
+        // !! [修復] 刪除 `team[i] = null;`。struct 陣列會自動初始化為 "空" (所有欄位為預設值)
 
-        // ▼▼▼ 自動查找 HighlightManager & SpectatorController ▼▼▼
+        // ▼▼▼ 自動查找 ▼▼▼
         if (highlightManager == null) highlightManager = FindAnyObjectByType<HighlightManager>();
 
         // !! [修復] 取得 SpectatorController 元件
@@ -85,10 +84,8 @@ public class TeamManager : MonoBehaviour
             spectatorController = spectatorCameraObject.GetComponent<SpectatorController>();
         }
 
-        // !! [修復] 更新錯誤檢查
         if (highlightManager == null) Debug.LogError("TeamManager cannot find HighlightManager!");
         if (spectatorController == null) Debug.LogError("TeamManager cannot find SpectatorController on SpectatorCameraObject!");
-        // ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
     }
 
     // --- OnEnable ---
@@ -97,19 +94,17 @@ public class TeamManager : MonoBehaviour
         if (playerActions == null) playerActions = new InputSystem_Actions();
         playerActions.Player.Enable();
 
-        // ▼▼▼ 加入 Action 存在性檢查 ▼▼▼
         InputAction switchNextAction = playerActions.Player.Next;
         if (switchNextAction != null)
             switchNextAction.performed += ctx => SwitchNextCharacter();
         else
-            Debug.LogError("Input Action 'SwitchNext' not found in Player map! Please check InputSystem_Actions asset.");
+            Debug.LogError("Input Action 'SwitchNext' not found!");
 
         InputAction switchPrevAction = playerActions.Player.Previous;
         if (switchPrevAction != null)
             switchPrevAction.performed += ctx => SwitchPreviousCharacter();
         else
-            Debug.LogError("Input Action 'SwitchPrevious' not found in Player map! Please check InputSystem_Actions asset.");
-        // ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
+            Debug.LogError("Input Action 'SwitchPrevious' not found!");
     }
 
     // --- OnDisable ---
@@ -118,7 +113,6 @@ public class TeamManager : MonoBehaviour
         if (playerActions != null)
         {
             playerActions.Player.Disable();
-            // 同樣加上檢查再取消訂閱
             InputAction switchNextAction = playerActions.Player.Next;
             if (switchNextAction != null)
                 switchNextAction.performed -= ctx => SwitchNextCharacter();
@@ -132,7 +126,7 @@ public class TeamManager : MonoBehaviour
     // --- Start ---
     void Start()
     {
-        // !! [修復] 檢查 spectatorController 而不是 spectatorCameraObject
+        // !! [修復] 檢查 spectatorController
         if (spectatorController == null || highlightManager == null)
         {
             Debug.LogError("TeamManager has missing references! (SpectatorController or HighlightManager)");
@@ -143,10 +137,10 @@ public class TeamManager : MonoBehaviour
         Debug.Log($"Initializing {team.Length} units from Inspector.");
         for (int i = 0; i < team.Length; i++)
         {
-            // 使用 team[i] 這個 struct
+            // 由於陣列是空的 (team[i].character == null), 
+            // SetUnitControl (line 388) 會直接 return, 這是正確的行為。
             SetUnitControl(team[i], false, true);
         }
-        // ------------------------------------
 
         EnterSpectatorMode();
     }
@@ -159,7 +153,7 @@ public class TeamManager : MonoBehaviour
     {
         for (int i = 0; i < team.Length; i++)
         {
-            // !! [修復] 移除 team[i] 後面的 '?'
+            // !! [修復] 檢查 .character
             if (team[i].character?.gameObject == characterObject) { EnterPossessingMode(i); return; }
         }
         TryAddCharacterToTeam(characterObject, true);
@@ -170,7 +164,7 @@ public class TeamManager : MonoBehaviour
     {
         for (int i = 0; i < team.Length; i++)
         {
-            // !! [修復] 移除 team[i] 後面的 '?'
+            // !! [修復] 檢查 .character
             if (team[i].character?.gameObject == characterObject)
             {
                 Debug.Log($"{characterObject.name} is already in the team.");
@@ -178,38 +172,51 @@ public class TeamManager : MonoBehaviour
                 return false;
             }
         }
+
         int emptySlotIndex = -1;
-        // !! [修復] 檢查 team[i].character 是否為 null，而不是 team[i]
+        // !! [修復] 檢查 .character 是否為 null 來找空位
         for (int i = 0; i < team.Length; i++) { if (team[i].character == null) { emptySlotIndex = i; break; } }
 
         if (emptySlotIndex != -1)
         {
             PlayerMovement pm = characterObject.GetComponent<PlayerMovement>();
-            CamControl cam = characterObject.GetComponentInChildren<CamControl>(true);
-            Transform followTarget = FindInChildren(characterObject.transform, "Cam Follow Target") ?? characterObject.transform;
-            if (pm == null || cam == null) { Debug.LogError($"Object {characterObject.name} cannot be added, missing components!"); return false; }
-            TeamUnit newUnit = new TeamUnit { character = pm, characterCamera = cam, cameraFollowTarget = followTarget };
+            if (pm == null) { Debug.LogError($"Object {characterObject.name} has no PlayerMovement script!"); return false; }
+
+            // =================================================================
+            // !! <-- [核心解決方案] <-- !!
+            // 我們不再 "猜"，而是直接去 "問" PlayerMovement 它的攝影機在哪
+            // 這需要你已完成 [步驟 1] 和 [步驟 2]
+            CamControl cam = pm.myCharacterCamera;
+            Transform followTarget = pm.myFollowTarget;
+            // =================================================================
+
+            if (cam == null) { Debug.LogError($"Object {characterObject.name} cannot be added, its 'myCharacterCamera' field is not set in PlayerMovement!"); return false; }
+            if (followTarget == null)
+            {
+                Debug.LogWarning($"{characterObject.name} has no follow target, using its own transform.");
+                followTarget = characterObject.transform;
+            }
+
+            TeamUnit newUnit = new TeamUnit { character = pm, characterCamera = cam, cameraFollowTarget = followTarget, isAvailable = true };
             team[emptySlotIndex] = newUnit;
             Debug.Log($"Added {characterObject.name} to team slot {emptySlotIndex}.");
+
             if (possessAfterAdding) { EnterPossessingMode(emptySlotIndex); }
             else { SetUnitControl(newUnit, false, true); }
 
-            // ▼▼▼ 加入新成員後，也強制更新一次高亮 ▼▼▼
             if (highlightManager != null) highlightManager.ForceHighlightUpdate();
-            // ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
-
             return true;
         }
         else { Debug.Log("Team is full!"); return false; }
     }
 
-    // ▼▼▼ 新增：移除角色的公開方法 ▼▼▼
+    // --- RemoveCharacterFromTeam ---
     public void RemoveCharacterFromTeam(GameObject characterObject)
     {
         int foundIndex = -1;
         for (int i = 0; i < team.Length; i++)
         {
-            // !! [修復] 移除 team[i] 後面的 '?'
+            // !! [修復] 檢查 .character
             if (team[i].character?.gameObject == characterObject)
             {
                 foundIndex = i;
@@ -222,54 +229,43 @@ public class TeamManager : MonoBehaviour
             Debug.Log($"Removing {characterObject.name} from team slot {foundIndex}.");
             TeamUnit unitToRemove = team[foundIndex];
 
-            // 先禁用控制權，確保它不會再搞事
             SetUnitControl(unitToRemove, false, true);
-            // !! [修復] 從隊伍中移除 (用 new TeamUnit() 清空 struct)
+            // !! [修復] 用 new TeamUnit() 清空 struct
             team[foundIndex] = new TeamUnit();
 
-            // 檢查被移除的是否是當前操控的角色
             if (currentState == GameState.Possessing && activeCharacterIndex == foundIndex)
             {
-                Debug.Log("Caught character was the active one. Attempting to switch to another team member...");
-                // 嘗試切換到下一個可用的角色
-                SwitchToPreviousOrSpectator(foundIndex); // 傳入被移除的索引
+                Debug.Log("Caught character was the active one. Attempting to switch...");
+                SwitchToPreviousOrSpectator(foundIndex);
             }
-            // 如果移除的不是當前角色，則什麼都不用做，繼續操控就好
 
-            // 通知 HighlightManager 更新
             if (highlightManager != null) highlightManager.ForceHighlightUpdate();
-
-            // 可選：禁用 GameObject
-            // characterObject.SetActive(false);
         }
         else { Debug.LogWarning($"Attempted to remove {characterObject.name}, but it wasn't found."); }
     }
 
-    // ▼▼▼ 新增：尋找下一個可用角色的輔助方法 ▼▼▼
+    // --- SwitchToPreviousOrSpectator ---
     private void SwitchToPreviousOrSpectator(int removedIndex)
     {
         int nextAvailableIndex = -1;
-        // 從被移除位置的 *前一個* 位置開始反向搜索（這樣更符合 Q/E 的感覺）
         for (int i = 1; i < team.Length; i++)
         {
             int checkIndex = (removedIndex - i + team.Length) % team.Length;
-            // !! [修復] 移除 team[checkIndex] 後面的 '?'
+            // !! [修復] 檢查 .character
             if (team[checkIndex].character != null)
             {
                 nextAvailableIndex = checkIndex;
-                break; // 找到了！
+                break;
             }
         }
 
         if (nextAvailableIndex != -1)
         {
-            // 如果找到了倖存者，就附身它
             Debug.Log($"Switching control to team member at index {nextAvailableIndex}.");
             EnterPossessingMode(nextAvailableIndex);
         }
         else
         {
-            // 如果繞了一圈都沒找到（隊伍全滅），才回到觀察者模式
             Debug.Log("No other team members available. Switching to Spectator mode.");
             EnterSpectatorMode();
         }
@@ -279,15 +275,15 @@ public class TeamManager : MonoBehaviour
     private void EnterSpectatorMode()
     {
         currentState = GameState.Spectator;
-        // 在重置 index 之前，先禁用當前活躍的角色 (如果有的話)
-        // !! [修復] 檢查 .character 是否為 null
+        // !! [修復] 檢查 .character
         if (activeCharacterIndex >= 0 && activeCharacterIndex < team.Length && team[activeCharacterIndex].character != null)
         {
             Debug.Log($"Disabling character {team[activeCharacterIndex].character.name} before entering Spectator.");
-            SetUnitControl(team[activeCharacterIndex], false, true); // Use forceDisable = true
+            SetUnitControl(team[activeCharacterIndex], false, true);
         }
-        activeCharacterIndex = -1; // 然後才重置 index
+        activeCharacterIndex = -1;
         spectatorCameraObject.SetActive(true);
+        if (spectatorController != null) spectatorController.enabled = true; // 確保
         if (highlightManager != null) highlightManager.ForceHighlightUpdate();
         Debug.Log("Entered Spectator Mode.");
     }
@@ -295,17 +291,17 @@ public class TeamManager : MonoBehaviour
     // --- EnterPossessingMode ---
     private void EnterPossessingMode(int newIndex)
     {
-        // 在附身前，確保要附身的 unit 是有效的
-        // !! [修復] 檢查 .character 是否為 null
+        // !! [修復] 檢查 .character
         if (newIndex < 0 || newIndex >= team.Length || team[newIndex].character == null)
         {
             Debug.LogError($"Attempted to possess invalid team index {newIndex}. Switching to Spectator.");
-            EnterSpectatorMode(); // 保險措施
+            EnterSpectatorMode();
             return;
         }
 
         currentState = GameState.Possessing;
         spectatorCameraObject.SetActive(false);
+        if (spectatorController != null) spectatorController.enabled = false; // 確保
         SwitchToCharacter(newIndex);
         Debug.Log($"Possessing {team[newIndex].character.name} (Slot {newIndex}).");
     }
@@ -318,7 +314,7 @@ public class TeamManager : MonoBehaviour
         int nextIndex = (activeCharacterIndex + 1) % team.Length;
         while (nextIndex != initialIndex)
         {
-            // !! [修復] 移除 team[nextIndex] 後面的 '?'
+            // !! [修復] 檢查 .character
             if (team[nextIndex].character != null) { SwitchToCharacter(nextIndex); return; }
             nextIndex = (nextIndex + 1) % team.Length;
         }
@@ -332,7 +328,7 @@ public class TeamManager : MonoBehaviour
         int prevIndex = (activeCharacterIndex - 1 + team.Length) % team.Length;
         while (prevIndex != initialIndex)
         {
-            // !! [修復] 移除 team[prevIndex] 後面的 '?'
+            // !! [修復] 檢查 .character
             if (team[prevIndex].character != null) { SwitchToCharacter(prevIndex); return; }
             prevIndex = (prevIndex - 1 + team.Length) % team.Length;
         }
@@ -341,7 +337,7 @@ public class TeamManager : MonoBehaviour
     // --- SwitchToCharacter ---
     private void SwitchToCharacter(int newIndex)
     {
-        // !! [修復] 檢查 .character 是否為 null
+        // !! [修復] 檢查 .character
         if (activeCharacterIndex != -1 && activeCharacterIndex < team.Length && team[activeCharacterIndex].character != null)
         {
             SetUnitControl(team[activeCharacterIndex], false);
@@ -349,7 +345,6 @@ public class TeamManager : MonoBehaviour
         activeCharacterIndex = newIndex;
         SetUnitControl(team[activeCharacterIndex], true);
 
-        // ▼▼▼ 核心修改：切換完成後，立刻強制更新高亮 ▼▼▼
         if (highlightManager != null)
         {
             highlightManager.ForceHighlightUpdate();
@@ -358,7 +353,6 @@ public class TeamManager : MonoBehaviour
         {
             Debug.LogError("HighlightManager reference is missing in TeamManager!");
         }
-        // ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
     }
 
     // --- SetUnitControl ---
@@ -367,7 +361,6 @@ public class TeamManager : MonoBehaviour
         // 檢查角色本身是否存在
         if (unit.character == null)
         {
-            // Debug.LogWarning("SetUnitControl received a unit with no character script.");
             return;
         }
 
@@ -383,30 +376,27 @@ public class TeamManager : MonoBehaviour
 
         if (isActive)
         {
-            // 啟用並賦值
             if (unit.characterCamera != null)
             {
-                // 啟用攝影機物件
                 unit.characterCamera.gameObject.SetActive(true);
                 // 把這台攝影機的 Transform 傳給 PlayerMovement
                 unit.character.cameraTransform = unit.characterCamera.transform;
+                // !! [重要] 確保 CamControl 跟隨正確的目標
+                unit.characterCamera.FollowTarget = unit.cameraFollowTarget;
             }
             else
             {
-                // 備案：如果攝影機是 null，至少塞個東西避免 PlayerMovement 報錯
                 Debug.LogError($"{unit.character.name} has no camera assigned! Movement will be based on Spectator.");
-                // !! [修復] 確保 spectatorController 存在
-                if (spectatorController != null)
+                if (spectatorController != null) // !! [修復] 檢查
                 {
                     unit.character.cameraTransform = spectatorController.transform;
                 }
             }
 
-            if (highlightManager != null) highlightManager.ForceHighlightUpdate();
+            // (ForceHighlightUpdate 移到 SwitchToCharacter 結尾)
         }
         else
         {
-            // 禁用
             if (unit.characterCamera != null)
             {
                 unit.characterCamera.gameObject.SetActive(false);
@@ -432,19 +422,12 @@ public class TeamManager : MonoBehaviour
     {
         for (int i = 0; i < team.Length; ++i)
         {
-            // !! [修復] 移除 team[i] 後面的 '?'
             if (team[i].character?.gameObject == charObject) { return team[i]; }
         }
 
-        PlayerMovement pm = charObject.GetComponent<PlayerMovement>();
-        CamControl cam = charObject.GetComponentInChildren<CamControl>(true);
-        Transform followTarget = FindInChildren(charObject.transform, "Cam Follow Target") ?? charObject.transform;
-        if (pm != null && cam != null)
-        {
-            // !! [修復] 隱含轉換為 TeamUnit?
-            return new TeamUnit { character = pm, characterCamera = cam, cameraFollowTarget = followTarget };
-        }
-        // !! [修復] `return null` 現在合法了
+        // !! [修復] 刪除 "GetComponent" 邏輯.
+        // 如果它不在 `team` 陣列中, 它就 "not found".
+
         return null;
     }
 
@@ -453,7 +436,6 @@ public class TeamManager : MonoBehaviour
     {
         for (int i = 0; i < team.Length; i++)
         {
-            // !! [修復] 移除 team[i] 後面的 '?'
             if (team[i].character?.gameObject == characterObject) { return true; }
         }
         return false;
