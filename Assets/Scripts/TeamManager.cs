@@ -27,6 +27,9 @@ public class TeamManager : MonoBehaviour
     [Header("Scene References")]
     public GameObject spectatorCameraObject;
 
+    [Header("References (Add HighlightManager)")]
+    [SerializeField] private HighlightManager highlightManager; // 把 HighlightManager 拖到這裡
+
     private int activeCharacterIndex = -1;
     private InputSystem_Actions playerActions;
 
@@ -68,6 +71,10 @@ public class TeamManager : MonoBehaviour
     {
         playerActions = new InputSystem_Actions();
         for (int i = 0; i < team.Length; i++) team[i] = null;
+        // ▼▼▼ 自動查找 HighlightManager ▼▼▼
+        if (highlightManager == null) highlightManager = FindAnyObjectByType<HighlightManager>();
+        if (highlightManager == null) Debug.LogError("TeamManager cannot find HighlightManager!");
+        // ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
     }
 
     // --- OnEnable ---
@@ -160,6 +167,11 @@ public class TeamManager : MonoBehaviour
             Debug.Log($"Added {characterObject.name} to team slot {emptySlotIndex}.");
             if (possessAfterAdding) { EnterPossessingMode(emptySlotIndex); }
             else { SetUnitControl(newUnit, false, true); }
+
+            // ▼▼▼ 加入新成員後，也強制更新一次高亮 ▼▼▼
+            if (highlightManager != null) highlightManager.ForceHighlightUpdate();
+            // ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
+
             return true;
         }
         else { Debug.Log("Team is full!"); return false; }
@@ -175,6 +187,9 @@ public class TeamManager : MonoBehaviour
         }
         activeCharacterIndex = -1;
         spectatorCameraObject.SetActive(true);
+        // ▼▼▼ 進入觀察者模式後，強制更新高亮 ▼▼▼
+        if (highlightManager != null) highlightManager.ForceHighlightUpdate();
+        // ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
     }
 
     // --- EnterPossessingMode ---
@@ -221,6 +236,17 @@ public class TeamManager : MonoBehaviour
         }
         activeCharacterIndex = newIndex;
         SetUnitControl(team[activeCharacterIndex], true);
+
+        // ▼▼▼ 核心修改：切換完成後，立刻強制更新高亮 ▼▼▼
+        if (highlightManager != null)
+        {
+            highlightManager.ForceHighlightUpdate();
+        }
+        else
+        {
+            Debug.LogError("HighlightManager reference is missing in TeamManager!");
+        }
+        // ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
     }
 
     // --- SetUnitControl ---

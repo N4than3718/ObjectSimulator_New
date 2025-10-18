@@ -8,100 +8,117 @@ public class HighlightManager : MonoBehaviour
     [SerializeField] private TeamManager teamManager;
     [Tooltip("白色高亮材質模板 (Available)")]
     [SerializeField] private Material availableHighlightTemplate;
-    // ▼▼▼ 新增：綠色高亮模板 ▼▼▼
     [Tooltip("綠色高亮材質模板 (Inactive Team Member)")]
     [SerializeField] private Material inactiveTeamHighlightTemplate;
-    // ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
 
     [Header("Settings")]
     [SerializeField] private float updateInterval = 0.2f;
 
-    [Header("Dynamic Outline")] // 這些參數現在同時用於白色和綠色
+    [Header("Dynamic Outline")]
     [SerializeField] private float minOutlineWidth = 0.003f;
     [SerializeField] private float maxOutlineWidth = 0.03f;
     [SerializeField] private float maxDistanceForOutline = 50f;
 
     private List<HighlightableObject> allHighlightables = new List<HighlightableObject>();
+    private Coroutine updateCoroutine; // 儲存協程的引用
 
     void Start()
     {
         if (teamManager == null) teamManager = FindAnyObjectByType<TeamManager>();
-
-        // ▼▼▼ 檢查所有必要引用 ▼▼▼
         if (teamManager == null || availableHighlightTemplate == null || inactiveTeamHighlightTemplate == null)
         {
-            Debug.LogError("HighlightManager is missing references (TeamManager, Available Template, or Inactive Team Template)!");
+            Debug.LogError("HighlightManager is missing references!");
             enabled = false;
             return;
         }
-        // ▲▲▲▲▲▲▲▲▲▲▲▲▲▲
 
         allHighlightables.AddRange(FindObjectsByType<HighlightableObject>(FindObjectsSortMode.None));
         foreach (var obj in allHighlightables)
         {
             if (obj != null && obj.enabled)
             {
-                // 把兩個模板都傳給 HighlightableObject
                 obj.availableHighlightTemplate = this.availableHighlightTemplate;
                 obj.inactiveTeamHighlightTemplate = this.inactiveTeamHighlightTemplate;
             }
         }
-        StartCoroutine(UpdateAvailableHighlights());
+        // 啟動定期更新協程
+        updateCoroutine = StartCoroutine(UpdateAvailableHighlightsLoop());
     }
 
-    IEnumerator UpdateAvailableHighlights()
+    // ▼▼▼ 新增：公開的強制更新方法 ▼▼▼
+    public void ForceHighlightUpdate()
+    {
+        // Debug.Log("HighlightManager: Forcing Highlight Update!"); // 除錯用
+        UpdateAllHighlights();
+    }
+    // ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
+
+    // 定期更新的協程迴圈
+    IEnumerator UpdateAvailableHighlightsLoop()
     {
         while (true)
         {
-            Transform currentCameraTransform = teamManager.CurrentCameraTransform;
-            GameObject activeCharacter = teamManager.ActiveCharacterGameObject; // 獲取當前操控的角色
-
-            if (currentCameraTransform == null)
-            {
-                yield return new WaitForSeconds(updateInterval);
-                continue;
-            }
-
-            foreach (HighlightableObject highlightable in allHighlightables)
-            {
-                if (highlightable != null && highlightable.enabled)
-                {
-                    GameObject currentObject = highlightable.gameObject;
-                    bool isInTeam = highlightable.IsInTeam(teamManager);
-                    bool isActive = (currentObject == activeCharacter);
-
-                    // ▼▼▼ 核心修改：根據狀態設置高亮 ▼▼▼
-                    if (isInTeam && !isActive)
-                    {
-                        // 在隊伍中但未被操控 -> 綠色
-                        highlightable.SetInactiveTeamHighlight(true);
-                        highlightable.SetAvailableHighlight(false); // 確保白色關閉
-                    }
-                    else if (!isInTeam)
-                    {
-                        // 不在隊伍中 -> 白色
-                        highlightable.SetAvailableHighlight(true);
-                        highlightable.SetInactiveTeamHighlight(false); // 確保綠色關閉
-                    }
-                    else // (isInTeam && isActive)
-                    {
-                        // 是當前操控的角色 -> 關閉白色和綠色 (黃色由 PlayerMovement/Spectator 控制)
-                        highlightable.SetAvailableHighlight(false);
-                        highlightable.SetInactiveTeamHighlight(false);
-                    }
-
-                    // 如果顯示的是白色或綠色，就更新輪廓寬度
-                    if ((!isInTeam || (isInTeam && !isActive)) && !highlightable.IsTargeted) // IsTargeted 是一個假設的屬性，我們需要加回去
-                    {
-                        float distance = Vector3.Distance(currentCameraTransform.position, highlightable.transform.position);
-                        float t = Mathf.InverseLerp(0, maxDistanceForOutline, distance);
-                        float newWidth = Mathf.Lerp(minOutlineWidth, maxOutlineWidth, t);
-                        highlightable.SetOutlineWidth(newWidth);
-                    }
-                    // 如果是 Targeted (黃色)，寬度由 PlayerMovement/Spectator 控制
-                }
-            }
+            UpdateAllHighlights();
             yield return new WaitForSeconds(updateInterval);
         }
     }
-}
+
+    // ▼▼▼ 核心邏輯被抽離到這個方法 ▼▼▼
+    private void UpdateAllHighlights()
+    {
+        Transform currentCameraTransform = teamManager.CurrentCameraTransform;
+        GameObject activeCharacter = teamManager.ActiveCharacterGameObject;
+
+        if (currentCameraTransform == null)
+        {
+            // Debug.LogWarning("HighlightManager could not get current camera transform."); // 減少 Console 噪音
+            return; // 找不到攝影機就不更新
+        }
+
+        foreach (HighlightableObject highlightable in allHighlightables)
+        {
+            if (highlightable != null && highlightable.enabled)
+            {
+                GameObject currentObject = highlightable.gameObject;
+                bool isInTeam = highlightable.IsInTeam(teamManager);
+                bool isActive = (currentObject == activeCharacter);
+
+                // --- 狀態判斷 ---
+                if (isInTeam && !isActive)
+                {
+                    highlightable.SetInactiveTeamHighlight(true);
+                    highlightable.SetAvailableHighlight(false);
+                }
+                else if (!isInTeam)
+                {
+                    highlightable.SetAvailableHighlight(true);
+                    highlightable.SetInactiveTeamHighlight(false);
+                }
+                else // (isInTeam && isActive)
+                {
+                    highlightable.SetAvailableHighlight(false);
+                    highlightable.SetInactiveTeamHighlight(false);
+                }
+
+                // --- 更新寬度 (只更新顯示白色或綠色的) ---
+                // 我們需要 HighlightableObject 提供 IsTargeted 狀態
+                bool isTargetedNow = highlightable.IsTargeted; // Assuming IsTargeted property exists
+
+                // Update width only if it's NOT the active character AND NOT currently targeted (yellow)
+                if (!isActive && !isTargetedNow && (highlightable.IsAvailable() || highlightable.IsInactiveTeamMember())) // Assuming helper methods exist
+                {
+                    float distance = Vector3.Distance(currentCameraTransform.position, highlightable.transform.position);
+                    float t = Mathf.InverseLerp(0, maxDistanceForOutline, distance);
+                    float newWidth = Mathf.Lerp(minOutlineWidth, maxOutlineWidth, t);
+                    highlightable.SetOutlineWidth(newWidth);
+                }
+                // If it IS targeted (yellow), the width is controlled by Spectator/PlayerMovement
+            }
+        }
+    }
+    // Need to add IsAvailable() and IsInactiveTeamMember() to HighlightableObject
+    // Add these to HighlightableObject.cs:
+    // public bool IsAvailable() => isAvailable;
+    // public bool IsInactiveTeamMember() => isInactiveTeamMember;
+
+} // End of HighlightManager class

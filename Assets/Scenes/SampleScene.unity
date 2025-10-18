@@ -1633,6 +1633,7 @@ MonoBehaviour:
     characterCamera: {fileID: 0}
     cameraFollowTarget: {fileID: 0}
   spectatorCameraObject: {fileID: 330585543}
+  highlightManager: {fileID: 2135395960}
 --- !u!4 &1493841723
 Transform:
   m_ObjectHideFlags: 0

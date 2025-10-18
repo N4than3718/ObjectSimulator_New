@@ -16,6 +16,8 @@ public class HighlightableObject : MonoBehaviour
 
     // --- ず场篈 ---
     public bool IsTargeted => isTargeted; // 琵场琩高琌砆核非
+    public bool IsAvailable() => isAvailable;
+    public bool IsInactiveTeamMember() => isInactiveTeamMember;
     private Renderer objectRenderer;
     private Material[] originalMaterials;
     private Material targetedInstance;
