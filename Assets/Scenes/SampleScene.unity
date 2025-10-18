@@ -854,7 +854,8 @@ MonoBehaviour:
   timeToStartDecreasing: 3
   movementThreshold: 0.1
   patrolSpeed: 5
-  chaseSpeed: 10
+  chaseSpeed: 12
+  captureDistance: 1.5
   currentAlertLevel: 0
 --- !u!195 &593485720
 NavMeshAgent:
