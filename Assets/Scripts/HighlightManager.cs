@@ -7,39 +7,53 @@ public class HighlightManager : MonoBehaviour
     [Header("References")]
     [SerializeField] private TeamManager teamManager;
     [Tooltip("白色高亮材質模板")]
-    [SerializeField] private Material availableHighlightTemplate; // 模板給 HighlightableObject 用
+    [SerializeField] private Material availableHighlightTemplate;
+    [Tooltip("觀察者攝影機的 Transform (如果未指定會自動查找)")]
+    [SerializeField] private Transform spectatorCameraTransform;
 
     [Header("Settings")]
     [Tooltip("掃描場景更新高亮的頻率（秒）")]
-    [SerializeField] private float updateInterval = 0.5f;
+    [SerializeField] private float updateInterval = 0.2f; // 可以稍微加快更新頻率
+
+    // ▼▼▼ 新增：白色高亮的動態輪廓參數 ▼▼▼
+    [Header("Dynamic Outline (Available)")]
+    [Tooltip("輪廓的最小寬度")]
+    [SerializeField] private float minOutlineWidth = 0.003f;
+    [Tooltip("輪廓的最大寬度")]
+    [SerializeField] private float maxOutlineWidth = 0.03f; // 白色可以稍微細一點
+    [Tooltip("達到最大寬度所需的距離")]
+    [SerializeField] private float maxDistanceForOutline = 50f;
+    // ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
 
     private List<HighlightableObject> allHighlightables = new List<HighlightableObject>();
 
     void Start()
     {
+        // --- 獲取引用 ---
         if (teamManager == null) teamManager = FindAnyObjectByType<TeamManager>();
-        if (teamManager == null)
+        if (spectatorCameraTransform == null)
         {
-            Debug.LogError("HighlightManager cannot find TeamManager!");
-            enabled = false;
-            return;
+            SpectatorController sc = FindAnyObjectByType<SpectatorController>();
+            if (sc != null) spectatorCameraTransform = sc.transform;
         }
-        if (availableHighlightTemplate == null)
+
+        // --- 錯誤檢查 ---
+        if (teamManager == null || availableHighlightTemplate == null || spectatorCameraTransform == null)
         {
-            Debug.LogError("HighlightManager needs the Available Highlight Material Template!");
+            Debug.LogError("HighlightManager is missing required references (TeamManager, Available Template, or Spectator Camera Transform)!");
             enabled = false;
             return;
         }
 
-        // 找到場景中所有可高亮的物件
+        // --- 初始化列表和模板 ---
         allHighlightables.AddRange(FindObjectsByType<HighlightableObject>(FindObjectsSortMode.None));
-
-        // 把白色模板傳給每個物件
         foreach (var obj in allHighlightables)
         {
-            obj.availableHighlightTemplate = this.availableHighlightTemplate;
+            if (obj != null && obj.enabled) // Check if obj is valid and enabled
+            {
+                obj.availableHighlightTemplate = this.availableHighlightTemplate;
+            }
         }
-
 
         StartCoroutine(UpdateAvailableHighlights());
     }
@@ -48,13 +62,28 @@ public class HighlightManager : MonoBehaviour
     {
         while (true)
         {
+            // 如果玩家正在操控物件，就不需要更新白色高亮 (或可以選擇更新，取決於設計)
+            // if (teamManager.CurrentState == TeamManager.GameState.Possessing) {
+            //     yield return new WaitForSeconds(updateInterval);
+            //     continue;
+            // }
+
             foreach (HighlightableObject highlightable in allHighlightables)
             {
-                if (highlightable != null && highlightable.enabled) // 確保物件還存在且腳本啟用
+                if (highlightable != null && highlightable.enabled)
                 {
-                    // 檢查物件是否**不在**隊伍中
                     bool shouldBeAvailable = !highlightable.IsInTeam(teamManager);
                     highlightable.SetAvailableHighlight(shouldBeAvailable);
+
+                    // ▼▼▼ 核心修改：如果顯示白色高亮，就計算並設定寬度 ▼▼▼
+                    if (shouldBeAvailable)
+                    {
+                        float distance = Vector3.Distance(spectatorCameraTransform.position, highlightable.transform.position);
+                        float t = Mathf.InverseLerp(0, maxDistanceForOutline, distance);
+                        float newWidth = Mathf.Lerp(minOutlineWidth, maxOutlineWidth, t);
+                        highlightable.SetOutlineWidth(newWidth); // 更新寬度
+                    }
+                    // ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
                 }
             }
             yield return new WaitForSeconds(updateInterval);
