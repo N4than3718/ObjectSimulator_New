@@ -126,22 +126,50 @@ public class TeamManager : MonoBehaviour
     // --- Start ---
     void Start()
     {
-        // !! [修復] 檢查 spectatorController
+        // 檢查 Spectator 和 HighlightManager 是否存在
         if (spectatorController == null || highlightManager == null)
         {
             Debug.LogError("TeamManager has missing references! (SpectatorController or HighlightManager)");
             return;
         }
 
-        // --- 解決方案：直接遍歷 Inspector 陣列 ---
-        Debug.Log($"Initializing {team.Length} units from Inspector.");
+        // --- 解決方案：把「強制禁用」邏輯加回來 ---
+
+        // 作業 1: [關鍵] 找到場景中 *所有* 的 PlayerMovement 腳本並強制禁用它們
+        // 這可以防止那些「還沒加入隊伍」的物件偷聽輸入。
+        Debug.Log("Start: Finding and disabling all PlayerMovement scripts in scene...");
+        var allCharacterScripts = FindObjectsByType<PlayerMovement>(FindObjectsSortMode.None);
+
+        foreach (var characterScript in allCharacterScripts)
+        {
+            // 1. 直接禁用腳本 (觸發 OnDisable 關閉輸入)
+            characterScript.enabled = false;
+
+            // 2. 禁用它在 PlayerMovement 上連結的攝影機 (如果有的話)
+            // (這是使用我們在上一動新增的 myCharacterCamera 欄位)
+            if (characterScript.myCharacterCamera != null)
+            {
+                characterScript.myCharacterCamera.gameObject.SetActive(false);
+            }
+
+            // 3. 禁用動畫 (好習慣)
+            var animator = characterScript.GetComponent<MovementAnimator>();
+            if (animator != null) animator.enabled = false;
+        }
+        Debug.Log($"Start: Force disabled {allCharacterScripts.Length} characters.");
+
+        // 作業 2: [保留] 初始化任何 *已經* 在 Inspector 裡設定好的隊友
+        // (對你目前的「空」陣列來說，這一步會全部跳過，是正常的)
         for (int i = 0; i < team.Length; i++)
         {
-            // 由於陣列是空的 (team[i].character == null), 
-            // SetUnitControl (line 388) 會直接 return, 這是正確的行為。
-            SetUnitControl(team[i], false, true);
+            if (team[i].character != null) // 只有當欄位真的有東西才執行
+            {
+                SetUnitControl(team[i], false, true);
+            }
         }
+        // ------------------------------------
 
+        // 作業 3: [不變] 進入觀察者模式
         EnterSpectatorMode();
     }
 
