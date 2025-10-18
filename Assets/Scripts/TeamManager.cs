@@ -118,14 +118,22 @@ public class TeamManager : MonoBehaviour
     // --- Start ---
     void Start()
     {
-        if (spectatorCameraObject == null) { Debug.LogError("Spectator Camera Object not assigned!"); return; }
+        if (spectatorCameraObject == null || highlightManager == null) { Debug.LogError("TeamManager has missing references!"); return; }
 
-        var allCharacters = FindObjectsByType<PlayerMovement>(FindObjectsSortMode.None);
-        foreach (var characterScript in allCharacters)
+        // 找到場景中 *所有* PlayerMovement 腳本
+        var allCharacterScripts = FindObjectsByType<PlayerMovement>(FindObjectsSortMode.None);
+        Debug.Log($"Found {allCharacterScripts.Length} PlayerMovement scripts in scene.");
+
+        // 強制禁用它們及其相關組件
+        foreach (var characterScript in allCharacterScripts)
         {
-            var unit = FindUnitByCharacter(characterScript.gameObject);
-            SetUnitControl(unit, false, true); // 強制禁用
+            Debug.Log($"Force disabling control for {characterScript.gameObject.name} on Start.");
+            // 即使不在 team 陣列中，也嘗試查找或創建臨時引用來禁用
+            var unitRef = FindUnitByCharacter(characterScript.gameObject);
+            SetUnitControl(unitRef, false, true); // 使用 forceDisable = true
         }
+
+        // 最後才進入觀察者模式
         EnterSpectatorMode();
     }
 
@@ -251,15 +259,16 @@ public class TeamManager : MonoBehaviour
     private void EnterSpectatorMode()
     {
         currentState = GameState.Spectator;
+        // 在重置 index 之前，先禁用當前活躍的角色 (如果有的話)
         if (activeCharacterIndex >= 0 && activeCharacterIndex < team.Length && team[activeCharacterIndex] != null)
         {
-            SetUnitControl(team[activeCharacterIndex], false, true);
+            Debug.Log($"Disabling character {team[activeCharacterIndex].character.name} before entering Spectator.");
+            SetUnitControl(team[activeCharacterIndex], false, true); // Use forceDisable = true
         }
-        activeCharacterIndex = -1;
+        activeCharacterIndex = -1; // 然後才重置 index
         spectatorCameraObject.SetActive(true);
-        // ▼▼▼ 進入觀察者模式後，強制更新高亮 ▼▼▼
         if (highlightManager != null) highlightManager.ForceHighlightUpdate();
-        // ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
+        Debug.Log("Entered Spectator Mode.");
     }
 
     // --- EnterPossessingMode ---
@@ -330,24 +339,38 @@ public class TeamManager : MonoBehaviour
     // --- SetUnitControl ---
     private void SetUnitControl(ControllableUnit unit, bool isActive, bool forceDisable = false)
     {
-        if (unit?.character == null) return;
+        // 稍微簡化 null 檢查
+        if (unit?.character == null)
+        {
+            // Debug.LogWarning("SetUnitControl called with null unit or character.");
+            return;
+        }
 
+        // 啟用/禁用腳本
         unit.character.enabled = isActive;
         var animator = unit.character.GetComponent<MovementAnimator>();
         if (animator != null) animator.enabled = isActive;
 
+        // 啟用/禁用攝影機 GameObject
         if (unit.characterCamera != null)
         {
+            // 如果是強制停用，或者當前狀態與目標狀態不符，就執行 SetActive
             if (forceDisable || unit.characterCamera.gameObject.activeSelf != isActive)
             {
+                // Debug.Log($"Setting camera {unit.characterCamera.name} active state to: {isActive}");
                 unit.characterCamera.gameObject.SetActive(isActive);
             }
 
+            // 如果是啟用狀態，確保引用被正確設定
             if (isActive && unit.cameraFollowTarget != null)
             {
                 unit.character.cameraTransform = unit.characterCamera.transform;
                 unit.characterCamera.FollowTarget = unit.cameraFollowTarget;
             }
+        }
+        else if (isActive)
+        {
+            Debug.LogWarning($"Character {unit.character.name} has no assigned Character Camera in TeamManager unit.");
         }
     }
 
