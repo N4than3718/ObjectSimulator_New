@@ -26,6 +26,9 @@ public class PlayerMovement : MonoBehaviour // 確保 Class 名稱是你改過�
     [SerializeField] private float groundCheckLeeway = 0.1f;
     [SerializeField] private LayerMask groundLayer;
 
+    [Tooltip("指定哪些圖層被視為『可站立的平台或物件』（例如其他玩家）")]
+    [SerializeField] private LayerMask platformLayer;
+
     // --- 操控狀態下的互動與高亮 ---
     [Header("Possessed Mode Interaction & Highlighting")]
     [Tooltip("執行射線檢測的最大距離")]
@@ -177,7 +180,9 @@ public class PlayerMovement : MonoBehaviour // 確保 Class 名稱是你改過�
             case 2: castOrigin = transform.position + new Vector3(capsuleCollider.center.x, capsuleCollider.center.y + (capsuleCollider.height / 2f) - castRadius, capsuleCollider.center.z); castDistance = (capsuleCollider.height / 2f) - castRadius + groundCheckLeeway; break;
             default: castOrigin = transform.position + capsuleCollider.center; castDistance = (capsuleCollider.height / 2f) - castRadius + groundCheckLeeway; break;
         }
-        IsGrounded = Physics.SphereCast(castOrigin, castRadius, Vector3.down, out _, castDistance, groundLayer);
+
+        LayerMask combinedMask = groundLayer | platformLayer;
+        IsGrounded = Physics.SphereCast(castOrigin, castRadius, Vector3.down, out _, castDistance, combinedMask); // 使用 combinedMask
     }
 
     // --- 只保留一個 HandleMovement ---
