@@ -28,6 +28,9 @@ public class NpcAI : MonoBehaviour
     [SerializeField] private float patrolSpeed = 2f;
     [SerializeField] private float chaseSpeed = 5f;
 
+    [Header("捕捉設定")]
+    [SerializeField] private float captureDistance = 1.5f; // 捕捉距離
+
     [Header("Debug")]
     [SerializeField][Range(0, 200)] private float currentAlertLevel = 0f;
 
@@ -38,11 +41,14 @@ public class NpcAI : MonoBehaviour
     private float timeSinceLastSighting = 0f;
     private Vector3 lastSightingPosition;
     private Transform threatTarget;
+    private TeamManager teamManager;
 
     void Awake()
     {
         fov = GetComponent<FieldOfView>();
         navAgent = GetComponent<NavMeshAgent>();
+        teamManager = FindAnyObjectByType<TeamManager>();
+        if (teamManager == null) Debug.LogError("NpcAI cannot find TeamManager!");
     }
 
     void Start()
@@ -53,6 +59,8 @@ public class NpcAI : MonoBehaviour
 
     void Update()
     {
+        if (teamManager == null) return;
+
         switch (currentState)
         {
             case NpcState.Searching:
@@ -123,9 +131,16 @@ public class NpcAI : MonoBehaviour
             navAgent.SetDestination(threatTarget.position);
             lastSightingPosition = threatTarget.position; // 持續更新最後看到它的位置
 
-            if (Vector3.Distance(transform.position, threatTarget.position) < 1.5f)
+            if (Vector3.Distance(transform.position, threatTarget.position) < captureDistance)
             {
                 Debug.Log($"抓住目標: {threatTarget.name}!");
+                // 通知 TeamManager 移除這個角色
+                teamManager.RemoveCharacterFromTeam(threatTarget.gameObject);
+                // 抓住後，清除威脅目標並返回搜索狀態
+                threatTarget = null;
+                currentState = NpcState.Searching;
+                currentAlertLevel = 0; // 可以選擇清零或不清零
+                return; // 重要：立刻結束這一幀的 AlertedState 邏輯
             }
         }
         else
