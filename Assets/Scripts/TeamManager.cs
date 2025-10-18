@@ -177,6 +177,57 @@ public class TeamManager : MonoBehaviour
         else { Debug.Log("Team is full!"); return false; }
     }
 
+    // ▼▼▼ 新增：移除角色的公開方法 ▼▼▼
+    public void RemoveCharacterFromTeam(GameObject characterObject)
+    {
+        int foundIndex = -1;
+        // 1. 查找要移除的角色在隊伍中的索引
+        for (int i = 0; i < team.Length; i++)
+        {
+            if (team[i]?.character?.gameObject == characterObject)
+            {
+                foundIndex = i;
+                break;
+            }
+        }
+
+        // 如果找到了
+        if (foundIndex != -1)
+        {
+            Debug.Log($"Removing {characterObject.name} from team slot {foundIndex}.");
+            ControllableUnit unitToRemove = team[foundIndex];
+
+            // 2. 檢查被移除的是否是當前操控的角色
+            if (currentState == GameState.Possessing && activeCharacterIndex == foundIndex)
+            {
+                // 如果是，立刻強制切換回觀察者模式
+                Debug.Log("Caught character was the active one. Switching to Spectator mode.");
+                EnterSpectatorMode(); // EnterSpectatorMode 會處理禁用和重置 activeCharacterIndex
+            }
+            else
+            {
+                // 如果不是當前角色，只需確保它的控制被禁用
+                SetUnitControl(unitToRemove, false, true); // 強制禁用
+            }
+
+            // 3. 將隊伍陣列中的對應位置設為 null
+            team[foundIndex] = null;
+
+            // 4. 通知 HighlightManager 更新高亮
+            if (highlightManager != null)
+            {
+                highlightManager.ForceHighlightUpdate();
+            }
+
+            // 可選：可以禁用被抓住物件的 GameObject，讓它從場景消失
+            // characterObject.SetActive(false);
+        }
+        else
+        {
+            Debug.LogWarning($"Attempted to remove {characterObject.name}, but it wasn't found in the team.");
+        }
+    }
+
     // --- EnterSpectatorMode ---
     private void EnterSpectatorMode()
     {
