@@ -2,11 +2,11 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-// ▼▼▼ 核心修改：確保 ControllableUnit 定義在 TeamManager 外部 ▼▼▼
+// ▼▼▼ 確保 ControllableUnit 定義在 TeamManager 外部 ▼▼▼
 [System.Serializable]
 public class ControllableUnit
 {
-    public PlayerMovement character; // 確認是 PlayerMovement
+    public PlayerMovement character; // 確保引用的是 PlayerMovement
     public CamControl characterCamera;
     public Transform cameraFollowTarget;
 }
@@ -30,6 +30,27 @@ public class TeamManager : MonoBehaviour
     private int activeCharacterIndex = -1;
     private InputSystem_Actions playerActions;
 
+    // --- 新增公開屬性，供 HighlightManager 使用 ---
+    public Transform CurrentCameraTransform
+    {
+        get
+        {
+            if (currentState == GameState.Spectator && spectatorCameraObject != null)
+            {
+                return spectatorCameraObject.transform;
+            }
+            else if (currentState == GameState.Possessing && activeCharacterIndex >= 0 && activeCharacterIndex < team.Length && team[activeCharacterIndex]?.characterCamera != null)
+            {
+                return team[activeCharacterIndex].characterCamera.transform;
+            }
+            else
+            {
+                Debug.LogWarning("TeamManager couldn't determine the current active camera transform.");
+                return spectatorCameraObject != null ? spectatorCameraObject.transform : null;
+            }
+        }
+    }
+
     // --- Awake ---
     void Awake()
     {
@@ -40,20 +61,21 @@ public class TeamManager : MonoBehaviour
     // --- OnEnable ---
     private void OnEnable()
     {
-        // 確保 playerActions 實例存在
         if (playerActions == null) playerActions = new InputSystem_Actions();
         playerActions.Player.Enable();
 
-        // ▼▼▼ 核心修改：檢查 Action 是否存在 ▼▼▼
-        if (playerActions.Player.Next != null)
-            playerActions.Player.Next.performed += ctx => SwitchNextCharacter();
+        // ▼▼▼ 加入 Action 存在性檢查 ▼▼▼
+        InputAction switchNextAction = playerActions.Player.Next;
+        if (switchNextAction != null)
+            switchNextAction.performed += ctx => SwitchNextCharacter();
         else
-            Debug.LogError("Input Action 'SwitchNext' not found in Player map!");
+            Debug.LogError("Input Action 'SwitchNext' not found in Player map! Please check InputSystem_Actions asset.");
 
-        if (playerActions.Player.Previous != null)
-            playerActions.Player.Previous.performed += ctx => SwitchPreviousCharacter();
+        InputAction switchPrevAction = playerActions.Player.Previous;
+        if (switchPrevAction != null)
+            switchPrevAction.performed += ctx => SwitchPreviousCharacter();
         else
-            Debug.LogError("Input Action 'SwitchPrevious' not found in Player map!");
+            Debug.LogError("Input Action 'SwitchPrevious' not found in Player map! Please check InputSystem_Actions asset.");
         // ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
     }
 
@@ -63,11 +85,14 @@ public class TeamManager : MonoBehaviour
         if (playerActions != null)
         {
             playerActions.Player.Disable();
-            // 同樣加上 null 檢查
-            if (playerActions.Player.Next != null)
-                playerActions.Player.Next.performed -= ctx => SwitchNextCharacter();
-            if (playerActions.Player.Previous != null)
-                playerActions.Player.Previous.performed -= ctx => SwitchPreviousCharacter();
+            // 同樣加上檢查再取消訂閱
+            InputAction switchNextAction = playerActions.Player.Next;
+            if (switchNextAction != null)
+                switchNextAction.performed -= ctx => SwitchNextCharacter();
+
+            InputAction switchPrevAction = playerActions.Player.Previous;
+            if (switchPrevAction != null)
+                switchPrevAction.performed -= ctx => SwitchPreviousCharacter();
         }
     }
 
@@ -76,7 +101,6 @@ public class TeamManager : MonoBehaviour
     {
         if (spectatorCameraObject == null) { Debug.LogError("Spectator Camera Object not assigned!"); return; }
 
-        // 禁用場景中所有 PlayerMovement (假設它們一開始就在場景裡)
         var allCharacters = FindObjectsByType<PlayerMovement>(FindObjectsSortMode.None);
         foreach (var characterScript in allCharacters)
         {
@@ -158,7 +182,7 @@ public class TeamManager : MonoBehaviour
         int nextIndex = (activeCharacterIndex + 1) % team.Length;
         while (nextIndex != initialIndex)
         {
-            if (team[nextIndex]?.character != null) { SwitchToCharacter(nextIndex); return; } // 簡化 null 檢查
+            if (team[nextIndex]?.character != null) { SwitchToCharacter(nextIndex); return; }
             nextIndex = (nextIndex + 1) % team.Length;
         }
     }
@@ -171,7 +195,7 @@ public class TeamManager : MonoBehaviour
         int prevIndex = (activeCharacterIndex - 1 + team.Length) % team.Length;
         while (prevIndex != initialIndex)
         {
-            if (team[prevIndex]?.character != null) { SwitchToCharacter(prevIndex); return; } // 簡化 null 檢查
+            if (team[prevIndex]?.character != null) { SwitchToCharacter(prevIndex); return; }
             prevIndex = (prevIndex - 1 + team.Length) % team.Length;
         }
     }
@@ -190,7 +214,7 @@ public class TeamManager : MonoBehaviour
     // --- SetUnitControl ---
     private void SetUnitControl(ControllableUnit unit, bool isActive, bool forceDisable = false)
     {
-        if (unit?.character == null) return; // 簡化 null 檢查
+        if (unit?.character == null) return;
 
         unit.character.enabled = isActive;
         var animator = unit.character.GetComponent<MovementAnimator>();
@@ -226,7 +250,7 @@ public class TeamManager : MonoBehaviour
     // --- FindUnitByCharacter ---
     private ControllableUnit FindUnitByCharacter(GameObject charObject)
     {
-        for (int i = 0; i < team.Length; ++i) { if (team[i]?.character?.gameObject == charObject) { return team[i]; } } // 簡化 null 檢查
+        for (int i = 0; i < team.Length; ++i) { if (team[i]?.character?.gameObject == charObject) { return team[i]; } }
         PlayerMovement pm = charObject.GetComponent<PlayerMovement>();
         CamControl cam = charObject.GetComponentInChildren<CamControl>(true);
         Transform followTarget = FindInChildren(charObject.transform, "CameraFollowTarget") ?? charObject.transform;
@@ -237,7 +261,7 @@ public class TeamManager : MonoBehaviour
     // --- IsInTeam ---
     public bool IsInTeam(GameObject characterObject)
     {
-        for (int i = 0; i < team.Length; i++) { if (team[i]?.character?.gameObject == characterObject) { return true; } } // 簡化 null 檢查
+        for (int i = 0; i < team.Length; i++) { if (team[i]?.character?.gameObject == characterObject) { return true; } }
         return false;
     }
 }
