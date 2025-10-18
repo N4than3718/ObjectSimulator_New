@@ -104,13 +104,13 @@ public class TeamManager : MonoBehaviour
             // 嘗試獲取必要的元件
             PlayerMovement pm = characterObject.GetComponent<PlayerMovement>();
             CamControl cam = characterObject.GetComponentInChildren<CamControl>(true); // 包含非活動的子物件
-            Transform followTarget = FindInChildren(characterObject.transform, "CameraFollowTarget"); // 假設跟隨點叫這個名字
+            Transform followTarget = FindInChildren(characterObject.transform, "Cam Follow Target"); // 假設跟隨點叫這個名字
 
             if (pm == null) { Debug.LogError($"Selected object {characterObject.name} missing PlayerMovement script!"); return; }
             if (cam == null) { Debug.LogError($"Selected object {characterObject.name} missing child Camera with CamControl script!"); return; }
             if (followTarget == null)
             {
-                Debug.LogWarning($"Selected object {characterObject.name} missing child 'CameraFollowTarget'. Falling back to root.");
+                Debug.LogWarning($"Selected object {characterObject.name} missing child 'Cam Follow Target'. Falling back to root.");
                 followTarget = characterObject.transform;
             }
 
