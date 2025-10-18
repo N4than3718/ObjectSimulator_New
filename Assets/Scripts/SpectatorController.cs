@@ -40,8 +40,8 @@ public class SpectatorController : MonoBehaviour
     {
         inputActions.Spectator.Enable();
         inputActions.Spectator.Select.performed += OnSelectPerformed;
-        Cursor.lockState = CursorLockMode.None; // 觀察者模式應該顯示游標，但射線從中心發出
-        Cursor.visible = true; // 確保游標可見
+        Cursor.lockState = CursorLockMode.None;
+        Cursor.visible = true;
     }
 
     private void OnDisable()
@@ -49,7 +49,7 @@ public class SpectatorController : MonoBehaviour
         inputActions.Spectator.Disable();
         inputActions.Spectator.Select.performed -= OnSelectPerformed;
         RestoreOriginalMaterials();
-        Cursor.lockState = CursorLockMode.Locked; // 離開時鎖定游標
+        Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
     }
 
@@ -87,14 +87,14 @@ public class SpectatorController : MonoBehaviour
 
     private void HandleHighlight()
     {
-        // ▼▼▼ 核心修改：射線從攝影機中心發出 ▼▼▼
         Ray ray = new Ray(transform.position, transform.forward);
-        // ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
 
         if (Physics.Raycast(ray, out RaycastHit hit, 200f))
         {
-            if (hit.collider.CompareTag("Controllable"))
+            // ▼▼▼ 核心修改 ▼▼▼
+            if (hit.collider.CompareTag("Player")) // 從 "Controllable" 改成 "Player"
             {
+                // ▲▲▲▲▲▲▲▲▲▲
                 var renderer = hit.transform.GetComponentInChildren<Renderer>();
                 if (renderer != null)
                 {
@@ -118,7 +118,7 @@ public class SpectatorController : MonoBehaviour
         }
 
         RestoreOriginalMaterials();
-        currentlyHighlighted = null; // 清除引用，避免 OnSelectPerformed 出錯
+        currentlyHighlighted = null;
     }
 
     private void StoreAndApplyHighlight()
@@ -137,7 +137,7 @@ public class SpectatorController : MonoBehaviour
         {
             currentlyHighlighted.materials = originalMaterials;
         }
-        currentlyHighlighted = null; // 清除目前高亮對象
+        currentlyHighlighted = null;
         originalMaterials = null;
         if (highlightInstance != null)
         {
@@ -148,15 +148,14 @@ public class SpectatorController : MonoBehaviour
 
     private void OnSelectPerformed(InputAction.CallbackContext context)
     {
-        // ▼▼▼ 核心修改：射線從攝影機中心發出 ▼▼▼
         Ray ray = new Ray(transform.position, transform.forward);
-        // ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
 
         if (Physics.Raycast(ray, out RaycastHit hit, 200f))
         {
-            if (hit.collider.CompareTag("Controllable"))
+            // ▼▼▼ 核心修改 ▼▼▼
+            if (hit.collider.CompareTag("Player")) // 從 "Controllable" 改成 "Player"
             {
-                // 我們現在直接使用射線打到的物件，而不是依賴 Update 中高亮的物件
+                // ▲▲▲▲▲▲▲▲▲▲
                 teamManager.PossessCharacter(hit.transform.root.gameObject);
             }
         }
