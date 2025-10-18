@@ -1830,7 +1830,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::HighlightManager
   teamManager: {fileID: 1493841722}
   availableHighlightTemplate: {fileID: 2100000, guid: ff65ad8d0c8862e4e9abef0f7c56125b, type: 2}
+  spectatorCameraTransform: {fileID: 330585546}
   updateInterval: 0.5
+  minOutlineWidth: 0.003
+  maxOutlineWidth: 0.03
+  maxDistanceForOutline: 50
 --- !u!4 &2135395961
 Transform:
   m_ObjectHideFlags: 0
