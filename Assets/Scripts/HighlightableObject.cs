@@ -30,6 +30,24 @@ public class HighlightableObject : MonoBehaviour
 
     private float currentOutlineWidth = -1f;
 
+    void OnEnable()
+    {
+        // 嘗試註冊自己
+        if (HighlightManager.Instance != null)
+        {
+            HighlightManager.Instance.RegisterHighlightable(this);
+        }
+    }
+
+    void OnDisable()
+    {
+        // 嘗試取消註冊自己
+        if (HighlightManager.Instance != null)
+        {
+            HighlightManager.Instance.UnregisterHighlightable(this);
+        }
+    }
+
     void Awake()
     {
         objectRenderer = GetComponentInChildren<Renderer>(true);
