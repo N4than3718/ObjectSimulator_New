@@ -44,15 +44,15 @@ public class TeamManager : MonoBehaviour
     private void OnEnable()
     {
         playerActions.Player.Enable();
-        playerActions.Player.SwitchNext.performed += ctx => SwitchNextCharacter();
-        playerActions.Player.SwitchPrevious.performed += ctx => SwitchPreviousCharacter();
+        playerActions.Player.Next.performed += ctx => SwitchNextCharacter();
+        playerActions.Player.Previous.performed += ctx => SwitchPreviousCharacter();
     }
 
     private void OnDisable()
     {
         playerActions.Player.Disable();
-        playerActions.Player.SwitchNext.performed -= ctx => SwitchNextCharacter();
-        playerActions.Player.SwitchPrevious.performed -= ctx => SwitchPreviousCharacter();
+        playerActions.Player.Next.performed -= ctx => SwitchNextCharacter();
+        playerActions.Player.Previous.performed -= ctx => SwitchPreviousCharacter();
     }
 
     void Start()
