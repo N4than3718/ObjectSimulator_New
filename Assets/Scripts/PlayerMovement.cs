@@ -6,11 +6,13 @@ public class PlayerMovement : MonoBehaviour
 {
     [Header("元件參考")]
     public Transform cameraTransform;
-    [Tooltip("將與此角色配對的【獨立】攝影機上的 CamControl 元件拖到這裡")]
-    public CamControl myCameraControl;
     private Rigidbody rb;
     private CapsuleCollider capsuleCollider;
     private TeamManager teamManager;
+
+    [Header("Component Links")]
+    public CamControl myCharacterCamera;
+    public Transform myFollowTarget;
 
     [Header("移動設定")]
     [SerializeField] private float playerSpeed = 5.0f;
