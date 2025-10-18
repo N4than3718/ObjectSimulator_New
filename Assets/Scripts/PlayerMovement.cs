@@ -66,7 +66,7 @@ public class PlayerMovement : MonoBehaviour // 確保 Class 名稱是你改過�
 
         if (orientationTarget == null)
         {
-            orientationTarget = transform.Find("OrientationTarget"); // 嘗試找名為 "OrientationTarget" 的子物件
+            orientationTarget = transform.Find("Orientation Target"); // 嘗試找名為 "OrientationTarget" 的子物件
             if (orientationTarget == null)
             {
                 Debug.LogWarning($"PlayerMovement on {gameObject.name} does not have OrientationTarget assigned or found. Rotation might not work as intended.", this);
