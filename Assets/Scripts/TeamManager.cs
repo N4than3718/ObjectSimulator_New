@@ -59,6 +59,20 @@ public class TeamManager : MonoBehaviour
         EnterSpectatorMode();
     }
 
+    // ▼▼▼ 新增的公開方法 ▼▼▼
+    public bool IsInTeam(GameObject characterObject)
+    {
+        for (int i = 0; i < team.Length; i++)
+        {
+            if (team[i] != null && team[i].character != null && team[i].character.gameObject == characterObject)
+            {
+                return true; // 找到了
+            }
+        }
+        return false; // 沒找到
+    }
+    // ▲▲▲▲▲▲▲▲▲▲▲▲▲
+
     // PossessCharacter 現在只負責「附身」，不再包含「加入」邏輯
     public void PossessCharacter(GameObject characterObject)
     {

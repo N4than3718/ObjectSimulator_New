@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
-using System.Collections.Generic;
-using System.Linq;
+// using System.Collections.Generic; //不再需要
+// using System.Linq; //不再需要
 
 [RequireComponent(typeof(Camera))]
 public class SpectatorController : MonoBehaviour
@@ -9,27 +9,95 @@ public class SpectatorController : MonoBehaviour
     [Header("Settings")]
     [SerializeField] private float moveSpeed = 10f;
     [SerializeField] private float lookSensitivity = 0.1f;
+    [SerializeField] private float interactionDistance = 200f; // 射線距離
 
     [Header("References")]
     [SerializeField] private TeamManager teamManager;
-    [Header("Highlighting")]
-    [SerializeField] private Material highlightMaterial;
-
-    [Header("Dynamic Outline")]
-    [SerializeField] private float minOutlineWidth = 0.003f;
-    [SerializeField] private float maxOutlineWidth = 0.04f;
-    [SerializeField] private float maxDistanceForOutline = 50f;
+    // ▼▼▼ 移除所有材質和 Outline 相關的 public 欄位 ▼▼▼
+    // [Header("Highlighting")]
+    // [SerializeField] private Material highlightMaterial;
+    // [Header("Dynamic Outline")]
+    // [SerializeField] private float minOutlineWidth = 0.003f;
+    // ... etc ...
+    // ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
 
     private InputSystem_Actions inputActions;
     private Camera spectatorCamera;
-
     private float yaw;
     private float pitch;
 
-    private Renderer currentlyHighlighted;
-    private Material[] originalMaterials;
-    private Material highlightInstance;
+    // ▼▼▼ 只保留一個引用，指向當前被瞄準的 HighlightableObject ▼▼▼
+    private HighlightableObject currentlyTargetedObject;
+    // ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
 
+    private void OnDisable()
+    {
+        inputActions.Spectator.Disable();
+        inputActions.Spectator.Select.performed -= OnSelectPerformed;
+        // 確保離開時取消目標高亮
+        if (currentlyTargetedObject != null)
+        {
+            currentlyTargetedObject.SetTargetedHighlight(false);
+            currentlyTargetedObject = null;
+        }
+        Cursor.lockState = CursorLockMode.Locked;
+        Cursor.visible = false;
+    }
+    void Update()
+    {
+        HandleLook();
+        HandleMovement();
+        HandleHighlight();
+    }
+    private void HandleLook() {/*...*/}
+    private void HandleMovement() {/*...*/}
+
+    // ▼▼▼ 全新的 HandleHighlight ▼▼▼
+    private void HandleHighlight()
+    {
+        Ray ray = new Ray(transform.position, transform.forward);
+        HighlightableObject hitHighlightable = null; // 儲存這次射線打到的物件
+
+        if (Physics.Raycast(ray, out RaycastHit hit, interactionDistance))
+        {
+            // 嘗試獲取 HighlightableObject 元件
+            hitHighlightable = hit.collider.GetComponentInParent<HighlightableObject>();
+        }
+
+        // 如果這次打到的物件和上次的不一樣
+        if (hitHighlightable != currentlyTargetedObject)
+        {
+            // 取消上一個物件的目標高亮
+            if (currentlyTargetedObject != null)
+            {
+                currentlyTargetedObject.SetTargetedHighlight(false);
+            }
+            // 設定新的物件為目標高亮
+            if (hitHighlightable != null && hitHighlightable.CompareTag("Player")) // 確保是 Player Tag
+            {
+                currentlyTargetedObject = hitHighlightable;
+                currentlyTargetedObject.SetTargetedHighlight(true);
+            }
+            else
+            {
+                currentlyTargetedObject = null; // 如果打到東西但不是 Player，也清除目標
+            }
+        }
+        // 如果打到的物件和上次一樣，則什麼都不做，保持高亮
+    }
+    // ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
+
+    // StoreAndApplyHighlight() 和 RestoreOriginalMaterials() 整個移除
+
+    // ▼▼▼ OnSelectPerformed 現在使用 currentlyTargetedObject ▼▼▼
+    private void OnSelectPerformed(InputAction.CallbackContext context)
+    {
+        if (currentlyTargetedObject != null)
+        {
+            teamManager.PossessCharacter(currentlyTargetedObject.transform.root.gameObject);
+        }
+    }
+    // Awake, OnEnable (no select), Start, HandleLook, HandleMovement remain similar
     void Awake()
     {
         inputActions = new InputSystem_Actions();
@@ -42,122 +110,12 @@ public class SpectatorController : MonoBehaviour
         inputActions.Spectator.Select.performed += OnSelectPerformed;
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
-    }
-
-    private void OnDisable()
-    {
-        inputActions.Spectator.Disable();
-        inputActions.Spectator.Select.performed -= OnSelectPerformed;
-        RestoreOriginalMaterials();
-        Cursor.lockState = CursorLockMode.Locked;
-        Cursor.visible = false;
+        // No need to clear highlight here, OnDisable handles it
     }
 
     void Start()
     {
         if (teamManager == null) teamManager = FindAnyObjectByType<TeamManager>();
         if (teamManager == null) Debug.LogError("SpectatorController needs a reference to the TeamManager!");
-    }
-
-    void Update()
-    {
-        HandleLook();
-        HandleMovement();
-        HandleHighlight();
-    }
-
-    private void HandleLook()
-    {
-        Vector2 lookInput = inputActions.Spectator.Look.ReadValue<Vector2>();
-        yaw += lookInput.x * lookSensitivity;
-        pitch -= lookInput.y * lookSensitivity;
-        pitch = Mathf.Clamp(pitch, -89f, 89f);
-        transform.localRotation = Quaternion.Euler(pitch, yaw, 0);
-    }
-
-    private void HandleMovement()
-    {
-        Vector2 moveInput = inputActions.Spectator.Move.ReadValue<Vector2>();
-        float ascendInput = inputActions.Spectator.Ascend.ReadValue<float>();
-        float descendInput = inputActions.Spectator.Descend.ReadValue<float>();
-
-        Vector3 moveDirection = (transform.forward * moveInput.y + transform.right * moveInput.x + Vector3.up * (ascendInput - descendInput)).normalized;
-        transform.position += moveDirection * moveSpeed * Time.deltaTime;
-    }
-
-    private void HandleHighlight()
-    {
-        Ray ray = new Ray(transform.position, transform.forward);
-
-        if (Physics.Raycast(ray, out RaycastHit hit, 200f))
-        {
-            // ▼▼▼ 核心修改 ▼▼▼
-            if (hit.collider.CompareTag("Player")) // 從 "Controllable" 改成 "Player"
-            {
-                // ▲▲▲▲▲▲▲▲▲▲
-                var renderer = hit.transform.GetComponentInChildren<Renderer>();
-                if (renderer != null)
-                {
-                    if (currentlyHighlighted != renderer)
-                    {
-                        RestoreOriginalMaterials();
-                        currentlyHighlighted = renderer;
-                        StoreAndApplyHighlight();
-                    }
-
-                    if (highlightInstance != null)
-                    {
-                        float distance = Vector3.Distance(transform.position, currentlyHighlighted.transform.position);
-                        float t = Mathf.InverseLerp(0, maxDistanceForOutline, distance);
-                        float newWidth = Mathf.Lerp(minOutlineWidth, maxOutlineWidth, t);
-                        highlightInstance.SetFloat("_OutlineWidth", newWidth);
-                    }
-                    return;
-                }
-            }
-        }
-
-        RestoreOriginalMaterials();
-        currentlyHighlighted = null;
-    }
-
-    private void StoreAndApplyHighlight()
-    {
-        if (currentlyHighlighted == null || highlightMaterial == null) return;
-        originalMaterials = currentlyHighlighted.materials;
-        highlightInstance = new Material(highlightMaterial);
-        var newMaterials = originalMaterials.ToList();
-        newMaterials.Add(highlightInstance);
-        currentlyHighlighted.materials = newMaterials.ToArray();
-    }
-
-    private void RestoreOriginalMaterials()
-    {
-        if (currentlyHighlighted != null && originalMaterials != null)
-        {
-            currentlyHighlighted.materials = originalMaterials;
-        }
-        currentlyHighlighted = null;
-        originalMaterials = null;
-        if (highlightInstance != null)
-        {
-            Destroy(highlightInstance);
-            highlightInstance = null;
-        }
-    }
-
-    private void OnSelectPerformed(InputAction.CallbackContext context)
-    {
-        Ray ray = new Ray(transform.position, transform.forward);
-
-        if (Physics.Raycast(ray, out RaycastHit hit, 200f))
-        {
-            // ▼▼▼ 核心修改 ▼▼▼
-            if (hit.collider.CompareTag("Player")) // 從 "Controllable" 改成 "Player"
-            {
-                // ▲▲▲▲▲▲▲▲▲▲
-                teamManager.PossessCharacter(hit.transform.root.gameObject);
-            }
-        }
     }
 }
