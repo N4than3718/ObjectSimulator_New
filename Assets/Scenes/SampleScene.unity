@@ -441,6 +441,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerMovement2
   cameraTransform: {fileID: 1402469980}
+  myCameraControl: {fileID: 1402469981}
   playerSpeed: 5
   fastSpeed: 10
   rotationSpeed: 10
@@ -522,7 +523,6 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1108952196}
-  - {fileID: 1402469980}
   - {fileID: 957414671}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -944,6 +944,8 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 330585546}
+  - {fileID: 1402469980}
+  - {fileID: 1746449003}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &832575517
@@ -1225,6 +1227,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerMovement2
   cameraTransform: {fileID: 1746449003}
+  myCameraControl: {fileID: 1746449004}
   playerSpeed: 5
   fastSpeed: 10
   rotationSpeed: 10
@@ -1306,7 +1309,6 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 78840897}
-  - {fileID: 1746449003}
   - {fileID: 643507237}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -1498,11 +1500,11 @@ Transform:
   m_GameObject: {fileID: 1402469979}
   serializedVersion: 2
   m_LocalRotation: {x: 0.08715578, y: -0, z: -0, w: 0.9961947}
-  m_LocalPosition: {x: 0, y: 2, z: -4}
+  m_LocalPosition: {x: 2.72233, y: 3, z: -5.4031}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 340754705}
+  m_Father: {fileID: 757258450}
   m_LocalEulerAnglesHint: {x: 10, y: 0, z: 0}
 --- !u!114 &1402469981
 MonoBehaviour:
@@ -1751,11 +1753,11 @@ Transform:
   m_GameObject: {fileID: 1746449002}
   serializedVersion: 2
   m_LocalRotation: {x: 0.2588191, y: -0, z: -0, w: 0.9659258}
-  m_LocalPosition: {x: 0, y: 3, z: -2}
+  m_LocalPosition: {x: 3.72233, y: 4, z: -2.4031}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 1190774502}
+  m_Father: {fileID: 757258450}
   m_LocalEulerAnglesHint: {x: 30, y: 0, z: 0}
 --- !u!114 &1746449004
 MonoBehaviour:
