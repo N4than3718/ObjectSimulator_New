@@ -171,18 +171,48 @@ public class PlayerMovement : MonoBehaviour // 確保 Class 名稱是你改過�
     // --- 只保留一個 GroundCheck ---
     private void GroundCheck()
     {
-        if (capsuleCollider == null) return; // 保護
-        Vector3 castOrigin; float castRadius = capsuleCollider.radius * groundCheckRadiusModifier; float castDistance;
+        if (capsuleCollider == null) return;
+
+        Vector3 castOriginOffset = capsuleCollider.center;
+        float halfExtent; // 代表從中心到碰撞體底部的距離
+        float castRadius = capsuleCollider.radius * groundCheckRadiusModifier;
+
+        // 根據 CapsuleCollider 的方向計算半高/半長
         switch (capsuleCollider.direction)
         {
-            case 0: castOrigin = transform.position + new Vector3(capsuleCollider.center.x, capsuleCollider.center.y + (capsuleCollider.height / 2f) - castRadius, capsuleCollider.center.z); castDistance = (capsuleCollider.height / 2f) - castRadius + groundCheckLeeway; break;
-            case 1: castOrigin = transform.position + capsuleCollider.center; castDistance = (capsuleCollider.height / 2f) - castRadius + groundCheckLeeway; break;
-            case 2: castOrigin = transform.position + new Vector3(capsuleCollider.center.x, capsuleCollider.center.y + (capsuleCollider.height / 2f) - castRadius, capsuleCollider.center.z); castDistance = (capsuleCollider.height / 2f) - castRadius + groundCheckLeeway; break;
-            default: castOrigin = transform.position + capsuleCollider.center; castDistance = (capsuleCollider.height / 2f) - castRadius + groundCheckLeeway; break;
+            case 0: // X-Axis (水平)
+            case 2: // Z-Axis (水平)
+                // 水平時，從中心到底部的距離是半徑
+                halfExtent = capsuleCollider.radius;
+                // 可以稍微調整起點 Y，讓它更貼近理論底部中心，但通常從中心發射更穩定
+                // castOriginOffset.y += (capsuleCollider.height / 2f) - castRadius; // 這是舊的錯誤邏輯
+                break;
+            case 1: // Y-Axis (垂直)
+            default:
+                // 垂直時，從中心到底部的距離是半高
+                halfExtent = capsuleCollider.height / 2f;
+                break;
         }
 
+        // 射線起點 = 物件位置 + 碰撞體中心偏移
+        Vector3 castOrigin = transform.TransformPoint(castOriginOffset); // 使用 TransformPoint 確保處理旋轉
+
+        // 射線長度 = 從中心到底部的距離 - 檢測球體半徑 + 容錯距離
+        // (SphereCast 的 distance 是從球體表面開始算的，所以要減去半徑)
+        float castDistance = halfExtent - castRadius + groundCheckLeeway;
+        // 確保 castDistance 不為負數
+        if (castDistance < 0.01f) castDistance = 0.01f;
+
+
+        // 執行 SphereCast
         LayerMask combinedMask = groundLayer | platformLayer;
-        IsGrounded = Physics.SphereCast(castOrigin, castRadius, Vector3.down, out _, castDistance, combinedMask); // 使用 combinedMask
+        IsGrounded = Physics.SphereCast(castOrigin, castRadius, Vector3.down, out _, castDistance, combinedMask);
+
+        // (除錯用) 如果持續失敗，印出詳細參數
+        // if (!IsGrounded && Time.frameCount % 60 == 0) // 每秒印一次
+        // {
+        //     Debug.Log($"GroundCheck Failed: Origin={castOrigin}, Radius={castRadius}, Dist={castDistance}, Dir={capsuleCollider.direction}, HalfExt={halfExtent}");
+        // }
     }
 
     // --- 只保留一個 HandleMovement ---
@@ -223,22 +253,32 @@ public class PlayerMovement : MonoBehaviour // 確保 Class 名稱是你改過�
     // --- 只保留一個 OnDrawGizmosSelected ---
     private void OnDrawGizmosSelected()
     {
-        if (capsuleCollider == null) capsuleCollider = GetComponent<CapsuleCollider>(); // 嘗試重新獲取
-        if (capsuleCollider == null) return;
+        if (capsuleCollider == null) capsuleCollider = GetComponent<CapsuleCollider>(); // Try to get it if null
+        if (capsuleCollider == null) return; // If still null, exit
 
-        // GroundCheck Gizmos
         Gizmos.color = IsGrounded ? Color.green : Color.red;
-        Vector3 castOrigin; float castRadius = capsuleCollider.radius * groundCheckRadiusModifier; float castDistance;
+
+        Vector3 castOriginOffset = capsuleCollider.center;
+        float halfExtent;
+        float castRadius = capsuleCollider.radius * groundCheckRadiusModifier;
+
         switch (capsuleCollider.direction)
         {
-            case 0: castOrigin = transform.position + new Vector3(capsuleCollider.center.x, capsuleCollider.center.y + (capsuleCollider.height / 2f) - castRadius, capsuleCollider.center.z); castDistance = (capsuleCollider.height / 2f) - castRadius + groundCheckLeeway; break;
-            case 1: castOrigin = transform.position + capsuleCollider.center; castDistance = (capsuleCollider.height / 2f) - castRadius + groundCheckLeeway; break;
-            case 2: castOrigin = transform.position + new Vector3(capsuleCollider.center.x, capsuleCollider.center.y + (capsuleCollider.height / 2f) - castRadius, capsuleCollider.center.z); castDistance = (capsuleCollider.height / 2f) - castRadius + groundCheckLeeway; break;
-            default: castOrigin = transform.position + capsuleCollider.center; castDistance = (capsuleCollider.height / 2f) - castRadius + groundCheckLeeway; break;
+            case 0:
+            case 2: // Horizontal
+                halfExtent = capsuleCollider.radius;
+                break;
+            case 1:
+            default: // Vertical
+                halfExtent = capsuleCollider.height / 2f;
+                break;
         }
-        Gizmos.DrawWireSphere(castOrigin + Vector3.down * castDistance, castRadius);
 
-        // Interaction Ray Gizmo (Optional)
-        // if (cameraTransform != null) { Gizmos.color = Color.cyan; Gizmos.DrawRay(cameraTransform.position, cameraTransform.forward * interactionDistance); }
+        Vector3 castOrigin = transform.TransformPoint(castOriginOffset);
+        float castDistance = halfExtent - castRadius + groundCheckLeeway;
+        if (castDistance < 0.01f) castDistance = 0.01f;
+
+        // Draw the sphere at the end of the cast
+        Gizmos.DrawWireSphere(castOrigin + Vector3.down * castDistance, castRadius);
     }
 } // <-- 確保這是 Class 最後的大括號
