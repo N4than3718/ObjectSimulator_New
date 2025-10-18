@@ -2,17 +2,13 @@ using UnityEngine;
 using System.Collections.Generic;
 using System.Linq;
 
-// ▼▼▼ 核心修改：移除 RequireComponent 屬性 ▼▼▼
-// [RequireComponent(typeof(Renderer))]
+// [RequireComponent(typeof(Renderer))] // Keep this removed
 public class HighlightableObject : MonoBehaviour
 {
     [Header("Highlight Materials")]
-    [Tooltip("被選中時的黃色高亮材質模板")]
     public Material targetedHighlightTemplate;
-    [Tooltip("可加入隊伍時的白色高亮材質模板")]
     public Material availableHighlightTemplate;
 
-    // --- 內部狀態 ---
     private Renderer objectRenderer;
     private Material[] originalMaterials;
     private Material targetedInstance;
@@ -21,25 +17,24 @@ public class HighlightableObject : MonoBehaviour
     private bool isTargeted = false;
     private bool isAvailable = false;
 
+    // Store the last set width to avoid unnecessary updates
+    private float currentOutlineWidth = -1f;
+
     void Awake()
     {
-        // ▼▼▼ 核心修改：從 GetComponent 改為 GetComponentInChildren ▼▼▼
-        objectRenderer = GetComponentInChildren<Renderer>(true); // true 表示包含非活動的子物件
-        // ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
-
+        objectRenderer = GetComponentInChildren<Renderer>(true);
         if (objectRenderer == null)
         {
-            Debug.LogError($"HighlightableObject on {gameObject.name} cannot find a Renderer in its children!", this);
-            enabled = false; // 找不到 Renderer 就直接禁用腳本
+            Debug.LogError($"HighlightableObject on {gameObject.name} cannot find a Renderer!", this);
+            enabled = false;
             return;
         }
         originalMaterials = objectRenderer.materials;
     }
 
-    // 由 SpectatorController 或 PlayerMovement 呼叫
     public void SetTargetedHighlight(bool active)
     {
-        if (!this.enabled) return; // 如果一開始就沒 Renderer，直接返回
+        if (!this.enabled) return;
         if (isTargeted != active)
         {
             isTargeted = active;
@@ -47,7 +42,6 @@ public class HighlightableObject : MonoBehaviour
         }
     }
 
-    // 由 HighlightManager 呼叫
     public void SetAvailableHighlight(bool active)
     {
         if (!this.enabled) return;
@@ -58,12 +52,30 @@ public class HighlightableObject : MonoBehaviour
         }
     }
 
+    // ▼▼▼ NEW METHOD ▼▼▼
+    // Method called by controllers to set the outline width dynamically
+    public void SetOutlineWidth(float width)
+    {
+        // Only update if the width has actually changed
+        if (!this.enabled || Mathf.Approximately(currentOutlineWidth, width)) return;
+
+        currentOutlineWidth = width;
+        Material activeInstance = targetedInstance ?? availableInstance; // Get the currently active instance
+
+        if (activeInstance != null)
+        {
+            activeInstance.SetFloat("_OutlineWidth", width);
+        }
+    }
+    // ▲▲▲▲▲▲▲▲▲▲▲▲
+
     private void UpdateHighlightMaterials()
     {
         if (objectRenderer == null) return;
 
         List<Material> currentMaterials = originalMaterials.ToList();
         DestroyCurrentInstances();
+        currentOutlineWidth = -1f; // Reset width when materials change
 
         if (isTargeted && targetedHighlightTemplate != null)
         {
@@ -77,6 +89,12 @@ public class HighlightableObject : MonoBehaviour
         }
 
         objectRenderer.materials = currentMaterials.ToArray();
+
+        // After applying new materials, immediately set the stored width if applicable
+        if (currentOutlineWidth > 0 && (targetedInstance != null || availableInstance != null))
+        {
+            SetOutlineWidth(currentOutlineWidth); // Re-apply width to the new instance
+        }
     }
 
     private void DestroyCurrentInstances()
@@ -93,8 +111,6 @@ public class HighlightableObject : MonoBehaviour
     public bool IsInTeam(TeamManager teamManager)
     {
         if (teamManager == null) return false;
-        // 檢查這個腳本所在的 GameObject 是否在隊伍中
-        // (因為我們現在把腳本掛在父物件上，所以不需要 .root 了)
         return teamManager.IsInTeam(this.gameObject);
     }
 }
