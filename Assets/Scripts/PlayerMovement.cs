@@ -246,35 +246,33 @@ public class PlayerMovement : MonoBehaviour // 確保 Class 名稱是你改過�
         rb.linearVelocity = new Vector3(targetVelocity.x, rb.linearVelocity.y, targetVelocity.z);
         CurrentHorizontalSpeed = new Vector3(rb.linearVelocity.x, 0, rb.linearVelocity.z).magnitude;
 
-        // --- 3. ▼▼▼ 核心修改：使用 Orientation Target 決定旋轉 ▼▼▼ ---
-        // 只有在提供了朝向目標時才進行旋轉
+        // --- 3. ▼▼▼ 核心修改：計算看向目標點的方向 ▼▼▼ ---
+        Vector3 lookDirection = Vector3.zero;
+
         if (orientationTarget != null)
         {
-            // 獲取朝向目標的**世界**前方向量，並壓平到水平面
-            Vector3 forwardDir = orientationTarget.forward;
-            forwardDir.y = 0;
-            forwardDir.Normalize();
-
-            // 如果成功計算出有效的水平朝向
-            if (forwardDir.sqrMagnitude > 0.01f)
-            {
-                // 計算目標旋轉 (讓物件的 Y 軸旋轉與 forwardDir 一致)
-                Quaternion targetRotation = Quaternion.LookRotation(forwardDir, Vector3.up);
-                // 平滑轉向
-                Quaternion newRotation = Quaternion.Slerp(rb.rotation, targetRotation, Time.fixedDeltaTime * rotationSpeed);
-                rb.MoveRotation(newRotation);
-            }
+            // 計算從 Rigidbody 的位置指向 OrientationTarget 位置的向量
+            lookDirection = orientationTarget.position - rb.position; // 使用 rb.position 更精確
         }
-        // 如果沒有提供 orientationTarget，物件就不會自動旋轉
-        // 或者，你可以加一個 else 條件，讓它在沒有 target 時恢復成跟隨移動方向
-        else if (moveDirection.sqrMagnitude > 0.01f) // Fallback to move direction if no orientation target
+        else if (moveDirection.sqrMagnitude > 0.01f) // Fallback to move direction
         {
-             Quaternion targetRotation = Quaternion.LookRotation(moveDirection, Vector3.up);
-             Quaternion newRotation = Quaternion.Slerp(rb.rotation, targetRotation, Time.fixedDeltaTime * rotationSpeed);
-             rb.MoveRotation(newRotation);
+            lookDirection = moveDirection;
+        }
+
+        // 壓平到水平面
+        lookDirection.y = 0;
+
+        // 只有在計算出有效的、非零的水平朝向時才進行旋轉
+        if (lookDirection.sqrMagnitude > 0.001f)
+        {
+            lookDirection.Normalize();
+            Quaternion targetRotation = Quaternion.LookRotation(lookDirection, Vector3.up);
+            Quaternion newRotation = Quaternion.Slerp(rb.rotation, targetRotation, Time.fixedDeltaTime * rotationSpeed);
+            rb.MoveRotation(newRotation);
         }
         // --- ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲ ---
-    }
+    }    
+    
     // --- 只保留一個 HandleJump ---
     private void HandleJump()
     {
