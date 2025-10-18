@@ -380,8 +380,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::SpectatorController
   moveSpeed: 30
   lookSensitivity: 0.3
+  interactionDistance: 200
   teamManager: {fileID: 1493841722}
-  highlightMaterial: {fileID: 2100000, guid: 6539271f926886640a9e4ca63e350961, type: 2}
+  highlightMaterial: {fileID: 0}
   minOutlineWidth: 0.003
   maxOutlineWidth: 0.04
   maxDistanceForOutline: 50
@@ -398,6 +399,7 @@ GameObject:
   - component: {fileID: 340754703}
   - component: {fileID: 340754702}
   - component: {fileID: 340754701}
+  - component: {fileID: 340754706}
   m_Layer: 6
   m_Name: Mug
   m_TagString: Player
@@ -449,10 +451,6 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 256
   interactionDistance: 15
-  highlightMaterial: {fileID: 2100000, guid: 6539271f926886640a9e4ca63e350961, type: 2}
-  minOutlineWidth: 0.003
-  maxOutlineWidth: 0.04
-  maxDistanceForOutline: 50
 --- !u!136 &340754703
 CapsuleCollider:
   m_ObjectHideFlags: 0
@@ -521,6 +519,20 @@ Transform:
   - {fileID: 957414671}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &340754706
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 340754700}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 27db6dbc31f97ab48b79c9276c594513, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::HighlightableObject
+  targetedHighlightTemplate: {fileID: 2100000, guid: 6539271f926886640a9e4ca63e350961, type: 2}
+  availableHighlightTemplate: {fileID: 2100000, guid: ff65ad8d0c8862e4e9abef0f7c56125b, type: 2}
 --- !u!1001 &353365075
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -1130,6 +1142,7 @@ GameObject:
   - component: {fileID: 1190774500}
   - component: {fileID: 1190774499}
   - component: {fileID: 1190774498}
+  - component: {fileID: 1190774503}
   m_Layer: 6
   m_Name: Hammer
   m_TagString: Player
@@ -1181,10 +1194,6 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 256
   interactionDistance: 15
-  highlightMaterial: {fileID: 2100000, guid: 6539271f926886640a9e4ca63e350961, type: 2}
-  minOutlineWidth: 0.003
-  maxOutlineWidth: 0.04
-  maxDistanceForOutline: 50
 --- !u!136 &1190774500
 CapsuleCollider:
   m_ObjectHideFlags: 0
@@ -1253,6 +1262,20 @@ Transform:
   - {fileID: 643507237}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1190774503
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1190774497}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 27db6dbc31f97ab48b79c9276c594513, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::HighlightableObject
+  targetedHighlightTemplate: {fileID: 2100000, guid: 6539271f926886640a9e4ca63e350961, type: 2}
+  availableHighlightTemplate: {fileID: 2100000, guid: ff65ad8d0c8862e4e9abef0f7c56125b, type: 2}
 --- !u!1 &1363107009
 GameObject:
   m_ObjectHideFlags: 0
@@ -1770,6 +1793,53 @@ Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 94e5c141ca07a7146ae909a089dd9342, type: 3}
   m_PrefabInstance: {fileID: 151013341}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &2135395959
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2135395961}
+  - component: {fileID: 2135395960}
+  m_Layer: 0
+  m_Name: Highlight Manager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &2135395960
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2135395959}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 92946a5a48abb784aaa81c447c5c80ed, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::HighlightManager
+  teamManager: {fileID: 1493841722}
+  availableHighlightTemplate: {fileID: 2100000, guid: ff65ad8d0c8862e4e9abef0f7c56125b, type: 2}
+  updateInterval: 0.5
+--- !u!4 &2135395961
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2135395959}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -6.99083, y: 0, z: -1.66919}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
@@ -1778,6 +1848,7 @@ SceneRoots:
   - {fileID: 410087041}
   - {fileID: 832575519}
   - {fileID: 1493841723}
+  - {fileID: 2135395961}
   - {fileID: 1363107013}
   - {fileID: 340754705}
   - {fileID: 1190774502}
