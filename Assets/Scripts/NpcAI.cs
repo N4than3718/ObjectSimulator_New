@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AI;
@@ -31,6 +32,12 @@ public class NpcAI : MonoBehaviour
     [Header("捕捉設定")]
     [SerializeField] private float captureDistance = 1.5f; // 捕捉距離
 
+    // ▼▼▼ 新增：AI 更新頻率 ▼▼▼
+    [Header("效能設定")]
+    [Tooltip("AI 決策邏輯的更新間隔 (秒)")]
+    [SerializeField] private float aiUpdateInterval = 0.2f;
+    // ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
+
     [Header("Debug")]
     [SerializeField][Range(0, 200)] private float currentAlertLevel = 0f;
 
@@ -55,23 +62,53 @@ public class NpcAI : MonoBehaviour
     {
         currentState = NpcState.Searching;
         navAgent.speed = patrolSpeed;
+
+        // ▼▼▼ 修改：啟動 AI 邏輯協程，取代 Update() ▼▼▼
+        StartCoroutine(AIUpdateLoop());
+        // ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
     }
 
-    void Update()
+    // ▼▼▼ 移除：Update() 方法 ▼▼▼
+    // void Update()
+    // {
+    //     // ... 這裡的所有邏輯都移到 AIUpdateLoop 協程中 ...
+    // }
+    // ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
+
+    // ▼▼▼ 新增：AI 邏輯協程 ▼▼▼
+    private IEnumerator AIUpdateLoop()
     {
-        if (teamManager == null) return;
+        // 等待一小段時間讓場景完全載入
+        yield return new WaitForSeconds(aiUpdateInterval);
 
-        switch (currentState)
+        while (true)
         {
-            case NpcState.Searching:
-                SearchingState();
-                break;
-            case NpcState.Alerted:
-                AlertedState();
-                break;
+            if (teamManager == null)
+            {
+                // 如果找不到 TeamManager，就持續等待
+                yield return new WaitForSeconds(aiUpdateInterval);
+                continue;
+            }
+
+            // 執行當前狀態的邏輯
+            switch (currentState)
+            {
+                case NpcState.Searching:
+                    SearchingState();
+                    break;
+                case NpcState.Alerted:
+                    AlertedState();
+                    break;
+            }
+
+            // 確保警戒值在 0-200 之間
+            currentAlertLevel = Mathf.Clamp(currentAlertLevel, 0f, 200f);
+
+            // 等待固定的時間後再執行下一次更新
+            yield return new WaitForSeconds(aiUpdateInterval);
         }
-        currentAlertLevel = Mathf.Clamp(currentAlertLevel, 0f, 200f);
     }
+    // ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
 
     private void SearchingState()
     {
@@ -82,13 +119,14 @@ public class NpcAI : MonoBehaviour
 
         if (movingTarget != null)
         {
+            // ▼▼▼ 修改：使用 aiUpdateInterval 取代 Time.deltaTime ▼▼▼
             if (currentAlertLevel < 100)
             {
-                currentAlertLevel += lowAlertIncreaseRate * Time.deltaTime;
+                currentAlertLevel += lowAlertIncreaseRate * aiUpdateInterval;
             }
             else
             {
-                currentAlertLevel += mediumAlertIncreaseRate * Time.deltaTime;
+                currentAlertLevel += mediumAlertIncreaseRate * aiUpdateInterval;
             }
             timeSinceLastSighting = 0f;
         }
@@ -96,16 +134,17 @@ public class NpcAI : MonoBehaviour
         {
             if (currentAlertLevel < 100)
             {
-                currentAlertLevel -= lowAlertDecreaseRate * Time.deltaTime;
+                currentAlertLevel -= lowAlertDecreaseRate * aiUpdateInterval;
             }
             else
             {
-                timeSinceLastSighting += Time.deltaTime;
+                timeSinceLastSighting += aiUpdateInterval;
                 if (timeSinceLastSighting >= timeToStartDecreasing)
                 {
-                    currentAlertLevel -= mediumAlertDecreaseRate * Time.deltaTime;
+                    currentAlertLevel -= mediumAlertDecreaseRate * aiUpdateInterval;
                 }
             }
+            // ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
         }
 
         if (currentAlertLevel >= 200)
@@ -122,46 +161,47 @@ public class NpcAI : MonoBehaviour
     private void AlertedState()
     {
         navAgent.speed = chaseSpeed;
-        currentAlertLevel -= highAlertDecreaseRate * Time.deltaTime;
 
-        // 判斷當前鎖定的威脅目標是否還在視野內
-        if (threatTarget != null && fov.visibleTargets.Contains(threatTarget))
+        // ▼▼▼ 修改：使用 aiUpdateInterval 取代 Time.deltaTime ▼▼▼
+        currentAlertLevel -= highAlertDecreaseRate * aiUpdateInterval;
+        // ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
+
+        // --- 優化：在狀態開始時先檢查一次移動目標 ---
+        Transform currentlyVisibleMovingTarget = CheckForMovingTargets();
+        bool threatIsVisible = (threatTarget != null && fov.visibleTargets.Contains(threatTarget));
+
+        // --- 情況 A: 威脅目標還在視野內 ---
+        if (threatIsVisible)
         {
-            // --- 情況 A: 目標還在視野內 ---
             navAgent.SetDestination(threatTarget.position);
             lastSightingPosition = threatTarget.position; // 持續更新最後看到它的位置
 
             if (Vector3.Distance(transform.position, threatTarget.position) < captureDistance)
             {
                 Debug.Log($"抓住目標: {threatTarget.name}!");
-                // 通知 TeamManager 移除這個角色
                 teamManager.RemoveCharacterFromTeam(threatTarget.gameObject);
-                // 抓住後，清除威脅目標並返回搜索狀態
                 threatTarget = null;
                 currentState = NpcState.Searching;
-                currentAlertLevel = 0; // 可以選擇清零或不清零
-                return; // 重要：立刻結束這一幀的 AlertedState 邏輯
+                currentAlertLevel = 0; // 抓到後清零警戒
+                return; // 立刻結束此狀態邏輯
             }
         }
+        // --- 情況 B: 威脅目標已丟失 (不在視野內) ---
         else
         {
-            // --- 情況 B: 目標已丟失 (不在視野內或不存在了) ---
-
             // 前往最後一次看到目標的位置進行搜索
             navAgent.SetDestination(lastSightingPosition);
 
-            // 在前往搜索的途中，檢查是否有新的動靜
-            Transform newMovingTarget = CheckForMovingTargets();
-            if (newMovingTarget != null)
+            // --- 情況 C: 在前往途中，看到了 *新的* 移動目標 (不是原本的威脅目標) ---
+            if (currentlyVisibleMovingTarget != null && currentlyVisibleMovingTarget != threatTarget)
             {
-                Debug.Log($"主要目標丟失！在前往調查時發現新目標: {newMovingTarget.name}");
-                threatTarget = newMovingTarget; // 切換到新的威脅目標
+                Debug.Log($"主要目標丟失！在前往調查時發現新目標: {currentlyVisibleMovingTarget.name}");
+                threatTarget = currentlyVisibleMovingTarget; // 切換到新的威WH目標
                 currentAlertLevel = 200f; // 重置警戒值，開始一次全新的追擊
-                // 直接返回，避免執行下面的「到達目的地」判斷
-                return;
+                return; // 結束此邏輯，下一個 AIUpdate 迴圈將會執行(情況A)
             }
 
-            // 如果已經到達最後已知位置，並且沒有發現新目標，則返回搜索狀態
+            // --- 情況 D: 如果已經到達最後已知位置，並且沒有發現新目標，則返回搜索狀態 ---
             if (!navAgent.pathPending && navAgent.remainingDistance < 0.5f)
             {
                 Debug.Log("在最後已知位置未發現目標，返回搜索狀態。");
@@ -190,11 +230,16 @@ public class NpcAI : MonoBehaviour
                 continue;
             }
             float distanceMoved = Vector3.Distance(lastKnownPositions[target], target.position);
-            if (distanceMoved / Time.deltaTime > movementThreshold)
+
+            // ▼▼▼ 修改：使用 aiUpdateInterval 取代 Time.deltaTime ▼▼▼
+            // 偵測速度 (每秒移動距離)
+            if (distanceMoved / aiUpdateInterval > movementThreshold)
             {
                 detectedMovingTarget = target;
                 lastSightingPosition = target.position; // 只要看到移動，就更新最後動靜位置
             }
+            // ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
+
             lastKnownPositions[target] = target.position;
         }
 
