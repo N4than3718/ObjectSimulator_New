@@ -24,7 +24,6 @@ public class CamControl : MonoBehaviour
     private float pitch = 0f;
     private Vector2 lookInput; // 只用來儲存輸入值
 
-    // 這個公開屬性依然保留，給 MovementAnimator 使用
     public Vector2 RotationInput { get; private set; }
 
     void Awake()
@@ -58,7 +57,7 @@ public class CamControl : MonoBehaviour
     void Update()
     {
         lookInput = playerActions.Player.Look.ReadValue<Vector2>();
-        RotationInput = lookInput; // 更新給 MovementAnimator 用的值
+        RotationInput = lookInput;
     }
 
     private void OnUnlockCursor(InputAction.CallbackContext context)
