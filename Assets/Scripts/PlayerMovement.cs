@@ -9,6 +9,8 @@ public class PlayerMovement : MonoBehaviour // 確保 Class 名稱是你改過�
     [Header("元件參考")]
     [Tooltip("TeamManager 會在啟用時自動設定這個")]
     public Transform cameraTransform; // 現在代表角色自己的攝影機 Transform
+    [Tooltip("指定一個子物件，其 Z 軸 (藍色軸) 將定義物件的『前方』")]
+    public Transform orientationTarget;
     private Rigidbody rb;
     private CapsuleCollider capsuleCollider;
     private TeamManager teamManager; // 引用 TeamManager
@@ -16,6 +18,7 @@ public class PlayerMovement : MonoBehaviour // 確保 Class 名稱是你改過�
     [Header("移動設定")]
     [SerializeField] private float playerSpeed = 5.0f;
     [SerializeField] private float fastSpeed = 10.0f;
+    [SerializeField] private float rotationSpeed = 10f;
 
     [Header("跳躍與重力")]
     [SerializeField] private float jumpHeight = 1.5f;
@@ -60,6 +63,17 @@ public class PlayerMovement : MonoBehaviour // 確保 Class 名稱是你改過�
         playerActions = new InputSystem_Actions();
         teamManager = FindAnyObjectByType<TeamManager>();
         if (teamManager == null) Debug.LogError("PlayerMovement cannot find TeamManager!");
+
+        if (orientationTarget == null)
+        {
+            orientationTarget = transform.Find("OrientationTarget"); // 嘗試找名為 "OrientationTarget" 的子物件
+            if (orientationTarget == null)
+            {
+                Debug.LogWarning($"PlayerMovement on {gameObject.name} does not have OrientationTarget assigned or found. Rotation might not work as intended.", this);
+                // 可以選擇指向自己作為備用
+                orientationTarget = transform;
+            }
+        }
     }
 
     // --- 只保留一個 OnEnable ---
@@ -218,17 +232,49 @@ public class PlayerMovement : MonoBehaviour // 確保 Class 名稱是你改過�
     // --- 只保留一個 HandleMovement ---
     private void HandleMovement()
     {
-        if (cameraTransform == null || rb == null || playerActions == null) return; // 保護
+        if (cameraTransform == null || rb == null || playerActions == null) return;
+
+        // --- 1. 計算移動方向 (保持不變) ---
         Vector3 camForward = cameraTransform.forward;
         Vector3 camRight = cameraTransform.right;
         camForward.y = 0; camRight.y = 0;
         camForward.Normalize(); camRight.Normalize();
         Vector3 moveDirection = (camForward * moveInput.y + camRight * moveInput.x).normalized;
+
+        // --- 2. 應用移動速度 (保持不變) ---
         Vector3 targetVelocity = moveDirection * CurrentSpeed;
         rb.linearVelocity = new Vector3(targetVelocity.x, rb.linearVelocity.y, targetVelocity.z);
         CurrentHorizontalSpeed = new Vector3(rb.linearVelocity.x, 0, rb.linearVelocity.z).magnitude;
-    }
 
+        // --- 3. ▼▼▼ 核心修改：使用 Orientation Target 決定旋轉 ▼▼▼ ---
+        // 只有在提供了朝向目標時才進行旋轉
+        if (orientationTarget != null)
+        {
+            // 獲取朝向目標的**世界**前方向量，並壓平到水平面
+            Vector3 forwardDir = orientationTarget.forward;
+            forwardDir.y = 0;
+            forwardDir.Normalize();
+
+            // 如果成功計算出有效的水平朝向
+            if (forwardDir.sqrMagnitude > 0.01f)
+            {
+                // 計算目標旋轉 (讓物件的 Y 軸旋轉與 forwardDir 一致)
+                Quaternion targetRotation = Quaternion.LookRotation(forwardDir, Vector3.up);
+                // 平滑轉向
+                Quaternion newRotation = Quaternion.Slerp(rb.rotation, targetRotation, Time.fixedDeltaTime * rotationSpeed);
+                rb.MoveRotation(newRotation);
+            }
+        }
+        // 如果沒有提供 orientationTarget，物件就不會自動旋轉
+        // 或者，你可以加一個 else 條件，讓它在沒有 target 時恢復成跟隨移動方向
+        else if (moveDirection.sqrMagnitude > 0.01f) // Fallback to move direction if no orientation target
+        {
+             Quaternion targetRotation = Quaternion.LookRotation(moveDirection, Vector3.up);
+             Quaternion newRotation = Quaternion.Slerp(rb.rotation, targetRotation, Time.fixedDeltaTime * rotationSpeed);
+             rb.MoveRotation(newRotation);
+        }
+        // --- ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲ ---
+    }
     // --- 只保留一個 HandleJump ---
     private void HandleJump()
     {
