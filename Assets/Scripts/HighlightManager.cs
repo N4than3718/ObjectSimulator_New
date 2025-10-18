@@ -116,9 +116,5 @@ public class HighlightManager : MonoBehaviour
             }
         }
     }
-    // Need to add IsAvailable() and IsInactiveTeamMember() to HighlightableObject
-    // Add these to HighlightableObject.cs:
-    // public bool IsAvailable() => isAvailable;
-    // public bool IsInactiveTeamMember() => isInactiveTeamMember;
 
 } // End of HighlightManager class
