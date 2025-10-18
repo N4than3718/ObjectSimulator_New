@@ -450,6 +450,9 @@ MonoBehaviour:
   groundLayer:
     serializedVersion: 2
     m_Bits: 256
+  platformLayer:
+    serializedVersion: 2
+    m_Bits: 64
   interactionDistance: 15
   minOutlineWidth: 0.003
   maxOutlineWidth: 0.04
@@ -1198,6 +1201,9 @@ MonoBehaviour:
   groundLayer:
     serializedVersion: 2
     m_Bits: 256
+  platformLayer:
+    serializedVersion: 2
+    m_Bits: 64
   interactionDistance: 15
   minOutlineWidth: 0.003
   maxOutlineWidth: 0.04
