@@ -448,7 +448,11 @@ MonoBehaviour:
   groundLayer:
     serializedVersion: 2
     m_Bits: 256
-  addToTeamRadius: 2
+  interactionDistance: 10
+  highlightMaterial: {fileID: 2100000, guid: 6539271f926886640a9e4ca63e350961, type: 2}
+  minOutlineWidth: 0.003
+  maxOutlineWidth: 0.04
+  maxDistanceForOutline: 50
 --- !u!136 &340754703
 CapsuleCollider:
   m_ObjectHideFlags: 0
@@ -1176,7 +1180,11 @@ MonoBehaviour:
   groundLayer:
     serializedVersion: 2
     m_Bits: 256
-  addToTeamRadius: 2
+  interactionDistance: 10
+  highlightMaterial: {fileID: 2100000, guid: 6539271f926886640a9e4ca63e350961, type: 2}
+  minOutlineWidth: 0.003
+  maxOutlineWidth: 0.04
+  maxDistanceForOutline: 50
 --- !u!136 &1190774500
 CapsuleCollider:
   m_ObjectHideFlags: 0
