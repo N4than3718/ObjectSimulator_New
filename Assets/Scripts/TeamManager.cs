@@ -181,7 +181,6 @@ public class TeamManager : MonoBehaviour
     public void RemoveCharacterFromTeam(GameObject characterObject)
     {
         int foundIndex = -1;
-        // 1. 查找要移除的角色在隊伍中的索引
         for (int i = 0; i < team.Length; i++)
         {
             if (team[i]?.character?.gameObject == characterObject)
@@ -191,40 +190,60 @@ public class TeamManager : MonoBehaviour
             }
         }
 
-        // 如果找到了
         if (foundIndex != -1)
         {
             Debug.Log($"Removing {characterObject.name} from team slot {foundIndex}.");
             ControllableUnit unitToRemove = team[foundIndex];
 
-            // 2. 檢查被移除的是否是當前操控的角色
-            if (currentState == GameState.Possessing && activeCharacterIndex == foundIndex)
-            {
-                // 如果是，立刻強制切換回觀察者模式
-                Debug.Log("Caught character was the active one. Switching to Spectator mode.");
-                EnterSpectatorMode(); // EnterSpectatorMode 會處理禁用和重置 activeCharacterIndex
-            }
-            else
-            {
-                // 如果不是當前角色，只需確保它的控制被禁用
-                SetUnitControl(unitToRemove, false, true); // 強制禁用
-            }
-
-            // 3. 將隊伍陣列中的對應位置設為 null
+            // 先禁用控制權，確保它不會再搞事
+            SetUnitControl(unitToRemove, false, true);
+            // 從隊伍中移除
             team[foundIndex] = null;
 
-            // 4. 通知 HighlightManager 更新高亮
-            if (highlightManager != null)
+            // 檢查被移除的是否是當前操控的角色
+            if (currentState == GameState.Possessing && activeCharacterIndex == foundIndex)
             {
-                highlightManager.ForceHighlightUpdate();
+                Debug.Log("Caught character was the active one. Attempting to switch to another team member...");
+                // 嘗試切換到下一個可用的角色
+                SwitchToPreviousOrSpectator(foundIndex); // 傳入被移除的索引
             }
+            // 如果移除的不是當前角色，則什麼都不用做，繼續操控就好
 
-            // 可選：可以禁用被抓住物件的 GameObject，讓它從場景消失
+            // 通知 HighlightManager 更新
+            if (highlightManager != null) highlightManager.ForceHighlightUpdate();
+
+            // 可選：禁用 GameObject
             // characterObject.SetActive(false);
+        }
+        else { Debug.LogWarning($"Attempted to remove {characterObject.name}, but it wasn't found."); }
+    }
+
+    // ▼▼▼ 新增：尋找下一個可用角色的輔助方法 ▼▼▼
+    private void SwitchToPreviousOrSpectator(int removedIndex)
+    {
+        int nextAvailableIndex = -1;
+        // 從被移除位置的 *前一個* 位置開始反向搜索（這樣更符合 Q/E 的感覺）
+        for (int i = 1; i < team.Length; i++)
+        {
+            int checkIndex = (removedIndex - i + team.Length) % team.Length;
+            if (team[checkIndex]?.character != null)
+            {
+                nextAvailableIndex = checkIndex;
+                break; // 找到了！
+            }
+        }
+
+        if (nextAvailableIndex != -1)
+        {
+            // 如果找到了倖存者，就附身它
+            Debug.Log($"Switching control to team member at index {nextAvailableIndex}.");
+            EnterPossessingMode(nextAvailableIndex);
         }
         else
         {
-            Debug.LogWarning($"Attempted to remove {characterObject.name}, but it wasn't found in the team.");
+            // 如果繞了一圈都沒找到（隊伍全滅），才回到觀察者模式
+            Debug.Log("No other team members available. Switching to Spectator mode.");
+            EnterSpectatorMode();
         }
     }
 
@@ -246,6 +265,14 @@ public class TeamManager : MonoBehaviour
     // --- EnterPossessingMode ---
     private void EnterPossessingMode(int newIndex)
     {
+        // 在附身前，確保要附身的 unit 是有效的
+        if (newIndex < 0 || newIndex >= team.Length || team[newIndex]?.character == null)
+        {
+            Debug.LogError($"Attempted to possess invalid team index {newIndex}. Switching to Spectator.");
+            EnterSpectatorMode(); // 保險措施
+            return;
+        }
+
         currentState = GameState.Possessing;
         spectatorCameraObject.SetActive(false);
         SwitchToCharacter(newIndex);
