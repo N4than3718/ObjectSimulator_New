@@ -12,20 +12,13 @@ public class SpectatorController : MonoBehaviour
 
     [Header("References")]
     [SerializeField] private TeamManager teamManager;
-
     [Header("Highlighting")]
-    [Tooltip("高亮材質的模板")]
     [SerializeField] private Material highlightMaterial;
 
-    // ▼▼▼ 新增的動態輪廓參數 ▼▼▼
     [Header("Dynamic Outline")]
-    [Tooltip("輪廓的最小寬度")]
     [SerializeField] private float minOutlineWidth = 0.003f;
-    [Tooltip("輪廓的最大寬度")]
     [SerializeField] private float maxOutlineWidth = 0.04f;
-    [Tooltip("達到最大寬度所需的距離")]
     [SerializeField] private float maxDistanceForOutline = 50f;
-    // ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
 
     private InputSystem_Actions inputActions;
     private Camera spectatorCamera;
@@ -33,10 +26,9 @@ public class SpectatorController : MonoBehaviour
     private float yaw;
     private float pitch;
 
-    // --- 管理高亮狀態的變數 ---
     private Renderer currentlyHighlighted;
     private Material[] originalMaterials;
-    private Material highlightInstance; // 我們動態創建的材質實例
+    private Material highlightInstance;
 
     void Awake()
     {
@@ -48,8 +40,8 @@ public class SpectatorController : MonoBehaviour
     {
         inputActions.Spectator.Enable();
         inputActions.Spectator.Select.performed += OnSelectPerformed;
-        Cursor.lockState = CursorLockMode.None;
-        Cursor.visible = true;
+        Cursor.lockState = CursorLockMode.None; // 觀察者模式應該顯示游標，但射線從中心發出
+        Cursor.visible = true; // 確保游標可見
     }
 
     private void OnDisable()
@@ -57,6 +49,8 @@ public class SpectatorController : MonoBehaviour
         inputActions.Spectator.Disable();
         inputActions.Spectator.Select.performed -= OnSelectPerformed;
         RestoreOriginalMaterials();
+        Cursor.lockState = CursorLockMode.Locked; // 離開時鎖定游標
+        Cursor.visible = false;
     }
 
     void Start()
@@ -93,53 +87,45 @@ public class SpectatorController : MonoBehaviour
 
     private void HandleHighlight()
     {
-        Ray ray = spectatorCamera.ScreenPointToRay(Mouse.current.position.ReadValue());
+        // ▼▼▼ 核心修改：射線從攝影機中心發出 ▼▼▼
+        Ray ray = new Ray(transform.position, transform.forward);
+        // ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
 
-        // 偵測滑鼠指向的物件
-        if (Physics.Raycast(ray, out RaycastHit hit, 200f) && hit.collider.CompareTag("Controllable"))
+        if (Physics.Raycast(ray, out RaycastHit hit, 200f))
         {
-            var renderer = hit.transform.GetComponentInChildren<Renderer>();
-            if (renderer != null)
+            if (hit.collider.CompareTag("Controllable"))
             {
-                // 如果指向了一個新的物件，就切換高亮
-                if (currentlyHighlighted != renderer)
+                var renderer = hit.transform.GetComponentInChildren<Renderer>();
+                if (renderer != null)
                 {
-                    RestoreOriginalMaterials();
-                    currentlyHighlighted = renderer;
-                    StoreAndApplyHighlight();
-                }
+                    if (currentlyHighlighted != renderer)
+                    {
+                        RestoreOriginalMaterials();
+                        currentlyHighlighted = renderer;
+                        StoreAndApplyHighlight();
+                    }
 
-                // --- 核心修改：每一幀都更新輪廓寬度 ---
-                if (highlightInstance != null)
-                {
-                    float distance = Vector3.Distance(transform.position, currentlyHighlighted.transform.position);
-                    // InverseLerp 會將距離映射到 0-1 的範圍
-                    float t = Mathf.InverseLerp(0, maxDistanceForOutline, distance);
-                    // Lerp 根據 0-1 的範圍，計算出在 min 和 max 之間對應的寬度
-                    float newWidth = Mathf.Lerp(minOutlineWidth, maxOutlineWidth, t);
-
-                    // 使用 SetFloat 更新 Shader 中的 _OutlineWidth 屬性
-                    highlightInstance.SetFloat("_OutlineWidth", newWidth);
+                    if (highlightInstance != null)
+                    {
+                        float distance = Vector3.Distance(transform.position, currentlyHighlighted.transform.position);
+                        float t = Mathf.InverseLerp(0, maxDistanceForOutline, distance);
+                        float newWidth = Mathf.Lerp(minOutlineWidth, maxOutlineWidth, t);
+                        highlightInstance.SetFloat("_OutlineWidth", newWidth);
+                    }
+                    return;
                 }
-                return;
             }
         }
 
-        // 如果沒打到任何可操控物件，就清除高亮
         RestoreOriginalMaterials();
+        currentlyHighlighted = null; // 清除引用，避免 OnSelectPerformed 出錯
     }
 
     private void StoreAndApplyHighlight()
     {
         if (currentlyHighlighted == null || highlightMaterial == null) return;
-
-        // 儲存原始材質
         originalMaterials = currentlyHighlighted.materials;
-
-        // 創建高亮材質的實例
         highlightInstance = new Material(highlightMaterial);
-
-        // 套用新材質列表（原始材質 + 高亮實例）
         var newMaterials = originalMaterials.ToList();
         newMaterials.Add(highlightInstance);
         currentlyHighlighted.materials = newMaterials.ToArray();
@@ -151,12 +137,8 @@ public class SpectatorController : MonoBehaviour
         {
             currentlyHighlighted.materials = originalMaterials;
         }
-
-        // 清理狀態
-        currentlyHighlighted = null;
+        currentlyHighlighted = null; // 清除目前高亮對象
         originalMaterials = null;
-
-        // 如果存在材質實例，就銷毀它，避免記憶體洩漏
         if (highlightInstance != null)
         {
             Destroy(highlightInstance);
@@ -166,9 +148,17 @@ public class SpectatorController : MonoBehaviour
 
     private void OnSelectPerformed(InputAction.CallbackContext context)
     {
-        if (currentlyHighlighted != null)
+        // ▼▼▼ 核心修改：射線從攝影機中心發出 ▼▼▼
+        Ray ray = new Ray(transform.position, transform.forward);
+        // ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
+
+        if (Physics.Raycast(ray, out RaycastHit hit, 200f))
         {
-            teamManager.PossessCharacter(currentlyHighlighted.transform.root.gameObject);
+            if (hit.collider.CompareTag("Controllable"))
+            {
+                // 我們現在直接使用射線打到的物件，而不是依賴 Update 中高亮的物件
+                teamManager.PossessCharacter(hit.transform.root.gameObject);
+            }
         }
     }
 }
