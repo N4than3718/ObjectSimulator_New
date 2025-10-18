@@ -536,6 +536,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::HighlightableObject
   targetedHighlightTemplate: {fileID: 2100000, guid: 6539271f926886640a9e4ca63e350961, type: 2}
   availableHighlightTemplate: {fileID: 2100000, guid: ff65ad8d0c8862e4e9abef0f7c56125b, type: 2}
+  inactiveTeamHighlightTemplate: {fileID: 2100000, guid: 62e93f7c4d71da845876a9b40fa10e1d, type: 2}
 --- !u!1001 &353365075
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -1282,6 +1283,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::HighlightableObject
   targetedHighlightTemplate: {fileID: 2100000, guid: 6539271f926886640a9e4ca63e350961, type: 2}
   availableHighlightTemplate: {fileID: 2100000, guid: ff65ad8d0c8862e4e9abef0f7c56125b, type: 2}
+  inactiveTeamHighlightTemplate: {fileID: 2100000, guid: 62e93f7c4d71da845876a9b40fa10e1d, type: 2}
 --- !u!1 &1363107009
 GameObject:
   m_ObjectHideFlags: 0
@@ -1830,7 +1832,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::HighlightManager
   teamManager: {fileID: 1493841722}
   availableHighlightTemplate: {fileID: 2100000, guid: ff65ad8d0c8862e4e9abef0f7c56125b, type: 2}
-  spectatorCameraTransform: {fileID: 330585546}
+  inactiveTeamHighlightTemplate: {fileID: 2100000, guid: 62e93f7c4d71da845876a9b40fa10e1d, type: 2}
   updateInterval: 0.5
   minOutlineWidth: 0.003
   maxOutlineWidth: 0.03

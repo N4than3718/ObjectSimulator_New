@@ -51,6 +51,18 @@ public class TeamManager : MonoBehaviour
         }
     }
 
+    public GameObject ActiveCharacterGameObject
+    {
+        get
+        {
+            if (currentState == GameState.Possessing && activeCharacterIndex >= 0 && activeCharacterIndex < team.Length && team[activeCharacterIndex]?.character != null)
+            {
+                return team[activeCharacterIndex].character.gameObject;
+            }
+            return null; // 如果不在操控狀態或索引無效，返回 null
+        }
+    }
+
     // --- Awake ---
     void Awake()
     {
