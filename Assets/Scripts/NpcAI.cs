@@ -287,7 +287,7 @@ public class NpcAI : MonoBehaviour
             ikTarget.localRotation = Quaternion.identity;
 
             // (可選) 如果物件 prefab 本身的 scale 不是 1，你可能需要手動設置
-            // ikTarget.localScale = Vector3.one; 
+            ikTarget.localScale = Vector3.one; 
 
             // --- 4. 釋放 IK 目標！ ---
             ikTarget = null;
