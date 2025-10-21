@@ -8,6 +8,10 @@ public class NpcAI : MonoBehaviour
 {
     public enum NpcState { Searching, Alerted }
 
+    [Header("Component References")] // 養成好習慣
+    [SerializeField] private Animator anim;
+    [SerializeField] private NavMeshAgent agent;
+
     [Header("AI 狀態")]
     [SerializeField] private NpcState currentState = NpcState.Searching;
 
@@ -43,7 +47,6 @@ public class NpcAI : MonoBehaviour
 
     // --- 私有變數 ---
     private FieldOfView fov;
-    private NavMeshAgent navAgent;
     private Dictionary<Transform, Vector3> lastKnownPositions = new Dictionary<Transform, Vector3>();
     private float timeSinceLastSighting = 0f;
     private Vector3 lastSightingPosition;
@@ -52,8 +55,19 @@ public class NpcAI : MonoBehaviour
 
     void Awake()
     {
+        agent = GetComponent<NavMeshAgent>();
+        anim = GetComponent<Animator>();
+
+        if (anim == null)
+        {
+            Debug.LogError("Animator not found!", this);
+        }
+        if (agent == null)
+        {
+            Debug.LogError("NavMeshAgent not found!", this);
+        }
+
         fov = GetComponent<FieldOfView>();
-        navAgent = GetComponent<NavMeshAgent>();
         teamManager = FindAnyObjectByType<TeamManager>();
         if (teamManager == null) Debug.LogError("NpcAI cannot find TeamManager!");
     }
@@ -61,19 +75,18 @@ public class NpcAI : MonoBehaviour
     void Start()
     {
         currentState = NpcState.Searching;
-        navAgent.speed = patrolSpeed;
+        agent.speed = patrolSpeed;
 
         // ▼▼▼ 修改：啟動 AI 邏輯協程，取代 Update() ▼▼▼
         StartCoroutine(AIUpdateLoop());
         // ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
     }
 
-    // ▼▼▼ 移除：Update() 方法 ▼▼▼
-    // void Update()
-    // {
-    //     // ... 這裡的所有邏輯都移到 AIUpdateLoop 協程中 ...
-    // }
-    // ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
+
+    void Update()
+    {
+        UpdateAnimator();
+    }
 
     // ▼▼▼ 新增：AI 邏輯協程 ▼▼▼
     private IEnumerator AIUpdateLoop()
@@ -110,9 +123,27 @@ public class NpcAI : MonoBehaviour
     }
     // ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
 
+    private void UpdateAnimator()
+    {
+        if (agent == null || anim == null) return;
+
+        // 1. 獲取 NavMeshAgent 想要的速度 (desiredVelocity) 或實際速度 (velocity)
+        //    我們用 velocity.magnitude 來獲取當前實際的移動速率
+        float currentSpeed = agent.velocity.magnitude;
+
+        // 2. 為了讓 Animator 的 Speed 參數在 0-1 之間 (如果你的 agent speed 不是 1 的話)，
+        //    最好做一個正規化 (Normalize)
+        //    (假設你在 agent 設置裡 speed 是 3.5f)
+        float normalizedSpeed = currentSpeed / agent.speed;
+
+        // 3. 把這個值傳給 Animator
+        //    使用 SetFloat 的 Damp Time (e.g., 0.1f) 可以讓動畫過渡更平滑，防止急停
+        anim.SetFloat("Speed", normalizedSpeed, 0.1f, Time.deltaTime);
+    }
+
     private void SearchingState()
     {
-        navAgent.speed = patrolSpeed;
+        agent.speed = patrolSpeed;
         Patrol();
 
         Transform movingTarget = CheckForMovingTargets();
@@ -160,7 +191,7 @@ public class NpcAI : MonoBehaviour
 
     private void AlertedState()
     {
-        navAgent.speed = chaseSpeed;
+        agent.speed = chaseSpeed;
 
         // ▼▼▼ 修改：使用 aiUpdateInterval 取代 Time.deltaTime ▼▼▼
         currentAlertLevel -= highAlertDecreaseRate * aiUpdateInterval;
@@ -173,7 +204,7 @@ public class NpcAI : MonoBehaviour
         // --- 情況 A: 威脅目標還在視野內 ---
         if (threatIsVisible)
         {
-            navAgent.SetDestination(threatTarget.position);
+            agent.SetDestination(threatTarget.position);
             lastSightingPosition = threatTarget.position; // 持續更新最後看到它的位置
 
             if (Vector3.Distance(transform.position, threatTarget.position) < captureDistance)
@@ -190,7 +221,7 @@ public class NpcAI : MonoBehaviour
         else
         {
             // 前往最後一次看到目標的位置進行搜索
-            navAgent.SetDestination(lastSightingPosition);
+            agent.SetDestination(lastSightingPosition);
 
             // --- 情況 C: 在前往途中，看到了 *新的* 移動目標 (不是原本的威脅目標) ---
             if (currentlyVisibleMovingTarget != null && currentlyVisibleMovingTarget != threatTarget)
@@ -202,7 +233,7 @@ public class NpcAI : MonoBehaviour
             }
 
             // --- 情況 D: 如果已經到達最後已知位置，並且沒有發現新目標，則返回搜索狀態 ---
-            if (!navAgent.pathPending && navAgent.remainingDistance < 0.5f)
+            if (!agent.pathPending && agent.remainingDistance < 0.5f)
             {
                 Debug.Log("在最後已知位置未發現目標，返回搜索狀態。");
                 threatTarget = null;
@@ -254,9 +285,9 @@ public class NpcAI : MonoBehaviour
     {
         if (patrolPoints == null || patrolPoints.Count == 0) return;
 
-        if (!navAgent.pathPending && navAgent.remainingDistance < 0.5f)
+        if (!agent.pathPending && agent.remainingDistance < 0.5f)
         {
-            navAgent.SetDestination(patrolPoints[currentPatrolIndex].position);
+            agent.SetDestination(patrolPoints[currentPatrolIndex].position);
             currentPatrolIndex = (currentPatrolIndex + 1) % patrolPoints.Count;
         }
     }
