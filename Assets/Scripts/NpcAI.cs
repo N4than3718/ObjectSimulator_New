@@ -260,78 +260,57 @@ public class NpcAI : MonoBehaviour
 
     public void AnimationEvent_GrabObject()
     {
-        Debug.Log($"--- AnimationEvent_GrabObject CALLED. objectToParent is {(objectToParent == null ? "NULL" : objectToParent.name)}, ikTargetPoint is {(ikTargetPoint == null ? "NULL" : ikTargetPoint.name)} ---");
-        if (grabSocket == null) { Debug.LogError("GrabSocket not assigned!", this.gameObject); return; }
+        Debug.LogError("!!! AnimationEvent_GrabObject HAS BEEN CALLED !!!");
 
+        // 檢查 GrabSocket (這是唯一可能在 Log 前 return 的地方)
+        if (grabSocket == null)
+        {
+            Debug.LogError("!!! GrabSocket IS NULL, returning !!!");
+            return;
+        }
+
+        // 檢查必要變數
         if (objectToParent != null && ikTargetPoint != null)
         {
-            Debug.Log("Passed null check. Starting Grab Logic for " + objectToParent.name);
-            Debug.Log($"--- Grab Event Start for {objectToParent.name} ---");
-            Debug.Log($"Object initial World Pos: {objectToParent.position}, World Rot: {objectToParent.rotation.eulerAngles}, World Scale: {objectToParent.lossyScale}");
-            Debug.Log($"GrabSocket World Pos: {grabSocket.position}, World Rot: {grabSocket.rotation.eulerAngles}, World Scale: {grabSocket.lossyScale}");
-            Debug.Log($"ikTargetPoint World Pos: {ikTargetPoint.position}");
+            Debug.Log($"Grab Logic Starting: Obj='{objectToParent.name}', Point='{ikTargetPoint.name}'");
 
             // --- 1. 關閉物理 ---
-            Rigidbody rb = objectToParent.GetComponent<Rigidbody>();
-            if (rb != null) { rb.isKinematic = true; rb.useGravity = false; }
-            Collider col = objectToParent.GetComponent<Collider>();
-            if (col != null) { col.enabled = false; }
+            // ... (Rigidbody rb = ...; Collider col = ...;) ...
             Debug.Log("Step 1: Physics disabled.");
 
-            // --- 2. 關鍵：在 Parent 之前，獲取本地偏移量 ---
+            // --- 2. 獲取本地偏移量 ---
             Vector3 grabOffset_Pos = (ikTargetPoint == objectToParent) ?
                                       Vector3.zero :
                                       ikTargetPoint.localPosition;
-            Quaternion grabOffset_Rot = (ikTargetPoint == objectToParent) ?
-                                         Quaternion.identity :
-                                         ikTargetPoint.localRotation;
-            Debug.Log($"Step 2: Calculated grabOffset_Pos: {grabOffset_Pos}, grabOffset_Rot: {grabOffset_Rot.eulerAngles}");
-            if (float.IsNaN(grabOffset_Pos.x) || float.IsNaN(grabOffset_Pos.y) || float.IsNaN(grabOffset_Pos.z))
-            {
-                Debug.LogError("!!! grabOffset_Pos calculation resulted in NaN !!!");
-                ikTargetPoint = null; objectToParent = null; // Prevent further errors
-                return;
-            }
+            Debug.Log($"Step 2: Calculated grabOffset_Pos: {grabOffset_Pos}");
+            if (float.IsNaN(grabOffset_Pos.x)) { Debug.LogError("!!! Offset NaN !!!"); return; }
+
 
             // --- 3. 執行 Parent ---
             objectToParent.SetParent(grabSocket, true);
-            Debug.Log($"Step 3: SetParent executed. Object is now child of {grabSocket.name}.");
-            Debug.Log($"  >> After Parent - Local Pos: {objectToParent.localPosition}, Local Rot: {objectToParent.localRotation.eulerAngles}, Local Scale: {objectToParent.localScale}");
+            // ▼▼▼ Parent 之後立刻 Log ▼▼▼
+            Debug.LogError($"!!! SetParent Called! Current Parent: {objectToParent.parent?.name} !!! Object: {objectToParent.name}");
 
-            // --- 4. 關鍵：修正 Transform (順序絕對不能錯) ---
 
-            // (A) 先修正 Scale
+            // --- 4. 修正 Transform ---
             objectToParent.localScale = Vector3.one;
-            Debug.Log($"Step 4a: Forced localScale = {objectToParent.localScale}");
-
-            // (B) 再修正 Rotation (讓物件朝向與 grabSocket 一致)
             objectToParent.localRotation = Quaternion.identity;
-            Debug.Log($"Step 4b: Forced localRotation = {objectToParent.localRotation.eulerAngles}");
-
-            // (C) 最後修正 Position
-            Vector3 targetLocalPos = -grabOffset_Pos;
-            objectToParent.localPosition = targetLocalPos;
-            Debug.Log($"Step 4c: Setting localPosition = {targetLocalPos}. Current localPosition = {objectToParent.localPosition}");
-
-            // --- FINAL CHECK ---
-            if (float.IsNaN(objectToParent.localPosition.x) || float.IsNaN(objectToParent.localPosition.y) || float.IsNaN(objectToParent.localPosition.z))
-            {
-                Debug.LogError("!!! Final localPosition calculation resulted in NaN !!!");
-            }
-            else
-            {
-                Debug.Log($"--- Grab Event End: Final Local Pos: {objectToParent.localPosition}, Final Local Rot: {objectToParent.localRotation.eulerAngles}, Final Local Scale: {objectToParent.localScale} ---");
-            }
+            objectToParent.localPosition = -grabOffset_Pos;
+            Debug.Log($"Step 4: Transform corrected. Final Local Pos: {objectToParent.localPosition}");
+            if (float.IsNaN(objectToParent.localPosition.x)) { Debug.LogError("!!! Final Pos NaN !!!"); }
 
 
-            // --- 5. 關鍵：立即切斷 IK 迴圈！ ---
+            // --- 5. 切斷 IK 迴圈！ ---
+            Debug.Log("Step 5: Nulling IK variables.");
             ikTargetPoint = null;
             objectToParent = null;
-            Debug.Log("Step 5: IK variables nulled.");
+
+            Debug.Log("--- Grab Event Successfully ENDED ---");
         }
         else
         {
-            Debug.LogError("AnimationEvent_GrabObject called but objectToParent or ikTargetPoint was null!", this.gameObject);
+            // 如果跑到這裡，代表變數是 null
+            Debug.LogError($"!!! Grab Logic SKIPPED! objectToParent is {(objectToParent == null ? "NULL" : "OK")}, ikTargetPoint is {(ikTargetPoint == null ? "NULL" : "OK")} !!!");
         }
     }
 
