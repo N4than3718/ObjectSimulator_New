@@ -260,44 +260,50 @@ public class NpcAI : MonoBehaviour
 
     public void AnimationEvent_GrabObject()
     {
-        if (grabSocket == null) { Debug.LogError("grabSocket not assigned!", this.gameObject); return; }
+        if (grabSocket == null) { Debug.LogError("GrabSocket not assigned!", this.gameObject); return; }
 
-        // 我們要 parent 的是 objectToParent
-        if (objectToParent != null)
+        if (objectToParent != null && ikTargetPoint != null)
         {
             Debug.Log("NPC Grabbed: " + objectToParent.name);
 
-            // 1. 關閉物理 (在 "objectToParent" 上)
+            // --- 1. 關閉物理 ---
             Rigidbody rb = objectToParent.GetComponent<Rigidbody>();
             if (rb != null) { rb.isKinematic = true; rb.useGravity = false; }
             Collider col = objectToParent.GetComponent<Collider>();
             if (col != null) { col.enabled = false; }
 
-            // 2. 執行 Parent
+            // --- 2. 關鍵：在 Parent 之前，獲取本地偏移量 ---
+            // 獲取 GrabPoint 相對於其父物件(objectToParent)的本地座標和旋轉
+            Vector3 grabOffset_Pos = ikTargetPoint.localPosition;
+            Quaternion grabOffset_Rot = ikTargetPoint.localRotation;
+
+            // --- 3. 執行 Parent ---
             objectToParent.SetParent(grabSocket, true);
 
-            // 3. 歸位 (這才是最難的)
-            // 我們要把 "objectToParent" 移動到一個 "local position"
-            // 使得它的子物件 "ikTargetPoint" 剛好對齊 "grabSocket" (也就是 localPosition 0,0,0)
+            // --- 4. 關鍵：修正 Transform (順序絕對不能錯) ---
 
-            // 計算 "GrabPoint" 相對於 "Root" 的 local position
-            // (注意: ikTargetPoint 可能是 objectToParent 自己)
-            Vector3 grabOffset = (ikTargetPoint == objectToParent) ?
-                                  Vector3.zero :
-                                  ikTargetPoint.localPosition;
+            // (A) 先修正 Scale
+            objectToParent.localScale = Vector3.one;
 
-            // 把 "Root" 移到那個 offset 的「負值」
-            // 這樣 "GrabPoint" 就會被推到 (0,0,0)
-            // (注意: 這裡假設 GrabPoint 沒有被旋轉過)
-            objectToParent.localPosition = -grabOffset;
-
-            // 4. 強制修正 Scale 和 Rotation
+            // (B) 再修正 Rotation (讓物件朝向與 grabSocket 一致)
             objectToParent.localRotation = Quaternion.identity;
-            objectToParent.localScale = Vector3.zero;
 
-            // 5. 釋放 IK
+            // (C) 最後修正 Position
+            //    我們要把 objectToParent 移到一個「負」偏移量的位置
+            //    這樣它的子物件 GrabPoint 就會剛好落在 (0,0,0) (也就是 grabSocket 的位置)
+            //    (注意：我們使用 -grabOffset_Pos，而不是 Quaternion.Inverse(grabOffset_Rot) * -grabOffset_Pos)
+            //    (因為 localRotation 已經被設為 identity，所以不需要旋轉 offset)
+            objectToParent.localPosition = -grabOffset_Pos;
+
+
+            // --- 5. 關鍵：立即切斷 IK 迴圈！ ---
             ikTargetPoint = null;
             objectToParent = null;
+        }
+        else
+        {
+            // 如果這被觸發，代表你的 AI 邏輯有 Bug
+            Debug.LogError("AnimationEvent_GrabObject called but objectToParent or ikTargetPoint was null!", this.gameObject);
         }
     }
 
