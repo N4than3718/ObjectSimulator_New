@@ -219,14 +219,29 @@ public class NpcAI : MonoBehaviour
     {
         if (anim == null) return;
 
-        // 如果沒有目標，或者權重為 0，就什麼都不做
+        // --- 原有的檢查 ---
+        // 如果 IK 目標是 null (已經被 Event 清掉)，或者權重是 0，就退出
         if (ikTargetPoint == null || handIKWeight <= 0)
         {
-            // 確保權重被設回 0
             anim.SetIKPositionWeight(AvatarIKGoal.RightHand, 0);
-            anim.SetIKRotationWeight(AvatarIKGoal.RightHand, 0);
-            anim.SetIKHintPositionWeight(AvatarIKHint.RightElbow, 0);
+            // ... (其他權重設為 0) ...
             return;
+        }
+
+        // --- ▼▼▼ 新增的雙重保險 ▼▼▼ ---
+        // 即使 ikTargetPoint 還沒被 null (時機問題?)，
+        // 但如果 objectToParent 已經成功被 Parent 到 grabSocket 底下，
+        // 那也絕對不能再執行 SetIKPosition！
+        // (注意: 我們需要檢查 objectToParent 本身是否為 null，以防萬一)
+        if (objectToParent != null && objectToParent.parent == grabSocket)
+        {
+            Debug.LogWarning("OnAnimatorIK: Object already parented, but ikTargetPoint wasn't null? Forcing IK termination.", this.gameObject);
+            // 強制把權重設為 0，阻止後續的 SetIKPosition
+            anim.SetIKPositionWeight(AvatarIKGoal.RightHand, 0);
+            // ... (其他權重設為 0) ...
+            // (我們甚至可以考慮在這裡強制 null 掉 ikTargetPoint)
+            // ikTargetPoint = null; 
+            return; // <--- 提前退出！
         }
 
         // --- 1. 設置手的 IK ---
@@ -320,6 +335,8 @@ public class NpcAI : MonoBehaviour
             Debug.LogError($"!!! AFTER TRANSFORM CORRECTION: Parent LocalScale = {objectToParent.localScale}, Parent LossyScale = {objectToParent.lossyScale}, Parent LocalPos = {objectToParent.localPosition} !!!");
             if (float.IsNaN(objectToParent.localPosition.x)) { Debug.LogError("!!! Final Pos NaN !!!"); }
 
+            Debug.LogWarning("!!! Force setting handIKWeight = 0f !!!");
+            handIKWeight = 0f; // <--- 在 Null 變數之前，立刻把 IK 權重歸零！
 
             // --- 5. 切斷 IK 迴圈！ ---
             Debug.Log("Step 5: Nulling IK variables.");
