@@ -60,7 +60,8 @@ public class NpcAI : MonoBehaviour
     private float timeSinceLastSighting = 0f;
     private Vector3 lastSightingPosition;
     private Transform threatTarget;
-    private Transform ikTarget = null;
+    private Transform ikTargetPoint = null;
+    private Transform objectToParent = null;
     private float handIKWeight = 0f;
     private float hintIKWeight = 0f;
     private TeamManager teamManager;
@@ -109,7 +110,7 @@ public class NpcAI : MonoBehaviour
 
         bool isPickingUp = anim.GetCurrentAnimatorStateInfo(0).IsName("Pick up");
 
-        if (isPickingUp && ikTarget != null)
+        if (isPickingUp && ikTargetPoint != null)
         {
             // 正在撿：權重 -> 1
             handIKWeight = Mathf.Lerp(handIKWeight, 1.0f, Time.deltaTime * 5f);
@@ -189,21 +190,29 @@ public class NpcAI : MonoBehaviour
         TriggerPickup(debugPickupTarget);
     }
 
-    public void TriggerPickup(Transform target)
+    public void TriggerPickup(Transform targetRoot)
     {
-        if (agent != null)
+        if (agent != null) agent.isStopped = true;
+
+        // --- NEW LOGIC ---
+        objectToParent = targetRoot; // 儲存要 parent 的根物件
+
+        // 嘗試尋找 "GrabPoint"
+        Transform grabPoint = targetRoot.Find("GrabPoint");
+        if (grabPoint != null)
         {
-            agent.isStopped = true;
+            ikTargetPoint = grabPoint; // 找到了！IK 瞄準這裡
         }
+        else
+        {
+            // 沒找到，就用根物件 (這會導致浮空，但至少不會 crash)
+            Debug.LogWarning($"Object {targetRoot.name} lacks a 'GrabPoint' child. IK may be inaccurate.", targetRoot);
+            ikTargetPoint = targetRoot;
+        }
+        // --- END NEW LOGIC ---
 
-        // 設置 IK 目標
-        ikTarget = target;
-
-        // 觸發動畫
-        anim.SetTrigger("Pick up");
-
-        // (可選) 讓 NPC 轉向目標
-        transform.LookAt(target.position);
+        anim.SetTrigger("Pick up"); //
+        transform.LookAt(ikTargetPoint.position); // 看向抓握點
     }
 
     void OnAnimatorIK(int layerIndex)
@@ -211,7 +220,7 @@ public class NpcAI : MonoBehaviour
         if (anim == null) return;
 
         // 如果沒有目標，或者權重為 0，就什麼都不做
-        if (ikTarget == null || handIKWeight <= 0)
+        if (ikTargetPoint == null || handIKWeight <= 0)
         {
             // 確保權重被設回 0
             anim.SetIKPositionWeight(AvatarIKGoal.RightHand, 0);
@@ -227,8 +236,8 @@ public class NpcAI : MonoBehaviour
 
         // 設置 IK 的目標位置和旋轉
         // (你可能需要在 ikTarget 上加一個 "GrabPoint" 空物件來抓得更準)
-        anim.SetIKPosition(AvatarIKGoal.RightHand, ikTarget.position);
-        anim.SetIKRotation(AvatarIKGoal.RightHand, ikTarget.rotation);
+        anim.SetIKPosition(AvatarIKGoal.RightHand, ikTargetPoint.position);
+        anim.SetIKRotation(AvatarIKGoal.RightHand, ikTargetPoint.rotation);
 
         // --- 2. 設置手肘提示 (Hint) ---
         // 這是 Pro-Tip：告訴手肘該往哪個方向彎，才不會折到背後去
@@ -251,54 +260,55 @@ public class NpcAI : MonoBehaviour
 
     public void AnimationEvent_GrabObject()
     {
-        if (grabSocket == null) // <-- 檢查 grabSocket
+        if (grabSocket == null) { Debug.LogError("grabSocket not assigned!", this.gameObject); return; }
+
+        // 我們要 parent 的是 objectToParent
+        if (objectToParent != null)
         {
-            Debug.LogError("grabSocket not assigned in NpcAI Inspector!", this.gameObject);
-            return;
-        }
+            Debug.Log("NPC Grabbed: " + objectToParent.name);
 
-        if (ikTarget != null)
-        {
-            // 抓！(把物體 parent 到右手上)
-            // 你需要一個 public Transform rightHandBone;
-            // ikTarget.SetParent(rightHandBone); 
-            Debug.Log("NPC Grabbed: " + ikTarget.name);
+            // 1. 關閉物理 (在 "objectToParent" 上)
+            Rigidbody rb = objectToParent.GetComponent<Rigidbody>();
+            if (rb != null) { rb.isKinematic = true; rb.useGravity = false; }
+            Collider col = objectToParent.GetComponent<Collider>();
+            if (col != null) { col.enabled = false; }
 
-            // --- 1. (可選) 關閉物理 ---
-            // 讓物體不再受重力或碰撞影響
-            Rigidbody rb = ikTarget.GetComponent<Rigidbody>();
-            if (rb != null)
-            {
-                rb.isKinematic = true;
-                rb.useGravity = false;
-            }
-            // 關閉碰撞，防止它卡住 NPC
-            Collider col = ikTarget.GetComponent<Collider>();
-            if (col != null)
-            {
-                col.enabled = false;
-            }
+            // 2. 執行 Parent
+            objectToParent.SetParent(grabSocket, true);
 
-            // --- 2. 執行 Parent (黏住) ---
-            ikTarget.SetParent(grabSocket, true); // <-- 關鍵：改成 grabSocket
+            // 3. 歸位 (這才是最難的)
+            // 我們要把 "objectToParent" 移動到一個 "local position"
+            // 使得它的子物件 "ikTargetPoint" 剛好對齊 "grabSocket" (也就是 localPosition 0,0,0)
 
-            // --- 3. 歸位 ---
-            ikTarget.localPosition = Vector3.zero;
-            ikTarget.localRotation = Quaternion.identity;
+            // 計算 "GrabPoint" 相對於 "Root" 的 local position
+            // (注意: ikTargetPoint 可能是 objectToParent 自己)
+            Vector3 grabOffset = (ikTargetPoint == objectToParent) ?
+                                  Vector3.zero :
+                                  ikTargetPoint.localPosition;
 
-            // (可選) 如果物件 prefab 本身的 scale 不是 1，你可能需要手動設置
-            ikTarget.localScale = Vector3.one; 
+            // 把 "Root" 移到那個 offset 的「負值」
+            // 這樣 "GrabPoint" 就會被推到 (0,0,0)
+            // (注意: 這裡假設 GrabPoint 沒有被旋轉過)
+            objectToParent.localPosition = -grabOffset;
 
-            // --- 4. 釋放 IK 目標！ ---
-            ikTarget = null;
+            // 4. 強制修正 Scale 和 Rotation
+            objectToParent.localRotation = Quaternion.identity;
+            objectToParent.localScale = Vector3.one;
+
+            // 5. 釋放 IK
+            ikTargetPoint = null;
+            objectToParent = null;
         }
     }
 
     // (你還需要一個動畫事件在動畫結束時，把 ikTarget 設為 null)
     public void AnimationEvent_PickupEnd()
     {
-        ikTarget = null;
-        agent.isStopped = false; // 繼續巡邏
+        // 確保它們是 null
+        ikTargetPoint = null;
+        objectToParent = null;
+
+        if (agent != null) agent.isStopped = false;
     }
 
     private void UpdateAnimator()
