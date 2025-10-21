@@ -786,7 +786,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::NpcAI
   forcePickupDebug: 1
-  debugPickupTarget: {fileID: 1530577947}
+  debugPickupTarget: {fileID: 340754705}
   anim: {fileID: 593485722}
   agent: {fileID: 593485721}
   grabSocket: {fileID: 795751093}
@@ -1914,11 +1914,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 1464291464}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!4 &1530577947 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: 7464385556798424577, guid: cffecc893f3680d48b54934f84bd7b48, type: 3}
-  m_PrefabInstance: {fileID: 1127186924}
-  m_PrefabAsset: {fileID: 0}
 --- !u!4 &1586968225 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: da85c1c2eee8ddb44a4e1fd5d663f3e1, type: 3}
