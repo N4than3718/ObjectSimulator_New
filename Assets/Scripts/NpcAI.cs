@@ -2,8 +2,9 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AI;
+using static UnityEngine.GraphicsBuffer;
 
-[RequireComponent(typeof(FieldOfView), typeof(NavMeshAgent))]
+[RequireComponent(typeof(FieldOfView), typeof(NavMeshAgent), typeof(Animator))]
 public class NpcAI : MonoBehaviour
 {
     public enum NpcState { Searching, Alerted }
@@ -49,6 +50,9 @@ public class NpcAI : MonoBehaviour
     private float timeSinceLastSighting = 0f;
     private Vector3 lastSightingPosition;
     private Transform threatTarget;
+    private Transform ikTarget = null;
+    private float handIKWeight = 0f;
+    private float hintIKWeight = 0f;
     private TeamManager teamManager;
 
     void Awake()
@@ -84,6 +88,21 @@ public class NpcAI : MonoBehaviour
     void Update()
     {
         UpdateAnimator();
+
+        bool isPickingUp = anim.GetCurrentAnimatorStateInfo(0).IsName("Pick up");
+
+        if (isPickingUp && ikTarget != null)
+        {
+            // 正在撿：權重 -> 1
+            handIKWeight = Mathf.Lerp(handIKWeight, 1.0f, Time.deltaTime * 5f);
+            hintIKWeight = Mathf.Lerp(hintIKWeight, 1.0f, Time.deltaTime * 5f);
+        }
+        else
+        {
+            // 沒在撿：權重 -> 0
+            handIKWeight = Mathf.Lerp(handIKWeight, 0f, Time.deltaTime * 5f);
+            hintIKWeight = Mathf.Lerp(hintIKWeight, 0f, Time.deltaTime * 5f);
+        }
     }
 
     // ▼▼▼ 新增：AI 邏輯協程 ▼▼▼
@@ -120,6 +139,83 @@ public class NpcAI : MonoBehaviour
         }
     }
     // ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
+
+    public void TriggerPickup(Transform target)
+    {
+        // 設置 IK 目標
+        ikTarget = target;
+
+        // 觸發動畫
+        anim.SetTrigger("Pick up");
+
+        // (可選) 讓 NPC 轉向目標
+        transform.LookAt(target.position);
+    }
+
+    void OnAnimatorIK(int layerIndex)
+    {
+        if (anim == null) return;
+
+        // 如果沒有目標，或者權重為 0，就什麼都不做
+        if (ikTarget == null || handIKWeight <= 0)
+        {
+            // 確保權重被設回 0
+            anim.SetIKPositionWeight(AvatarIKGoal.RightHand, 0);
+            anim.SetIKRotationWeight(AvatarIKGoal.RightHand, 0);
+            anim.SetIKHintPositionWeight(AvatarIKHint.RightElbow, 0);
+            return;
+        }
+
+        // --- 1. 設置手的 IK ---
+        // 設置 IK 權重 (0 到 1)
+        anim.SetIKPositionWeight(AvatarIKGoal.RightHand, handIKWeight);
+        anim.SetIKRotationWeight(AvatarIKGoal.RightHand, handIKWeight); // 順便對齊旋轉
+
+        // 設置 IK 的目標位置和旋轉
+        // (你可能需要在 ikTarget 上加一個 "GrabPoint" 空物件來抓得更準)
+        anim.SetIKPosition(AvatarIKGoal.RightHand, ikTarget.position);
+        anim.SetIKRotation(AvatarIKGoal.RightHand, ikTarget.rotation);
+
+        // --- 2. 設置手肘提示 (Hint) ---
+        // 這是 Pro-Tip：告訴手肘該往哪個方向彎，才不會折到背後去
+        // 在 NPC 模型的肩膀右前方放一個空物件，命名為 "RightElbowHint"
+        Transform rightElbowHint = FindRecursive("RightElbowHint"); // (你需要自己實作這個查找)
+
+        if (rightElbowHint != null)
+        {
+            anim.SetIKHintPositionWeight(AvatarIKHint.RightElbow, hintIKWeight);
+            anim.SetIKHintPosition(AvatarIKHint.RightElbow, rightElbowHint.position);
+        }
+    }
+
+    // (你需要一個輔助函式來找到子物件，或者直接 public 拖進來)
+    private Transform FindRecursive(string name)
+    {
+        // 簡易版：假設它在第一層
+        return transform.Find(name);
+    }
+
+    public void AnimationEvent_GrabObject()
+    {
+        if (ikTarget != null)
+        {
+            // 抓！(把物體 parent 到右手上)
+            // 你需要一個 public Transform rightHandBone;
+            // ikTarget.SetParent(rightHandBone); 
+            Debug.Log("NPC Grabbed: " + ikTarget.name);
+
+            // (可選) 讓物體變成 Kinematic
+            // Rigidbody rb = ikTarget.GetComponent<Rigidbody>();
+            // if(rb != null) rb.isKinematic = true;
+        }
+    }
+
+    // (你還需要一個動畫事件在動畫結束時，把 ikTarget 設為 null)
+    public void AnimationEvent_PickupEnd()
+    {
+        ikTarget = null;
+        agent.isStopped = false; // 繼續巡邏
+    }
 
     private void UpdateAnimator()
     {
@@ -208,6 +304,8 @@ public class NpcAI : MonoBehaviour
             if (Vector3.Distance(transform.position, threatTarget.position) < captureDistance)
             {
                 Debug.Log($"抓住目標: {threatTarget.name}!");
+                agent.isStopped = true;
+                TriggerPickup(threatTarget.transform);
                 teamManager.RemoveCharacterFromTeam(threatTarget.gameObject);
                 threatTarget = null;
                 currentState = NpcState.Searching;
