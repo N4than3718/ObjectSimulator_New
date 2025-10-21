@@ -262,43 +262,64 @@ public class NpcAI : MonoBehaviour
     {
         Debug.LogError("!!! AnimationEvent_GrabObject HAS BEEN CALLED !!!");
 
-        // 檢查 GrabSocket (這是唯一可能在 Log 前 return 的地方)
-        if (grabSocket == null)
-        {
-            Debug.LogError("!!! GrabSocket IS NULL, returning !!!");
-            return;
-        }
+        if (grabSocket == null) { Debug.LogError("!!! GrabSocket IS NULL, returning !!!"); return; }
 
-        // 檢查必要變數
         if (objectToParent != null && ikTargetPoint != null)
         {
             Debug.Log($"Grab Logic Starting: Obj='{objectToParent.name}', Point='{ikTargetPoint.name}'");
 
             // --- 1. 關閉物理 ---
-            // ... (Rigidbody rb = ...; Collider col = ...;) ...
+            Rigidbody rb = objectToParent.GetComponent<Rigidbody>();
+            if (rb != null) { rb.isKinematic = true; rb.useGravity = false; }
+            Collider col = objectToParent.GetComponent<Collider>();
+            if (col != null) { col.enabled = false; }
             Debug.Log("Step 1: Physics disabled.");
 
-            // --- 2. 獲取本地偏移量 ---
+            // --- 2. 在 Parent 之前，獲取本地偏移量 ---
             Vector3 grabOffset_Pos = (ikTargetPoint == objectToParent) ?
                                       Vector3.zero :
                                       ikTargetPoint.localPosition;
-            Debug.Log($"Step 2: Calculated grabOffset_Pos: {grabOffset_Pos}");
-            if (float.IsNaN(grabOffset_Pos.x)) { Debug.LogError("!!! Offset NaN !!!"); return; }
+            Quaternion grabOffset_Rot = (ikTargetPoint == objectToParent) ?
+                                         Quaternion.identity :
+                                         ikTargetPoint.localRotation;
+            Debug.Log($"Step 2: Calculated grabOffset_Pos: {grabOffset_Pos}, grabOffset_Rot: {grabOffset_Rot.eulerAngles}");
+            // (簡易 NaN 檢查)
+            if (float.IsNaN(grabOffset_Pos.x)) { Debug.LogError("!!! Offset Pos NaN !!!"); return; }
 
 
             // --- 3. 執行 Parent ---
+            Vector3 parentLossyScale = grabSocket.lossyScale; // 儲存 Parent 前的 Socket 世界縮放
             objectToParent.SetParent(grabSocket, true);
-            // ▼▼▼ Parent 之後立刻 Log ▼▼▼
-            Debug.LogError($"!!! SetParent Called! Current Parent: {objectToParent.parent?.name} !!! Object: {objectToParent.name}");
+            Debug.LogError($"!!! SetParent Called! Parent: {objectToParent.parent?.name}. Object: {objectToParent.name} !!!");
 
 
-            // --- 4. 修正 Transform ---
-            objectToParent.localScale = Vector3.one;
-            objectToParent.localRotation = Quaternion.identity;
-            objectToParent.localPosition = -grabOffset_Pos;
-            Debug.Log($"Step 4: Transform corrected. Final Local Pos: {objectToParent.localPosition}");
+            // --- 4. 關鍵：修正 Transform (精確對齊 GrabPoint) ---
+
+            // (A) 計算並設定反向縮放 (讓物件世界縮放為 1)
+            Vector3 inverseScale = Vector3.one;
+            if (Mathf.Abs(parentLossyScale.x) > 1e-6f) inverseScale.x = 1.0f / parentLossyScale.x;
+            if (Mathf.Abs(parentLossyScale.y) > 1e-6f) inverseScale.y = 1.0f / parentLossyScale.y;
+            if (Mathf.Abs(parentLossyScale.z) > 1e-6f) inverseScale.z = 1.0f / parentLossyScale.z;
+            objectToParent.localScale = inverseScale;
+            Debug.Log($"Step 4a: Set localScale = {inverseScale}");
+
+            // (B) 計算並設定反向旋轉 (讓 GrabPoint 的朝向對齊 Socket 的朝向)
+            // 公式: objectToParent.localRotation = Quaternion.Inverse(grabOffset_Rot)
+            objectToParent.localRotation = Quaternion.Inverse(grabOffset_Rot);
+            Debug.Log($"Step 4b: Set localRotation = Inverse({grabOffset_Rot.eulerAngles}) = {objectToParent.localRotation.eulerAngles}");
+
+            // (C) 計算並設定反向位置 (讓 GrabPoint 的位置對齊 Socket 的位置)
+            // 我們需要計算 GrabPoint 的本地偏移量在經過 (B) 的旋轉和 (A) 的縮放後，會跑到哪裡
+            // 然後把 objectToParent 移到那個向量的負方向
+            // 公式: objectToParent.localPosition = -(objectToParent.localRotation * Vector3.Scale(grabOffset_Pos, objectToParent.localScale))
+            Vector3 rotatedAndScaledOffset = objectToParent.localRotation * Vector3.Scale(grabOffset_Pos, objectToParent.localScale);
+            objectToParent.localPosition = -rotatedAndScaledOffset;
+            Debug.Log($"Step 4c: Rotated/Scaled Offset = {rotatedAndScaledOffset}. Set localPosition = {-rotatedAndScaledOffset}");
+
+            // --- Log 最終結果 ---
+            Debug.LogError($"!!! AFTER TRANSFORM CORRECTION: Parent LocalScale = {objectToParent.localScale}, Parent LossyScale = {objectToParent.lossyScale}, Parent LocalPos = {objectToParent.localPosition} !!!");
             if (float.IsNaN(objectToParent.localPosition.x)) { Debug.LogError("!!! Final Pos NaN !!!"); }
-            Debug.LogError($"!!! AFTER TRANSFORM CORRECTION: Parent LocalScale = {objectToParent.localScale}, Parent LossyScale = {objectToParent.lossyScale} !!!");
+
 
             // --- 5. 切斷 IK 迴圈！ ---
             Debug.Log("Step 5: Nulling IK variables.");
@@ -309,7 +330,6 @@ public class NpcAI : MonoBehaviour
         }
         else
         {
-            // 如果跑到這裡，代表變數是 null
             Debug.LogError($"!!! Grab Logic SKIPPED! objectToParent is {(objectToParent == null ? "NULL" : "OK")}, ikTargetPoint is {(ikTargetPoint == null ? "NULL" : "OK")} !!!");
         }
     }
