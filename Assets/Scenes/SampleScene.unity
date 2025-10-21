@@ -771,6 +771,7 @@ Transform:
   m_Children:
   - {fileID: 1602420729}
   - {fileID: 1586968225}
+  - {fileID: 795751093}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &593485719
@@ -873,11 +874,6 @@ Animator:
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
   m_WriteDefaultValuesOnDisable: 0
---- !u!4 &632282085 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: 1852576806548013000, guid: da85c1c2eee8ddb44a4e1fd5d663f3e1, type: 3}
-  m_PrefabInstance: {fileID: 1095467959}
-  m_PrefabAsset: {fileID: 0}
 --- !u!1 &643507236
 GameObject:
   m_ObjectHideFlags: 0
@@ -967,12 +963,12 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 795751092}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0.099999875, z: 0}
+  m_LocalRotation: {x: -0.5183194, y: -0.51831084, z: 0.48099202, w: -0.48098382}
+  m_LocalPosition: {x: 4.104, y: 7.208, z: -0.036}
   m_LocalScale: {x: 0, y: 0, z: 0}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 632282085}
+  m_Father: {fileID: 593485718}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &832575517
 GameObject:
@@ -1237,10 +1233,7 @@ PrefabInstance:
     m_RemovedComponents:
     - {fileID: 5866666021909216657, guid: da85c1c2eee8ddb44a4e1fd5d663f3e1, type: 3}
     m_RemovedGameObjects: []
-    m_AddedGameObjects:
-    - targetCorrespondingSourceObject: {fileID: 1852576806548013000, guid: da85c1c2eee8ddb44a4e1fd5d663f3e1, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 795751093}
+    m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: da85c1c2eee8ddb44a4e1fd5d663f3e1, type: 3}
 --- !u!4 &1108952196 stripped
@@ -1739,7 +1732,7 @@ GameObject:
   - component: {fileID: 1464291464}
   m_Layer: 0
   m_Name: _GameManagers
-  m_TagString: GameController
+  m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -1773,7 +1766,7 @@ GameObject:
   - component: {fileID: 1493841722}
   m_Layer: 0
   m_Name: Team Manager
-  m_TagString: GameController
+  m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -2037,7 +2030,7 @@ GameObject:
   - component: {fileID: 2135395960}
   m_Layer: 0
   m_Name: Highlight Manager
-  m_TagString: GameController
+  m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
