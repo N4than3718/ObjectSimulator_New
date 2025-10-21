@@ -36,11 +36,9 @@ public class NpcAI : MonoBehaviour
     [Header("捕捉設定")]
     [SerializeField] private float captureDistance = 1.5f; // 捕捉距離
 
-    // ▼▼▼ 新增：AI 更新頻率 ▼▼▼
     [Header("效能設定")]
     [Tooltip("AI 決策邏輯的更新間隔 (秒)")]
     [SerializeField] private float aiUpdateInterval = 0.2f;
-    // ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
 
     [Header("Debug")]
     [SerializeField][Range(0, 200)] private float currentAlertLevel = 0f;
