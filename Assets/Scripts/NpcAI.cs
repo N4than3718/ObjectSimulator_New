@@ -9,6 +9,12 @@ public class NpcAI : MonoBehaviour
 {
     public enum NpcState { Searching, Alerted }
 
+    [Header("Debug 強制撿拾")] // <-- 加個標題
+    [Tooltip("勾選此項會在遊戲開始時強制 NPC 撿拾下方指定的物件")]
+    public bool forcePickupDebug = false;
+    [Tooltip("拖曳場景中你想讓 NPC 強制撿拾的物件到這裡")]
+    public Transform debugPickupTarget;
+
     [Header("Component References")] // 養成好習慣
     [SerializeField] private Animator anim;
     [SerializeField] private NavMeshAgent agent;
@@ -80,12 +86,20 @@ public class NpcAI : MonoBehaviour
 
     void Start()
     {
-        currentState = NpcState.Searching;
-        agent.speed = patrolSpeed;
-
-        // ▼▼▼ 修改：啟動 AI 邏輯協程，取代 Update() ▼▼▼
-        StartCoroutine(AIUpdateLoop());
-        // ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
+        // === Debug 模式檢查 ===
+        if (forcePickupDebug && debugPickupTarget != null)
+        {
+            // 如果勾了 Debug，就只跑 Debug 協程
+            Debug.LogWarning($"--- DEBUG MODE: Forcing pickup of {debugPickupTarget.name} ---", this.gameObject);
+            StartCoroutine(DebugPickupRoutine()); // 啟動 Debug 協程
+        }
+        else
+        {
+            // 如果沒勾 Debug，就正常啟動 AI
+            currentState = NpcState.Searching;
+            agent.speed = patrolSpeed;
+            StartCoroutine(AIUpdateLoop()); // 啟動正常 AI 協程
+        }
     }
 
 
@@ -144,8 +158,44 @@ public class NpcAI : MonoBehaviour
     }
     // ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
 
+    private IEnumerator DebugPickupRoutine()
+    {
+        // 等待 NavMeshAgent 準備就緒
+        yield return new WaitForSeconds(0.1f);
+
+        if (agent == null || debugPickupTarget == null)
+        {
+            Debug.LogError("Agent or Debug Target is null. Aborting debug pickup.", this.gameObject);
+            yield break; // 結束協程
+        }
+
+        // 1. 設置目標並轉向
+        agent.SetDestination(debugPickupTarget.position);
+        transform.LookAt(debugPickupTarget.position);
+        Debug.Log($"--- DEBUG: Moving to {debugPickupTarget.name} at {debugPickupTarget.position} ---");
+
+        // 2. 等待抵達
+        //    (agent.pathPending 檢查它是否還在計算路徑)
+        while (agent.pathPending || agent.remainingDistance > agent.stoppingDistance)
+        {
+            yield return null; // 每幀檢查一次
+        }
+
+        // 3. 已抵達，執行撿拾
+        Debug.Log("--- DEBUG: Reached target, triggering pickup animation ---");
+
+        // 呼叫我們修改過的 TriggerPickup 函式
+        // (它現在會自動停止 agent)
+        TriggerPickup(debugPickupTarget);
+    }
+
     public void TriggerPickup(Transform target)
     {
+        if (agent != null)
+        {
+            agent.isStopped = true;
+        }
+
         // 設置 IK 目標
         ikTarget = target;
 
@@ -341,7 +391,6 @@ public class NpcAI : MonoBehaviour
             if (Vector3.Distance(transform.position, threatTarget.position) < captureDistance)
             {
                 Debug.Log($"抓住目標: {threatTarget.name}!");
-                agent.isStopped = true;
                 TriggerPickup(threatTarget.transform);
                 teamManager.RemoveCharacterFromTeam(threatTarget.gameObject);
                 threatTarget = null;
