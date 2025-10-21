@@ -13,6 +13,10 @@ public class NpcAI : MonoBehaviour
     [SerializeField] private Animator anim;
     [SerializeField] private NavMeshAgent agent;
 
+    [Header("IK 設定")] // <-- 加個標題
+    [Tooltip("必須指定！這會是 NPC 的右手骨骼 (e.g., mixamorig:RightHand)")]
+    public Transform rightHandBone;
+
     [Header("AI 狀態")]
     [SerializeField] private NpcState currentState = NpcState.Searching;
 
@@ -204,9 +208,42 @@ public class NpcAI : MonoBehaviour
             // ikTarget.SetParent(rightHandBone); 
             Debug.Log("NPC Grabbed: " + ikTarget.name);
 
-            // (可選) 讓物體變成 Kinematic
-            // Rigidbody rb = ikTarget.GetComponent<Rigidbody>();
-            // if(rb != null) rb.isKinematic = true;
+            // --- 1. (可選) 關閉物理 ---
+            // 讓物體不再受重力或碰撞影響
+            Rigidbody rb = ikTarget.GetComponent<Rigidbody>();
+            if (rb != null)
+            {
+                rb.isKinematic = true;
+                rb.useGravity = false;
+            }
+            // 關閉碰撞，防止它卡住 NPC
+            Collider col = ikTarget.GetComponent<Collider>();
+            if (col != null)
+            {
+                col.enabled = false;
+            }
+
+            // --- 2. 關鍵：執行 Parent (黏住) ---
+            // 把物體(ikTarget)變成右手骨骼(rightHandBone)的子物件
+            ikTarget.SetParent(rightHandBone);
+
+            // --- 3. (可選) 調整握持位置 ---
+            // 把物體在「手掌中」的位置歸零，或設為一個你喜歡的偏移量
+            ikTarget.localPosition = Vector3.zero;
+            ikTarget.localRotation = Quaternion.identity;
+
+            // --- 4. 關鍵中的關鍵：釋放 IK ---
+            // 立即把 ikTarget 設為 null。
+            // 這樣下一幀 Update() 就會偵測到，並開始把 handIKWeight 降回 0。
+            // IK 會被釋放，讓手(和黏在上面的物體)開始跟隨動畫本身的軌跡。
+            ikTarget = null;
+        }
+        else
+        {
+            if (rightHandBone == null)
+            {
+                Debug.LogError("rightHandBone not assigned in NpcAI Inspector!");
+            }
         }
     }
 
