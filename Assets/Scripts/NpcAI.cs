@@ -64,7 +64,12 @@ public class NpcAI : MonoBehaviour
     private Transform objectToParent = null;
     private float handIKWeight = 0f;
     private float hintIKWeight = 0f;
+    private bool _ikNeedsImmediateTermination = false;
     private TeamManager teamManager;
+    private Vector3 _grabOffsetPosToApply;
+    private Quaternion _grabOffsetRotToApply;
+    private bool _needsTransformAlignment = false;
+    private Transform _heldObjectRef = null;
 
     void Awake()
     {
@@ -121,6 +126,61 @@ public class NpcAI : MonoBehaviour
             // 沒在撿：權重 -> 0
             handIKWeight = Mathf.Lerp(handIKWeight, 0f, Time.deltaTime * 5f);
             hintIKWeight = Mathf.Lerp(hintIKWeight, 0f, Time.deltaTime * 5f);
+
+            if (_ikNeedsImmediateTermination)
+            {
+                Debug.LogWarning("Update: Immediate termination flag detected, forcing handIKWeight = 0.");
+                handIKWeight = 0f;
+                hintIKWeight = 0f; // 手肘也一起歸零
+                _ikNeedsImmediateTermination = false; // 重置旗標
+            }
+            // 否則，正常 Lerp 回 0
+            else
+            {
+                handIKWeight = Mathf.Lerp(handIKWeight, 0f, Time.deltaTime * 5f);
+                hintIKWeight = Mathf.Lerp(hintIKWeight, 0f, Time.deltaTime * 5f);
+            }
+        }
+    }
+
+    // NpcAI.cs
+    void LateUpdate()
+    {
+        // 檢查旗標以及物件引用是否存在
+        if (_needsTransformAlignment && _heldObjectRef != null)
+        {
+            // 安全檢查：確保物件還在 Socket 底下
+            if (_heldObjectRef.parent != grabSocket)
+            {
+                Debug.LogError($"LateUpdate Error: _heldObjectRef '{_heldObjectRef.name}' lost its parent '{grabSocket.name}'!", _heldObjectRef);
+                // 重置狀態避免問題
+                _needsTransformAlignment = false;
+                _heldObjectRef = null;
+                return;
+            }
+
+            Debug.LogWarning($"--- LateUpdate: Applying final alignment to {_heldObjectRef.name} ---");
+
+            // --- A. 應用反向旋轉 ---
+            _heldObjectRef.localRotation = Quaternion.Inverse(_grabOffsetRotToApply);
+            Debug.Log($"LateUpdate Step A: Set localRotation = Inverse({_grabOffsetRotToApply.eulerAngles}) = {_heldObjectRef.localRotation.eulerAngles}");
+
+            // --- B. 應用反向位置 ---
+            // 注意：localScale 已經在 Event 中被正確設定了
+            Vector3 rotatedAndScaledOffset = _heldObjectRef.localRotation * Vector3.Scale(_grabOffsetPosToApply, _heldObjectRef.localScale);
+            _heldObjectRef.localPosition = -rotatedAndScaledOffset;
+            Debug.Log($"LateUpdate Step B: Rotated/Scaled Offset = {rotatedAndScaledOffset}. Set localPosition = {-rotatedAndScaledOffset}");
+
+            // --- Log 最終結果 ---
+            Debug.LogError($"!!! LateUpdate Alignment Complete: Final LocalScale = {_heldObjectRef.localScale}, Final LossyScale = {_heldObjectRef.lossyScale}, Final LocalPos = {_heldObjectRef.localPosition} !!!");
+            if (float.IsNaN(_heldObjectRef.localPosition.x)) { Debug.LogError("!!! LateUpdate Final Pos NaN !!!"); }
+
+            // --- C. 重置狀態 ---
+            _needsTransformAlignment = false;
+            _heldObjectRef = null; // 清除引用
+            _grabOffsetPosToApply = Vector3.zero; // 清除偏移量
+            _grabOffsetRotToApply = Quaternion.identity;
+            Debug.LogWarning("--- LateUpdate: Alignment finished and state reset ---");
         }
     }
 
@@ -162,7 +222,7 @@ public class NpcAI : MonoBehaviour
     private IEnumerator DebugPickupRoutine()
     {
         // 等待 NavMeshAgent 準備就緒
-        yield return new WaitForSeconds(0.1f);
+        //yield return new WaitForSeconds(0.1f);
 
         if (agent == null || debugPickupTarget == null)
         {
@@ -171,15 +231,15 @@ public class NpcAI : MonoBehaviour
         }
 
         // 1. 設置目標並轉向
-        agent.SetDestination(debugPickupTarget.position);
-        transform.LookAt(debugPickupTarget.position);
-        Debug.Log($"--- DEBUG: Moving to {debugPickupTarget.name} at {debugPickupTarget.position} ---");
+        //agent.SetDestination(debugPickupTarget.position);
+        //transform.LookAt(debugPickupTarget.position);
+        //Debug.Log($"--- DEBUG: Moving to {debugPickupTarget.name} at {debugPickupTarget.position} ---");
 
         // 2. 等待抵達
         //    (agent.pathPending 檢查它是否還在計算路徑)
-        while (agent.pathPending || agent.remainingDistance > agent.stoppingDistance)
+        //while (agent.pathPending || agent.remainingDistance > agent.stoppingDistance)
         {
-            yield return null; // 每幀檢查一次
+            //yield return null; // 每幀檢查一次
         }
 
         // 3. 已抵達，執行撿拾
@@ -275,89 +335,70 @@ public class NpcAI : MonoBehaviour
 
     public void AnimationEvent_GrabObject()
     {
-        Debug.LogError("!!! AnimationEvent_GrabObject HAS BEEN CALLED !!!");
+        Debug.LogError("!!! AnimationEvent_GrabObject CALLED !!!");
 
         if (grabSocket == null) { Debug.LogError("!!! GrabSocket IS NULL, returning !!!"); return; }
 
+        // 檢查必要變數 (這次 ikTargetPoint 在 Parent 後才 null)
         if (objectToParent != null && ikTargetPoint != null)
         {
             Debug.Log($"Grab Logic Starting: Obj='{objectToParent.name}', Point='{ikTargetPoint.name}'");
 
             // --- 1. 關閉物理 ---
-            Rigidbody rb = objectToParent.GetComponent<Rigidbody>();
-            if (rb != null) { rb.isKinematic = true; rb.useGravity = false; }
-            Collider col = objectToParent.GetComponent<Collider>();
-            if (col != null) { col.enabled = false; }
+            // ... (Rigidbody, Collider disabled code) ...
             Debug.Log("Step 1: Physics disabled.");
 
-            // --- 2. 在 Parent 之前，獲取本地偏移量 ---
-            Vector3 grabOffset_Pos = (ikTargetPoint == objectToParent) ?
-                                      Vector3.zero :
-                                      ikTargetPoint.localPosition;
-            Quaternion grabOffset_Rot = (ikTargetPoint == objectToParent) ?
-                                         Quaternion.identity :
-                                         ikTargetPoint.localRotation;
-            Debug.Log($"Step 2: Calculated grabOffset_Pos: {grabOffset_Pos}, grabOffset_Rot: {grabOffset_Rot.eulerAngles}");
-            // (簡易 NaN 檢查)
-            if (float.IsNaN(grabOffset_Pos.x)) { Debug.LogError("!!! Offset Pos NaN !!!"); return; }
+            // --- 2. 在 Parent 之前，儲存本地偏移量供 LateUpdate 使用 ---
+            _grabOffsetPosToApply = (ikTargetPoint == objectToParent) ? Vector3.zero : ikTargetPoint.localPosition;
+            _grabOffsetRotToApply = (ikTargetPoint == objectToParent) ? Quaternion.identity : ikTargetPoint.localRotation;
+            Debug.Log($"Step 2: Stored grabOffset_Pos: {_grabOffsetPosToApply}, grabOffset_Rot: {_grabOffsetRotToApply.eulerAngles}");
+            if (float.IsNaN(_grabOffsetPosToApply.x)) { Debug.LogError("!!! Offset Pos NaN !!!"); return; }
 
 
-            // --- 3. 執行 Parent ---
-            Vector3 parentLossyScale = grabSocket.lossyScale; // 儲存 Parent 前的 Socket 世界縮放
+            // --- 3. 執行 Parent & 儲存引用 ---
+            Vector3 parentLossyScale = grabSocket.lossyScale;
+            _heldObjectRef = objectToParent; // <--- 在 Parent 前儲存引用
             objectToParent.SetParent(grabSocket, true);
-            Debug.LogError($"!!! SetParent Called! Parent: {objectToParent.parent?.name}. Object: {objectToParent.name} !!!");
+            Debug.LogError($"!!! SetParent Called! Parent: {_heldObjectRef.parent?.name}. Object: {_heldObjectRef.name} !!!");
 
 
-            // --- 4. 關鍵：修正 Transform (精確對齊 GrabPoint) ---
-
-            // (A) 計算並設定反向縮放 (讓物件世界縮放為 1)
+            // --- 4. 只修正 Scale (防止下一幀爆炸) ---
             Vector3 inverseScale = Vector3.one;
             if (Mathf.Abs(parentLossyScale.x) > 1e-6f) inverseScale.x = 1.0f / parentLossyScale.x;
             if (Mathf.Abs(parentLossyScale.y) > 1e-6f) inverseScale.y = 1.0f / parentLossyScale.y;
             if (Mathf.Abs(parentLossyScale.z) > 1e-6f) inverseScale.z = 1.0f / parentLossyScale.z;
-            objectToParent.localScale = inverseScale;
-            Debug.Log($"Step 4a: Set localScale = {inverseScale}");
+            _heldObjectRef.localScale = inverseScale; // <--- 用 _heldObjectRef
+            Debug.Log($"Step 4 (Immediate): Set localScale = {inverseScale}. Current LossyScale = {_heldObjectRef.lossyScale}");
 
-            // (B) 計算並設定反向旋轉 (讓 GrabPoint 的朝向對齊 Socket 的朝向)
-            // 公式: objectToParent.localRotation = Quaternion.Inverse(grabOffset_Rot)
-            objectToParent.localRotation = Quaternion.Inverse(grabOffset_Rot);
-            Debug.Log($"Step 4b: Set localRotation = Inverse({grabOffset_Rot.eulerAngles}) = {objectToParent.localRotation.eulerAngles}");
+            // --- 5. 設定旗標，讓 LateUpdate 接手 ---
+            _needsTransformAlignment = true;
+            Debug.LogWarning("!!! Flagging _needsTransformAlignment = true for LateUpdate !!!");
 
-            // (C) 計算並設定反向位置 (讓 GrabPoint 的位置對齊 Socket 的位置)
-            // 我們需要計算 GrabPoint 的本地偏移量在經過 (B) 的旋轉和 (A) 的縮放後，會跑到哪裡
-            // 然後把 objectToParent 移到那個向量的負方向
-            // 公式: objectToParent.localPosition = -(objectToParent.localRotation * Vector3.Scale(grabOffset_Pos, objectToParent.localScale))
-            Vector3 rotatedAndScaledOffset = objectToParent.localRotation * Vector3.Scale(grabOffset_Pos, objectToParent.localScale);
-            objectToParent.localPosition = -rotatedAndScaledOffset;
-            Debug.Log($"Step 4c: Rotated/Scaled Offset = {rotatedAndScaledOffset}. Set localPosition = {-rotatedAndScaledOffset}");
 
-            // --- Log 最終結果 ---
-            Debug.LogError($"!!! AFTER TRANSFORM CORRECTION: Parent LocalScale = {objectToParent.localScale}, Parent LossyScale = {objectToParent.lossyScale}, Parent LocalPos = {objectToParent.localPosition} !!!");
-            if (float.IsNaN(objectToParent.localPosition.x)) { Debug.LogError("!!! Final Pos NaN !!!"); }
-
+            // --- 6. 立即強制關閉 IK & Null 變數 ---
             Debug.LogWarning("!!! Force setting handIKWeight = 0f !!!");
-            handIKWeight = 0f; // <--- 在 Null 變數之前，立刻把 IK 權重歸零！
+            handIKWeight = 0f;
+            // _ikNeedsImmediateTermination = true; // Update 中的旗標現在不太需要了，但留著也無妨
 
-            // --- 5. 切斷 IK 迴圈！ ---
-            Debug.Log("Step 5: Nulling IK variables.");
             ikTargetPoint = null;
-            objectToParent = null;
+            objectToParent = null; // <--- objectToParent 在這裡才 null
+            Debug.Log("Step 6: IK variables nulled.");
 
-            Debug.Log("--- Grab Event Successfully ENDED ---");
+            Debug.Log("--- Grab Event ENDED (Alignment pending in LateUpdate) ---");
         }
         else
         {
-            Debug.LogError($"!!! Grab Logic SKIPPED! objectToParent is {(objectToParent == null ? "NULL" : "OK")}, ikTargetPoint is {(ikTargetPoint == null ? "NULL" : "OK")} !!!");
+            Debug.LogError($"!!! Grab Logic SKIPPED! [...] !!!");
         }
     }
 
     // (你還需要一個動畫事件在動畫結束時，把 ikTarget 設為 null)
     public void AnimationEvent_PickupEnd()
     {
-        // 確保它們是 null
         ikTargetPoint = null;
         objectToParent = null;
-
+        _heldObjectRef = null; // <--- 確保這裡也清除
+        _needsTransformAlignment = false; // (保險) 順便重置旗標
         if (agent != null) agent.isStopped = false;
     }
 
