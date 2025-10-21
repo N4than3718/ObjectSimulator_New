@@ -1699,9 +1699,9 @@ MonoBehaviour:
   - {fileID: 1160326982}
   - {fileID: 1081138351}
   - {fileID: 11770561}
-  lowAlertIncreaseRate: 20
+  lowAlertIncreaseRate: 30
   lowAlertDecreaseRate: 10
-  mediumAlertIncreaseRate: 40
+  mediumAlertIncreaseRate: 60
   mediumAlertDecreaseRate: 15
   highAlertDecreaseRate: 10
   timeToStartDecreasing: 3
