@@ -293,7 +293,7 @@ public class NpcAI : MonoBehaviour
 
             // 4. 強制修正 Scale 和 Rotation
             objectToParent.localRotation = Quaternion.identity;
-            objectToParent.localScale = Vector3.one;
+            objectToParent.localScale = Vector3.zero;
 
             // 5. 釋放 IK
             ikTargetPoint = null;
