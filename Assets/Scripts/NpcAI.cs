@@ -159,13 +159,13 @@ public class NpcAI : MonoBehaviour
 
             // --- (可選) 持續強制 Scale ---
             // 如果 Scale 在其他地方被意外修改，可以在這裡再次強制
-            /*
+            
             Vector3 parentLossyScale = grabSocket.lossyScale;
             Vector3 inverseScale = Vector3.one;
             if (Mathf.Abs(parentLossyScale.x) > 1e-6f) inverseScale.x = 1.0f / parentLossyScale.x;
             // ... (y, z checks) ...
             _heldObjectRef.localScale = inverseScale;
-            */
+            
 
             // --- Log 驗證 ---
             // Debug.Log($"LateUpdate: Socket Pos={grabSocket.position.ToString("F3")}, PointToAlign Pos={_pointToAlignWithSocket.position.ToString("F3")}, Root Pos={_heldObjectRef.position.ToString("F3")}");
