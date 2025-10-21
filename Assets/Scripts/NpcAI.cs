@@ -168,8 +168,8 @@ public class NpcAI : MonoBehaviour
             Debug.Log($"LateUpdate - AFTER setting localScale: {_heldObjectRef.localScale.ToString("F3")}");
             
             // --- 驗證 Log (Debug 時取消註解) ---
-            Debug.Log($"LateUpdate: Socket Pos={grabSocket.position.ToString("F3")}, PointToAlign Pos={_pointToAlignWithSocket.position.ToString("F3")}");
-            Debug.Log($"LateUpdate: Held Scale={_heldObjectRef.localScale.ToString("F3")}, LossyScale={_heldObjectRef.lossyScale.ToString("F3")}");
+            // Debug.Log($"LateUpdate: Socket Pos={grabSocket.position.ToString("F3")}, PointToAlign Pos={_pointToAlignWithSocket.position.ToString("F3")}");
+            // Debug.Log($"LateUpdate: Held Scale={_heldObjectRef.localScale.ToString("F3")}, LossyScale={_heldObjectRef.lossyScale.ToString("F3")}");
         }
     }
 
