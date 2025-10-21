@@ -260,49 +260,77 @@ public class NpcAI : MonoBehaviour
 
     public void AnimationEvent_GrabObject()
     {
+        Debug.Log($"--- AnimationEvent_GrabObject CALLED. objectToParent is {(objectToParent == null ? "NULL" : objectToParent.name)}, ikTargetPoint is {(ikTargetPoint == null ? "NULL" : ikTargetPoint.name)} ---");
         if (grabSocket == null) { Debug.LogError("GrabSocket not assigned!", this.gameObject); return; }
 
         if (objectToParent != null && ikTargetPoint != null)
         {
-            Debug.Log("NPC Grabbed: " + objectToParent.name);
+            Debug.Log("Passed null check. Starting Grab Logic for " + objectToParent.name);
+            Debug.Log($"--- Grab Event Start for {objectToParent.name} ---");
+            Debug.Log($"Object initial World Pos: {objectToParent.position}, World Rot: {objectToParent.rotation.eulerAngles}, World Scale: {objectToParent.lossyScale}");
+            Debug.Log($"GrabSocket World Pos: {grabSocket.position}, World Rot: {grabSocket.rotation.eulerAngles}, World Scale: {grabSocket.lossyScale}");
+            Debug.Log($"ikTargetPoint World Pos: {ikTargetPoint.position}");
 
             // --- 1. 關閉物理 ---
             Rigidbody rb = objectToParent.GetComponent<Rigidbody>();
             if (rb != null) { rb.isKinematic = true; rb.useGravity = false; }
             Collider col = objectToParent.GetComponent<Collider>();
             if (col != null) { col.enabled = false; }
+            Debug.Log("Step 1: Physics disabled.");
 
             // --- 2. 關鍵：在 Parent 之前，獲取本地偏移量 ---
-            // 獲取 GrabPoint 相對於其父物件(objectToParent)的本地座標和旋轉
-            Vector3 grabOffset_Pos = ikTargetPoint.localPosition;
-            Quaternion grabOffset_Rot = ikTargetPoint.localRotation;
+            Vector3 grabOffset_Pos = (ikTargetPoint == objectToParent) ?
+                                      Vector3.zero :
+                                      ikTargetPoint.localPosition;
+            Quaternion grabOffset_Rot = (ikTargetPoint == objectToParent) ?
+                                         Quaternion.identity :
+                                         ikTargetPoint.localRotation;
+            Debug.Log($"Step 2: Calculated grabOffset_Pos: {grabOffset_Pos}, grabOffset_Rot: {grabOffset_Rot.eulerAngles}");
+            if (float.IsNaN(grabOffset_Pos.x) || float.IsNaN(grabOffset_Pos.y) || float.IsNaN(grabOffset_Pos.z))
+            {
+                Debug.LogError("!!! grabOffset_Pos calculation resulted in NaN !!!");
+                ikTargetPoint = null; objectToParent = null; // Prevent further errors
+                return;
+            }
 
             // --- 3. 執行 Parent ---
             objectToParent.SetParent(grabSocket, true);
+            Debug.Log($"Step 3: SetParent executed. Object is now child of {grabSocket.name}.");
+            Debug.Log($"  >> After Parent - Local Pos: {objectToParent.localPosition}, Local Rot: {objectToParent.localRotation.eulerAngles}, Local Scale: {objectToParent.localScale}");
 
             // --- 4. 關鍵：修正 Transform (順序絕對不能錯) ---
 
             // (A) 先修正 Scale
             objectToParent.localScale = Vector3.one;
+            Debug.Log($"Step 4a: Forced localScale = {objectToParent.localScale}");
 
             // (B) 再修正 Rotation (讓物件朝向與 grabSocket 一致)
             objectToParent.localRotation = Quaternion.identity;
+            Debug.Log($"Step 4b: Forced localRotation = {objectToParent.localRotation.eulerAngles}");
 
             // (C) 最後修正 Position
-            //    我們要把 objectToParent 移到一個「負」偏移量的位置
-            //    這樣它的子物件 GrabPoint 就會剛好落在 (0,0,0) (也就是 grabSocket 的位置)
-            //    (注意：我們使用 -grabOffset_Pos，而不是 Quaternion.Inverse(grabOffset_Rot) * -grabOffset_Pos)
-            //    (因為 localRotation 已經被設為 identity，所以不需要旋轉 offset)
-            objectToParent.localPosition = -grabOffset_Pos;
+            Vector3 targetLocalPos = -grabOffset_Pos;
+            objectToParent.localPosition = targetLocalPos;
+            Debug.Log($"Step 4c: Setting localPosition = {targetLocalPos}. Current localPosition = {objectToParent.localPosition}");
+
+            // --- FINAL CHECK ---
+            if (float.IsNaN(objectToParent.localPosition.x) || float.IsNaN(objectToParent.localPosition.y) || float.IsNaN(objectToParent.localPosition.z))
+            {
+                Debug.LogError("!!! Final localPosition calculation resulted in NaN !!!");
+            }
+            else
+            {
+                Debug.Log($"--- Grab Event End: Final Local Pos: {objectToParent.localPosition}, Final Local Rot: {objectToParent.localRotation.eulerAngles}, Final Local Scale: {objectToParent.localScale} ---");
+            }
 
 
             // --- 5. 關鍵：立即切斷 IK 迴圈！ ---
             ikTargetPoint = null;
             objectToParent = null;
+            Debug.Log("Step 5: IK variables nulled.");
         }
         else
         {
-            // 如果這被觸發，代表你的 AI 邏輯有 Bug
             Debug.LogError("AnimationEvent_GrabObject called but objectToParent or ikTargetPoint was null!", this.gameObject);
         }
     }
