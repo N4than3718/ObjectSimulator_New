@@ -298,7 +298,7 @@ public class NpcAI : MonoBehaviour
             objectToParent.localPosition = -grabOffset_Pos;
             Debug.Log($"Step 4: Transform corrected. Final Local Pos: {objectToParent.localPosition}");
             if (float.IsNaN(objectToParent.localPosition.x)) { Debug.LogError("!!! Final Pos NaN !!!"); }
-
+            Debug.LogError($"!!! AFTER TRANSFORM CORRECTION: Parent LocalScale = {objectToParent.localScale}, Parent LossyScale = {objectToParent.lossyScale} !!!");
 
             // --- 5. ¤ÁÂ_ IK °j°é¡I ---
             Debug.Log("Step 5: Nulling IK variables.");
