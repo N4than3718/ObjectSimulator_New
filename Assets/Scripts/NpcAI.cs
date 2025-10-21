@@ -19,9 +19,9 @@ public class NpcAI : MonoBehaviour
     [SerializeField] private Animator anim;
     [SerializeField] private NavMeshAgent agent;
 
-    [Header("IK 設定")] // <-- 加個標題
-    [Tooltip("必須指定！這會是 NPC 的右手骨骼 (e.g., mixamorig:RightHand)")]
-    public Transform rightHandBone;
+    [Header("IK 設定")]
+    [Tooltip("指定右手骨骼底下的 'GrabSocket' 空物件")]
+    public Transform grabSocket;
 
     [Header("AI 狀態")]
     [SerializeField] private NpcState currentState = NpcState.Searching;
@@ -251,6 +251,12 @@ public class NpcAI : MonoBehaviour
 
     public void AnimationEvent_GrabObject()
     {
+        if (grabSocket == null) // <-- 檢查 grabSocket
+        {
+            Debug.LogError("grabSocket not assigned in NpcAI Inspector!", this.gameObject);
+            return;
+        }
+
         if (ikTarget != null)
         {
             // 抓！(把物體 parent 到右手上)
@@ -273,27 +279,18 @@ public class NpcAI : MonoBehaviour
                 col.enabled = false;
             }
 
-            // --- 2. 關鍵：執行 Parent (黏住) ---
-            // 把物體(ikTarget)變成右手骨骼(rightHandBone)的子物件
-            ikTarget.SetParent(rightHandBone);
+            // --- 2. 執行 Parent (黏住) ---
+            ikTarget.SetParent(grabSocket, true); // <-- 關鍵：改成 grabSocket
 
-            // --- 3. (可選) 調整握持位置 ---
-            // 把物體在「手掌中」的位置歸零，或設為一個你喜歡的偏移量
+            // --- 3. 歸位 ---
             ikTarget.localPosition = Vector3.zero;
             ikTarget.localRotation = Quaternion.identity;
 
-            // --- 4. 關鍵中的關鍵：釋放 IK ---
-            // 立即把 ikTarget 設為 null。
-            // 這樣下一幀 Update() 就會偵測到，並開始把 handIKWeight 降回 0。
-            // IK 會被釋放，讓手(和黏在上面的物體)開始跟隨動畫本身的軌跡。
+            // (可選) 如果物件 prefab 本身的 scale 不是 1，你可能需要手動設置
+            // ikTarget.localScale = Vector3.one; 
+
+            // --- 4. 釋放 IK 目標！ ---
             ikTarget = null;
-        }
-        else
-        {
-            if (rightHandBone == null)
-            {
-                Debug.LogError("rightHandBone not assigned in NpcAI Inspector!");
-            }
         }
     }
 
