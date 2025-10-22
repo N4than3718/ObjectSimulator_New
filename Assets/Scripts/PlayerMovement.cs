@@ -58,6 +58,11 @@ public class PlayerMovement : MonoBehaviour
         if (playerActions == null) playerActions = new InputSystem_Actions();
         playerActions.Player.Enable();
         playerActions.Player.AddToTeam.performed += OnAddToTeam;
+
+        if (rb != null)
+        {
+            rb.freezeRotation = true;
+        }
     }
 
     private void OnDisable()
@@ -67,10 +72,16 @@ public class PlayerMovement : MonoBehaviour
             playerActions.Player.Disable();
             playerActions.Player.AddToTeam.performed -= OnAddToTeam;
         }
+
         if (currentlyTargetedPlayerObject != null)
         {
             currentlyTargetedPlayerObject.SetTargetedHighlight(false);
             currentlyTargetedPlayerObject = null;
+        }
+
+        if (rb != null)
+        {
+            rb.freezeRotation = false;
         }
     }
 
