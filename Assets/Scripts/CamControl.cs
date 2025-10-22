@@ -12,7 +12,7 @@ public class CamControl : MonoBehaviour
 
     [Header("旋轉設定")]
     public float rotateSpeed = 0.1f;
-    public float rotateLerp = 15f;
+    public float rotateLerp = 15f; // 可以稍微調整這個值來改變平滑度
 
     [Header("視角限制 (俯仰角)")]
     public float pitchMin = -85f;
@@ -22,9 +22,10 @@ public class CamControl : MonoBehaviour
     private InputSystem_Actions playerActions;
     private float yaw = 0f;
     private float pitch = 0f;
-    private Vector2 lookInput; // 只用來儲存輸入值
+    private Vector2 lookInput;
 
-    public Vector2 RotationInput { get; private set; }
+    // // 這個公開屬性如果確定 MovementAnimator 沒用到，可以考慮移除
+    // public Vector2 RotationInput { get; private set; }
 
     void Awake()
     {
@@ -53,11 +54,11 @@ public class CamControl : MonoBehaviour
         Cursor.visible = false;
     }
 
-    // ▼▼▼ Update 現在只負責讀取輸入，不進行任何計算 ▼▼▼
+    // ▼▼▼ Update 依然只負責讀取輸入 ▼▼▼
     void Update()
     {
         lookInput = playerActions.Player.Look.ReadValue<Vector2>();
-        RotationInput = lookInput;
+        // RotationInput = lookInput; // 如果 RotationInput 沒用到，可以註解掉或刪除
     }
 
     private void OnUnlockCursor(InputAction.CallbackContext context)
@@ -66,10 +67,17 @@ public class CamControl : MonoBehaviour
         Cursor.visible = true;
     }
 
-    // ▼▼▼ 所有的計算和移動都發生在 FixedUpdate ▼▼▼
-    void FixedUpdate()
+    // ▼▼▼ 移除 FixedUpdate() ▼▼▼
+    // void FixedUpdate()
+    // {
+    //     // ... 所有邏輯移到 LateUpdate ...
+    // }
+
+    // ▼▼▼ 新增：LateUpdate()，用於處理攝影機移動和旋轉 ▼▼▼
+    void LateUpdate()
     {
-        // 1. 在物理幀中，計算目標旋轉角度
+        // 1. 計算目標旋轉角度 (使用 Update 中讀取的 lookInput)
+        //    注意：這裡用 Time.deltaTime 是因為 LateUpdate 跟隨幀率
         yaw += lookInput.x * rotateSpeed;
         pitch -= lookInput.y * rotateSpeed;
         pitch = Mathf.Clamp(pitch, pitchMin, pitchMax);
@@ -78,10 +86,11 @@ public class CamControl : MonoBehaviour
         if (FollowTarget == null) return;
 
         // 3. 計算並平滑地更新旋轉
+        //    使用 Time.deltaTime 配合 LateUpdate
         Quaternion targetRotation = Quaternion.Euler(pitch, yaw, 0);
-        transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, Time.fixedDeltaTime * rotateLerp);
+        transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, Time.deltaTime * rotateLerp);
 
-        // 4. 計算並更新位置
+        // 4. 計算並更新位置 (在目標移動完成後，且攝影機旋轉更新後)
         Vector3 targetPos = FollowTarget.position;
         targetPos.y += offsetY;
         transform.position = targetPos - (transform.rotation * new Vector3(0, 0, offsetZ));
