@@ -9,6 +9,8 @@ public class PlayerMovement : MonoBehaviour
     private Rigidbody rb;
     private CapsuleCollider capsuleCollider;
     private TeamManager teamManager;
+    [Tooltip("用於指定 Rigidbody 重心的輔助物件 (可選)")]
+    [SerializeField] private Transform centerOfMassHelper;
 
     [Header("Component Links")]
     public CamControl myCharacterCamera;
@@ -51,9 +53,22 @@ public class PlayerMovement : MonoBehaviour
     {
         rb = GetComponent<Rigidbody>();
         capsuleCollider = GetComponent<CapsuleCollider>();
+
         playerActions = new InputSystem_Actions();
         teamManager = FindAnyObjectByType<TeamManager>();
         if (teamManager == null) Debug.LogError("PlayerMovement cannot find TeamManager!");
+
+        if (centerOfMassHelper != null && rb != null)
+        {
+            // 把輔助點的 "本地位置" (localPosition) 設為 Rigidbody 的重心
+            rb.centerOfMass = centerOfMassHelper.localPosition;
+            Debug.Log($"{name} 的重心已手動設定為 {rb.centerOfMass}");
+        }
+        else if (rb != null)
+        {
+            // 如果沒設定輔助點，Unity 會自動計算 (保留預設行為)
+            Debug.LogWarning($"{name}: Center of Mass Helper 未設定，使用自動計算的重心 {rb.centerOfMass}。");
+        }
     }
 
     private void OnEnable()
@@ -217,5 +232,15 @@ public class PlayerMovement : MonoBehaviour
         float castDistance = halfExtent - castRadius + groundCheckLeeway;
         if (castDistance < 0.01f) castDistance = 0.01f;
         Gizmos.DrawWireSphere(castOrigin + Vector3.down * castDistance, castRadius);
+
+        if (rb == null) rb = GetComponent<Rigidbody>();
+        if (rb != null)
+        {
+            Gizmos.color = Color.cyan; // 用青色顯示
+                                       // 將本地的 centerOfMass 點轉換為世界座標
+            Vector3 worldCoM = transform.TransformPoint(rb.centerOfMass);
+            Gizmos.DrawWireSphere(worldCoM, 0.1f);
+            Gizmos.DrawLine(transform.position, worldCoM); // 從物件中心拉一條線過去
+        }
     }
 }
