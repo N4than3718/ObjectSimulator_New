@@ -20,6 +20,10 @@ public class PlayerMovement : MonoBehaviour
     [Tooltip("角色轉向的速度")]
     [SerializeField] private float rotationSpeed = 10f;
 
+    [Header("物理設定")]
+    [Tooltip("未操控時的物理角阻力 (預設 0.05)")]
+    [SerializeField] private float uncontrolledAngularDrag = 0.05f;
+
     [Header("跳躍與重力")]
     [SerializeField] private float jumpHeight = 1.5f;
     [SerializeField] private float gravityMultiplier = 2.5f;
@@ -47,7 +51,6 @@ public class PlayerMovement : MonoBehaviour
     {
         rb = GetComponent<Rigidbody>();
         capsuleCollider = GetComponent<CapsuleCollider>();
-        rb.freezeRotation = true;
         playerActions = new InputSystem_Actions();
         teamManager = FindAnyObjectByType<TeamManager>();
         if (teamManager == null) Debug.LogError("PlayerMovement cannot find TeamManager!");
@@ -62,6 +65,7 @@ public class PlayerMovement : MonoBehaviour
         if (rb != null)
         {
             rb.freezeRotation = true;
+            rb.angularDamping = 0.0f;
         }
     }
 
@@ -82,6 +86,7 @@ public class PlayerMovement : MonoBehaviour
         if (rb != null)
         {
             rb.freezeRotation = false;
+            rb.angularDamping = uncontrolledAngularDrag;
         }
     }
 
