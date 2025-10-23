@@ -222,7 +222,16 @@ public class PlayerMovement : MonoBehaviour
 
         if (audioSource != null && jumpSound != null)
         {
-            audioSource.PlayOneShot(jumpSound); // PlayOneShot 適合短、不重複的音效
+            // 如果你看到這條 Log，但還是沒聲音，問題 100% 在 AudioListener
+            Debug.Log($"HandleJump: PASSED safety check. Firing audio '{jumpSound.name}'.");
+            audioSource.PlayOneShot(jumpSound);
+        }
+        else
+        {
+            // 如果你看到這條 Error，就是你 Inspector 沒拉
+            Debug.LogError($"HandleJump: FAILED safety check. Cannot play sound.");
+            if (audioSource == null) Debug.LogError("Reason: AudioSource (喇叭) is null.");
+            if (jumpSound == null) Debug.LogError("Reason: JumpSound (音效檔) is null. Please drag clip into Inspector.");
         }
     }
 
