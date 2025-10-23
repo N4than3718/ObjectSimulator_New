@@ -41,9 +41,11 @@ public class RadialMenuController : MonoBehaviour
 
     private void OnEnable()
     {
+        Debug.Log("RadialMenuController: OnEnable called!");
         if (openMenuActionRef == null || openMenuActionRef.action == null) return;
         openMenuActionRef.action.Enable();
         openMenuActionRef.action.started += OpenMenu; // 按下 Tab (Hold 開始)
+        Debug.Log("RadialMenuController: Subscribed to openMenuAction started event.");
         openMenuActionRef.action.canceled += CloseMenu; // 放開 Tab (Hold 結束)
     }
 
