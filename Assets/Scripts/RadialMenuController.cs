@@ -314,71 +314,74 @@ public class RadialMenuController : MonoBehaviour
     {
         if (!isMenuOpen) return;
 
-        // 1. 取得滑鼠相對中心的向量
+        // --- 步驟 1-3 不變: 取得 direction, 檢查 dead zone, 計算 atan2 angle ---
         Vector2 mousePos = Mouse.current.position.ReadValue();
-        Vector2 centerPos = this.GetComponent<RectTransform>().position; // 假設腳本掛在 RadialMenu (根) 上
+        Vector2 centerPos = this.GetComponent<RectTransform>().position;
         Vector2 direction = mousePos - centerPos;
+        float deadZoneRadius = radius * 0.2f;
 
-        // 2. 如果滑鼠太靠近中心，不進行選擇
-        float deadZoneRadius = radius * 0.2f; // 例如，中心 20% 區域不選
+        // [新增 Debug] 顯示原始數據
+        // Debug.Log($"Mouse: {mousePos}, Center: {centerPos}, Dir: {direction}, Mag: {direction.magnitude}");
+
         if (direction.magnitude < deadZoneRadius)
         {
+            // 在 Dead Zone 內，取消選擇
             currentSelectionIndex = -1;
+            // ... (處理縮放) ... // <-- 把縮回上一個選項的邏輯放在這裡
+            if (previousSelectionIndex != -1 && previousSelectionIndex < spawnedSlots.Count && spawnedSlots[previousSelectionIndex] != null)
+            {
+                StartCoroutine(ScaleCoroutine(spawnedSlots[previousSelectionIndex].transform, normalScale));
+                previousSelectionIndex = -1; // 重置 previous
+            }
             return;
         }
 
-        // 3. 計算角度 (atan2 返回弧度, 轉為角度)
         float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
-        // 把角度轉換到 0~360 範圍 (從右邊開始，逆時針)
-        if (angle < 0) angle += 360f;
+        if (angle < 0) angle += 360f; // 轉換到 0~360
 
-        // 4. 計算對應的 Index
+        // --- 步驟 4: [修改] 計算 Index ---
         int teamSize = teamManager.team.Length;
+        if (teamSize == 0) return; // 防止除以零
         float angleStep = 360f / teamSize;
+
+        // [修改] 角度校正：把 atan2 的角度 (0 度在右) 轉換成 UI 的角度 (0 度在上)
+        // atan2 的 90 度是 UI 的 0 度
+        // atan2 的 0 度是 UI 的 90 度
+        // atan2 的 270 度是 UI 的 180 度
+        // atan2 的 180 度是 UI 的 270 度
+        // 公式： uiAngle = (450 - atan2Angle) % 360
+        float uiAngle = (450f - angle) % 360f;
+
+        // [修改] 根據 UI 角度計算索引 (0 在上方，順時針)
         // 偏移半個角度，讓分割線落在選項之間
-        float adjustedAngle = (angle + angleStep / 2f) % 360f;
-        int selectedIndex = Mathf.FloorToInt(adjustedAngle / angleStep);
+        float adjustedUiAngle = (uiAngle + angleStep / 2f) % 360f; // <-- 用校正後的 uiAngle
+        int calculatedIndex = Mathf.FloorToInt(adjustedUiAngle / angleStep); // <-- 這就是我們的 uiIndex
 
-        // 由於我們 UI 是從上方 (90度) 順時針排的，Input System 角度是從右方 (0度) 逆時針算的
-        // 需要做一個映射轉換 (這部分可能需要根據你的 UI 實際排列微調)
-        // 假設 teamSize=8, angleStep=45
-        // Angle 0-45 -> Index 0 (右)
-        // Angle 45-90 -> Index 1 (右上) ...
-        // Angle 315-360 -> Index 7 (右下)
-        // 映射到 UI (從上方順時針 0-7)
-        // 這邊的映射邏輯有點 tricky，先假設一個簡單的映射，你可能需要根據視覺調整
-        int uiIndex = (teamSize - selectedIndex + (teamSize / 4)) % teamSize; // 嘗試映射到以頂部為0的順時針索引
+        // [新增 Debug]
+        // Debug.Log($"Atan2 Angle: {angle:F1}, UI Angle: {uiAngle:F1}, Adjusted UI Angle: {adjustedUiAngle:F1}, Calculated Index: {calculatedIndex}");
 
-        previousSelectionIndex = currentSelectionIndex; // 先記住這一幀開始時選的是誰
 
-        if (uiIndex >= 0 && uiIndex < teamSize && teamManager.team[uiIndex].character != null) // 必須是有效的隊友
+        // --- 步驟 5: 更新選擇和縮放 ---
+        previousSelectionIndex = currentSelectionIndex; // 記住舊的
+
+        // 使用 calculatedIndex 作為最終索引
+        if (calculatedIndex >= 0 && calculatedIndex < teamSize && teamManager.team[calculatedIndex].character != null)
         {
-            currentSelectionIndex = uiIndex;
+            currentSelectionIndex = calculatedIndex; // <--- 直接使用算出來的 index
         }
-        else // 滑鼠在中間或無效 Slot 上
+        else
         {
             currentSelectionIndex = -1;
-            // if (selectorHighlight != null) selectorHighlight.enabled = false; // <-- [刪除]
         }
 
-        // --- [新增] 處理縮放邏輯 ---
-        // 如果選擇改變了
+        // --- 縮放邏輯 (保持不變) ---
         if (currentSelectionIndex != previousSelectionIndex)
         {
-            // 把上一個選中的縮回去 (如果有的話)
-            if (previousSelectionIndex != -1 && previousSelectionIndex < spawnedSlots.Count)
-            {
-                // SetScale(spawnedSlots[previousSelectionIndex].transform, normalScale); // 直接設定
-                StartCoroutine(ScaleCoroutine(spawnedSlots[previousSelectionIndex].transform, normalScale)); // 用動畫
-            }
-            // 把現在選中的放大 (如果有的話)
-            if (currentSelectionIndex != -1 && currentSelectionIndex < spawnedSlots.Count)
-            {
-                // SetScale(spawnedSlots[currentSelectionIndex].transform, highlightedScale); // 直接設定
-                StartCoroutine(ScaleCoroutine(spawnedSlots[currentSelectionIndex].transform, highlightedScale)); // 用動畫
-            }
+            if (previousSelectionIndex != -1 && previousSelectionIndex < spawnedSlots.Count && spawnedSlots[previousSelectionIndex] != null) { StartCoroutine(ScaleCoroutine(spawnedSlots[previousSelectionIndex].transform, normalScale)); }
+            if (currentSelectionIndex != -1 && currentSelectionIndex < spawnedSlots.Count && spawnedSlots[currentSelectionIndex] != null) { StartCoroutine(ScaleCoroutine(spawnedSlots[currentSelectionIndex].transform, highlightedScale)); }
         }
     }
+
     private void SetScale(Transform targetTransform, Vector3 targetScale)
     {
         if (targetTransform != null)
