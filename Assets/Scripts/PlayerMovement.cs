@@ -13,6 +13,9 @@ public class PlayerMovement : MonoBehaviour
     [Tooltip("用於指定 Rigidbody 重心的輔助物件 (可選)")]
     [SerializeField] private Transform centerOfMassHelper;
 
+    [Header("UI Display")] // <-- [新增]
+    public Sprite radialMenuIcon;
+
     [Header("Component Links")]
     public CamControl myCharacterCamera;
     public Transform myFollowTarget;
