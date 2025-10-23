@@ -11,10 +11,12 @@ public class RadialMenuController : MonoBehaviour
     [SerializeField] private InputActionReference openMenuActionRef; // 把 Input Action 拖進來
 
     [Header("UI 元素")]
-    [SerializeField] private GameObject menuRoot; // 就是掛載這個腳本的物件
     [SerializeField] private Transform slotsContainer; // 所有 Slot UI 的父物件
     [SerializeField] private GameObject slotPrefab; // 代表一個選項的 UI Prefab
-    // [SerializeField] private Image selectorHighlight; // <-- 已刪除
+
+    [Header("子物件引用 (代替 MenuRoot)")]
+    [SerializeField] private GameObject backgroundObject; // 拖 Background 物件
+    [SerializeField] private GameObject slotsContainerObject;
 
     [Header("輪盤設定")]
     [SerializeField] private float radius = 150f;
@@ -36,29 +38,25 @@ public class RadialMenuController : MonoBehaviour
     // --- Input System Setup ---
     private void Awake()
     {
-        // [新增] 強力 Debug: 確認 Awake 是否執行
-        Debug.Log($"RadialMenuController: Awake() called on {this.gameObject.name}. Is gameObject active in hierarchy? {this.gameObject.activeInHierarchy}", this.gameObject);
+        Debug.Log($"RadialMenuController: Awake() on {this.gameObject.name}. SHOULD RUN AT START.", this.gameObject);
 
-        if (teamManager == null) teamManager = FindAnyObjectByType<TeamManager>(); // 自動找 (備案)
+        if (teamManager == null) teamManager = FindAnyObjectByType<TeamManager>();
 
-        // [修改] 把 Input System 的訂閱邏輯移到 Awake
-        SubscribeToAction();
+        SubscribeToAction(); // Input System 訂閱
 
-        // 確保一開始是關閉的 (如果 menuRoot 是自己， Awake 時它應該是 activeSelf=true, activeInHierarchy=false)
-        if (menuRoot == this.gameObject)
+        // [修改] 確保 UI 一開始是隱藏的 (透過子物件)
+        SetChildrenVisibility(false);
+
+        // 重置狀態
+        isMenuOpen = false;
+        currentSelectionIndex = -1;
+        previousSelectionIndex = -1;
+        originalTimeScale = 1f;
+
+        // 驗證引用
+        if (backgroundObject == null || slotsContainerObject == null || slotPrefab == null)
         {
-            Debug.Log($"RadialMenuController: Awake - menuRoot is self. Initial activeSelf: {menuRoot.activeSelf}. Setting inactive NOW.");
-            // 不要在 Awake 裡 SetActive(false)，因為這會阻止 Start 執行
-            // 我們依賴 Inspector 裡預設就是 Inactive
-        }
-        else if (menuRoot != null)
-        {
-            Debug.Log($"RadialMenuController: Awake - menuRoot is '{menuRoot.name}'. Initial activeSelf: {menuRoot.activeSelf}. Setting inactive NOW.");
-            menuRoot.SetActive(false); // 如果 menuRoot 是其他物件，可以在 Awake 關閉
-        }
-        else
-        {
-            Debug.LogError("Menu Root 未設定!");
+            Debug.LogError("RadialMenuController: 子物件引用 (Background, SlotsContainer, SlotPrefab) 未在 Inspector 中設定!", this.gameObject);
         }
     }
 
@@ -134,7 +132,7 @@ public class RadialMenuController : MonoBehaviour
             Time.timeScale = originalTimeScale > 0 ? originalTimeScale : 1f;
         }
     }
-
+    
 
     // --- Menu Logic ---
     private void OpenMenu(InputAction.CallbackContext context)
@@ -142,25 +140,14 @@ public class RadialMenuController : MonoBehaviour
         // [新增] 強力 Debug
         Debug.Log("RadialMenuController: OpenMenu ACTION TRIGGERED!");
 
-        if (isMenuOpen || teamManager == null || menuRoot == null)
+        if (isMenuOpen || teamManager == null)
         {
-            Debug.LogWarning($"OpenMenu prevented: isMenuOpen={isMenuOpen}, teamManagerNull={teamManager == null}, menuRootNull={menuRoot == null}");
             return;
         }
 
         Debug.Log("RadialMenuController: Opening Menu...");
         isMenuOpen = true;
-
-        // [新增] 強力 Debug
-        Debug.Log($"OpenMenu: Activating menuRoot '{menuRoot.name}'...");
-        menuRoot.SetActive(true);
-        Debug.Log($"OpenMenu: menuRoot '{menuRoot.name}' activeSelf is NOW {menuRoot.activeSelf}");
-
-        if (!menuRoot.activeInHierarchy)
-        {
-            Debug.LogError("OpenMenu: menuRoot SetActive(true) finished, BUT activeInHierarchy is FALSE! Check parent objects.", menuRoot);
-        }
-
+        SetChildrenVisibility(true);
 
         Cursor.lockState = CursorLockMode.None; // 解鎖滑鼠
         Cursor.visible = true;
@@ -178,20 +165,14 @@ public class RadialMenuController : MonoBehaviour
         // [新增] 強力 Debug
         Debug.Log("RadialMenuController: CloseMenu ACTION TRIGGERED!");
 
-        if (!isMenuOpen || teamManager == null || menuRoot == null)
+        if (!isMenuOpen || teamManager == null)
         {
-            Debug.LogWarning($"CloseMenu prevented: isMenuOpen={isMenuOpen}, teamManagerNull={teamManager == null}, menuRootNull={menuRoot == null}");
             return;
         }
 
         Debug.Log($"RadialMenuController: Closing Menu... Selected Index: {currentSelectionIndex}");
         isMenuOpen = false;
-
-        // [新增] 強力 Debug
-        Debug.Log($"CloseMenu: Deactivating menuRoot '{menuRoot.name}'...");
-        menuRoot.SetActive(false);
-        Debug.Log($"CloseMenu: menuRoot '{menuRoot.name}' activeSelf is NOW {menuRoot.activeSelf}");
-
+        SetChildrenVisibility(false);
 
         Cursor.lockState = CursorLockMode.Locked; // 鎖定滑鼠
         Cursor.visible = false;
@@ -209,6 +190,23 @@ public class RadialMenuController : MonoBehaviour
         }
 
         ClearSlots();
+    }
+
+    private void SetChildrenVisibility(bool isVisible)
+    {
+        if (backgroundObject != null) backgroundObject.SetActive(isVisible);
+        if (slotsContainerObject != null) slotsContainerObject.SetActive(isVisible);
+        // if (centerDotObject != null) centerDotObject.SetActive(isVisible);
+
+        // 如果關閉，也確保清除可能殘留的 Slot
+        if (!isVisible)
+        {
+            ClearSlots(); // 確保關閉時清除
+                          // 確保重置縮放狀態 (如果動畫被打斷)
+            if (previousSelectionIndex != -1 && previousSelectionIndex < spawnedSlots.Count && spawnedSlots[previousSelectionIndex] != null) { spawnedSlots[previousSelectionIndex].transform.localScale = normalScale; }
+            previousSelectionIndex = -1;
+            currentSelectionIndex = -1;
+        }
     }
 
     // ForceCloseMenu 保持不變...
@@ -252,7 +250,7 @@ public class RadialMenuController : MonoBehaviour
     private void ForceCloseMenu() // 緊急關閉用 (例如 OnDisable)
     {
         isMenuOpen = false;
-        if(menuRoot != null) menuRoot.SetActive(false);
+        SetChildrenVisibility(false);
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
         Time.timeScale = originalTimeScale > 0 ? originalTimeScale : 1f; // 避免 TimeScale 變 0
@@ -306,6 +304,7 @@ public class RadialMenuController : MonoBehaviour
                 slotImage.color = tempColor;
                 slotGO.name = $"Slot_{i}_Empty";
             }
+            slotGO.transform.localScale = normalScale;
             slotGO.SetActive(true);
         }
     }
@@ -326,7 +325,7 @@ public class RadialMenuController : MonoBehaviour
 
         // 1. 取得滑鼠相對中心的向量
         Vector2 mousePos = Mouse.current.position.ReadValue();
-        Vector2 centerPos = menuRoot.GetComponent<RectTransform>().position; // UI 中心點的世界座標
+        Vector2 centerPos = this.GetComponent<RectTransform>().position; // 假設腳本掛在 RadialMenu (根) 上
         Vector2 direction = mousePos - centerPos;
 
         // 2. 如果滑鼠太靠近中心，不進行選擇
