@@ -86,6 +86,7 @@ public class PlayerMovement : MonoBehaviour
         if (playerActions == null) playerActions = new InputSystem_Actions();
         playerActions.Player.Enable();
         playerActions.Player.AddToTeam.performed += OnAddToTeam;
+        playerActions.Player.Jump.performed += OnJumpPerformed;
 
         if (rb != null)
         {
@@ -100,6 +101,7 @@ public class PlayerMovement : MonoBehaviour
         {
             playerActions.Player.Disable();
             playerActions.Player.AddToTeam.performed -= OnAddToTeam;
+            playerActions.Player.Jump.performed -= OnJumpPerformed;
         }
 
         if (currentlyTargetedPlayerObject != null)
@@ -112,6 +114,36 @@ public class PlayerMovement : MonoBehaviour
         {
             rb.freezeRotation = false;
             rb.angularDamping = uncontrolledAngularDrag;
+        }
+    }
+
+    /// <summary>
+    /// 當跳躍 Action 被執行 (按下) 時觸發 (由 Input System 呼叫)
+    /// </summary>
+    private void OnJumpPerformed(InputAction.CallbackContext context)
+    {
+        // 只有在剛按下的時候，並且我們正好在地上，才播一次音效
+        if (IsGrounded)
+        {
+            PlayJumpSound(); // 我們把音效播放邏輯抽出來
+        }
+    }
+
+    /// <summary>
+    /// 負責播放跳躍音效 (包含 Debug 檢查)
+    /// </summary>
+    private void PlayJumpSound()
+    {
+        if (audioSource != null && jumpSound != null)
+        {
+            Debug.Log($"PlayJumpSound: Firing audio '{jumpSound.name}'.");
+            audioSource.PlayOneShot(jumpSound);
+        }
+        else
+        {
+            Debug.LogError($"PlayJumpSound: FAILED safety check.");
+            if (audioSource == null) Debug.LogError("Reason: AudioSource is null.");
+            if (jumpSound == null) Debug.LogError("Reason: JumpSound is null.");
         }
     }
 
@@ -215,19 +247,11 @@ public class PlayerMovement : MonoBehaviour
     private void HandleJump()
     {
         if (playerActions == null || rb == null) return;
-        if (playerActions.Player.Jump.WasPressedThisFrame() && IsGrounded)
+        if (playerActions.Player.Jump.IsPressed() && IsGrounded)
         {
             float jumpForce = Mathf.Sqrt(jumpHeight * -2f * Physics.gravity.y);
             rb.linearVelocity = new Vector3(rb.linearVelocity.x, jumpForce, rb.linearVelocity.z);
-
-            if (audioSource != null && jumpSound != null)
-            {
-                // 如果你看到這條 Log，但還是沒聲音，問題 100% 在 AudioListener
-                Debug.Log($"HandleJump: PASSED safety check. Firing audio '{jumpSound.name}'.");
-                audioSource.PlayOneShot(jumpSound);
-            }
         }
-
     }
 
     private void ApplyExtraGravity()
