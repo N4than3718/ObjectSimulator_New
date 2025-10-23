@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-[RequireComponent(typeof(Rigidbody), typeof(CapsuleCollider))]
+[RequireComponent(typeof(Rigidbody), typeof(CapsuleCollider), typeof(AudioSource))]
 public class PlayerMovement : MonoBehaviour
 {
     [Header("元件參考")]
@@ -9,12 +9,16 @@ public class PlayerMovement : MonoBehaviour
     private Rigidbody rb;
     private CapsuleCollider capsuleCollider;
     private TeamManager teamManager;
+    private AudioSource audioSource;
     [Tooltip("用於指定 Rigidbody 重心的輔助物件 (可選)")]
     [SerializeField] private Transform centerOfMassHelper;
 
     [Header("Component Links")]
     public CamControl myCharacterCamera;
     public Transform myFollowTarget;
+
+    [Header("音效設定 (SFX)")]
+    [SerializeField] private AudioClip jumpSound;
 
     [Header("移動設定")]
     [SerializeField] private float playerSpeed = 5.0f;
@@ -68,6 +72,11 @@ public class PlayerMovement : MonoBehaviour
         {
             // 如果沒設定輔助點，Unity 會自動計算 (保留預設行為)
             Debug.LogWarning($"{name}: Center of Mass Helper 未設定，使用自動計算的重心 {rb.centerOfMass}。");
+        }
+
+        if (audioSource != null)
+        {
+            audioSource.playOnAwake = false; // 確保遊戲一開始不會播
         }
     }
 
@@ -204,12 +213,19 @@ public class PlayerMovement : MonoBehaviour
     }
     private void HandleJump()
     {
-         if (playerActions == null || rb == null) return;
-        if (playerActions.Player.Jump.IsPressed() && IsGrounded) {
+        if (playerActions == null || rb == null) return;
+        if (playerActions.Player.Jump.IsPressed() && IsGrounded)
+        {
             float jumpForce = Mathf.Sqrt(jumpHeight * -2f * Physics.gravity.y);
             rb.linearVelocity = new Vector3(rb.linearVelocity.x, jumpForce, rb.linearVelocity.z);
         }
+
+        if (audioSource != null && jumpSound != null)
+        {
+            audioSource.PlayOneShot(jumpSound); // PlayOneShot 適合短、不重複的音效
+        }
     }
+
     private void ApplyExtraGravity()
     {
         if (rb == null) return;
