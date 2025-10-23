@@ -388,7 +388,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &242880678
 RectTransform:
   m_ObjectHideFlags: 0
@@ -424,9 +424,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::RadialMenuController
   teamManager: {fileID: 1493841722}
   openMenuActionRef: {fileID: -2102637052372493244, guid: 052faaac586de48259a63d0c4782560b, type: 3}
-  menuRoot: {fileID: 242880677}
   slotsContainer: {fileID: 774845856}
   slotPrefab: {fileID: 4485895296823182877, guid: f875c350465a3f049ae579e35fb61114, type: 3}
+  backgroundObject: {fileID: 1595706455}
+  slotsContainerObject: {fileID: 774845855}
   radius: 150
   inactiveSlotAlpha: 0.5
   timeScaleWhenOpen: 0.1
@@ -1307,7 +1308,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &774845856
 RectTransform:
   m_ObjectHideFlags: 0
@@ -2442,7 +2443,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &1595706456
 RectTransform:
   m_ObjectHideFlags: 0
