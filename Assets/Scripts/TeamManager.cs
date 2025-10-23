@@ -32,6 +32,7 @@ public class TeamManager : MonoBehaviour
 
     private int activeCharacterIndex = -1;
     private InputSystem_Actions playerActions;
+    public GameState CurrentGameState => currentState;
 
     // --- ¤½¶}ÄÝ©Ê ---
     public Transform CurrentCameraTransform
