@@ -58,7 +58,6 @@ public class CamControl : MonoBehaviour
     {
         if (IsInputPaused || FollowTarget == null) // Also check FollowTarget just in case
         {
-            Debug.Log($"{this.GetType().Name} Update: IsInputPaused = {IsInputPaused}");
             return; // Don't process rotation, positioning, etc.
         }
 
@@ -77,7 +76,6 @@ public class CamControl : MonoBehaviour
     {
         if (IsInputPaused || FollowTarget == null) // Also check FollowTarget just in case
         {
-            Debug.Log($"{this.GetType().Name} Update: IsInputPaused = {IsInputPaused}");
             return; // Don't process rotation, positioning, etc.
         }
 
