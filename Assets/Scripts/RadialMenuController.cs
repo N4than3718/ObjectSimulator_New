@@ -140,6 +140,12 @@ public class RadialMenuController : MonoBehaviour
         // [新增] 強力 Debug
         Debug.Log("RadialMenuController: OpenMenu ACTION TRIGGERED!");
 
+        if (teamManager != null && teamManager.CurrentGameState == TeamManager.GameState.Spectator)
+        {
+            Debug.Log("OpenMenu prevented: Currently in Spectator mode.");
+            return; // 在觀察者模式下，不給開輪盤
+        }
+
         if (isMenuOpen || teamManager == null)
         {
             return;
@@ -183,6 +189,16 @@ public class RadialMenuController : MonoBehaviour
             StartCoroutine(ScaleCoroutine(spawnedSlots[previousSelectionIndex].transform, normalScale));
         }
 
+        Debug.Log($"CloseMenu: Attempting switch. currentSelectionIndex = {currentSelectionIndex}");
+        if (currentSelectionIndex != -1 && currentSelectionIndex < teamManager.team.Length)
+        {
+            Debug.Log($"CloseMenu: Checking team slot {currentSelectionIndex}. Character is: {(teamManager.team[currentSelectionIndex].character == null ? "NULL" : teamManager.team[currentSelectionIndex].character.name)}");
+        }
+        else if (currentSelectionIndex != -1)
+        {
+            Debug.LogWarning($"CloseMenu: currentSelectionIndex {currentSelectionIndex} seems out of bounds for team length {teamManager.team.Length}");
+        }
+
         if (currentSelectionIndex != -1 && currentSelectionIndex < teamManager.team.Length
             && teamManager.team[currentSelectionIndex].character != null)
         {
@@ -208,44 +224,6 @@ public class RadialMenuController : MonoBehaviour
             currentSelectionIndex = -1;
         }
     }
-
-    // ForceCloseMenu 保持不變...
-
-    // PopulateSlots 保持不變...
-
-    // ClearSlots 保持不變...
-
-    // Update 保持不變 (包含縮放邏輯)...
-
-    // SetScale 保持不變...
-
-    // ScaleCoroutine 保持不變...
-
-
-    // --- [新增] 手動 Debug in Update (備案) ---
-    /*
-    void Update()
-    {
-        // 只能在 isMenuOpen = false 時檢查開啟
-        if (!isMenuOpen && Keyboard.current != null && Keyboard.current.tabKey.wasPressedThisFrame)
-        {
-            Debug.LogWarning("MANUAL DEBUG: Tab was pressed this frame. Forcing OpenMenu...");
-            // 手動模擬 Input System 的 context (雖然這裡用不到)
-            OpenMenu(new InputAction.CallbackContext());
-        }
-        // 只能在 isMenuOpen = true 時檢查關閉
-        else if (isMenuOpen && Keyboard.current != null && Keyboard.current.tabKey.wasReleasedThisFrame)
-        {
-             Debug.LogWarning("MANUAL DEBUG: Tab was released this frame. Forcing CloseMenu...");
-             CloseMenu(new InputAction.CallbackContext());
-        }
-
-        // --- 原本的 Update 選擇邏輯 ---
-        if (!isMenuOpen) return;
-        // ... (你原本計算角度和縮放的邏輯) ...
-    }
-    */
-
 
     private void ForceCloseMenu() // 緊急關閉用 (例如 OnDisable)
     {
@@ -376,11 +354,6 @@ public class RadialMenuController : MonoBehaviour
         if (uiIndex >= 0 && uiIndex < teamSize && teamManager.team[uiIndex].character != null) // 必須是有效的隊友
         {
             currentSelectionIndex = uiIndex;
-            // if (selectorHighlight != null && spawnedSlots.Count > uiIndex) // <-- [刪除]
-            // {                                                            // <-- [刪除]
-            //     selectorHighlight.enabled = true;                      // <-- [刪除]
-            //     selectorHighlight.rectTransform.position = spawnedSlots[uiIndex].GetComponent<RectTransform>().position; // <-- [刪除]
-            // }                                                            // <-- [刪除]
         }
         else // 滑鼠在中間或無效 Slot 上
         {
@@ -440,11 +413,12 @@ public class RadialMenuController : MonoBehaviour
 
         Debug.Log($"Setting camera input pause state to: {paused}");
         List<MonoBehaviour> allControllers = teamManager.GetAllCameraControllers();
-
+        Debug.Log($"Found {allControllers.Count} camera controllers to pause/unpause.");
         foreach (var controller in allControllers)
         {
             if (controller is CamControl charCamCtrl)
             {
+                Debug.Log($"Attempting to set IsInputPaused={paused} on controller: {controller.GetType().Name}");
                 charCamCtrl.IsInputPaused = paused;
             }
         }
