@@ -439,10 +439,10 @@ GameObject:
   - component: {fileID: 340754705}
   - component: {fileID: 340754704}
   - component: {fileID: 340754703}
+  - component: {fileID: 340754707}
   - component: {fileID: 340754702}
   - component: {fileID: 340754701}
   - component: {fileID: 340754706}
-  - component: {fileID: 340754707}
   m_Layer: 6
   m_Name: Mug
   m_TagString: Player
@@ -487,11 +487,11 @@ MonoBehaviour:
   centerOfMassHelper: {fileID: 0}
   myCharacterCamera: {fileID: 1402469981}
   myFollowTarget: {fileID: 957414671}
-  jumpSound: {fileID: 0}
+  jumpSound: {fileID: 8300000, guid: 6c6851817749c6f4389fe031b749df24, type: 3}
   playerSpeed: 5
   fastSpeed: 10
   rotationSpeed: 10
-  uncontrolledAngularDrag: 0.5
+  uncontrolledAngularDrag: 1
   jumpHeight: 1.5
   gravityMultiplier: 2.5
   groundCheckRadiusModifier: 0.9
@@ -598,7 +598,7 @@ AudioSource:
   m_GameObject: {fileID: 340754700}
   m_Enabled: 1
   serializedVersion: 4
-  OutputAudioMixerGroup: {fileID: 0}
+  OutputAudioMixerGroup: {fileID: 24300002, guid: b140939044b52f64da79a0ce63541308, type: 2}
   m_audioClip: {fileID: 0}
   m_Resource: {fileID: 0}
   m_PlayOnAwake: 1
@@ -1532,7 +1532,7 @@ MonoBehaviour:
   playerSpeed: 5
   fastSpeed: 10
   rotationSpeed: 10
-  uncontrolledAngularDrag: 0.5
+  uncontrolledAngularDrag: 1
   jumpHeight: 1.5
   gravityMultiplier: 2.5
   groundCheckRadiusModifier: 0.9
