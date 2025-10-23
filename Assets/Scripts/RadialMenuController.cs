@@ -275,7 +275,7 @@ public class RadialMenuController : MonoBehaviour
 
         for (int i = 0; i < teamSize; i++)
         {
-            GameObject slotGO = Instantiate(slotPrefab, slotsContainer);
+            GameObject slotGO = Instantiate(slotPrefab, slotsContainerObject.transform);
             spawnedSlots.Add(slotGO);
 
             // 計算位置 (極座標轉直角座標)
@@ -284,34 +284,35 @@ public class RadialMenuController : MonoBehaviour
             float y = radius * Mathf.Sin(angleRad);
             slotGO.GetComponent<RectTransform>().anchoredPosition = new Vector2(x, y);
 
-            Image slotImage = slotGO.GetComponentInChildren<Image>(); // 假設 Prefab 裡有 Image
+            Image iconImage = slotGO.transform.Find("Icon")?.GetComponent<Image>(); // <-- [修改] 精確找到名叫 Icon 的子物件上的 Image
+
+            if (iconImage == null) // <-- [新增] 檢查是否找到 Icon Image
+            {
+                Debug.LogError($"Slot Prefab ({slotPrefab.name}) 缺少名為 'Icon' 的子物件或其上的 Image 元件!", slotGO);
+                // ... (處理錯誤，例如 return 或 continue)
+            }
+
             TeamUnit unit = teamManager.team[i];
 
-            if (unit.character != null && slotImage != null)
+            if (unit.character != null /* && slotImage != null */ ) // <-- iconImage 的檢查移到下面
             {
-                // 從 PlayerMovement 讀取指定的圖示
-                if (unit.character.radialMenuIcon != null)
+                if (iconImage != null && unit.character.radialMenuIcon != null) // <-- [修改] 改用 iconImage
                 {
-                    slotImage.sprite = unit.character.radialMenuIcon; // <--- 設定 Sprite
-                    //slotImage.color = Color.white; // 確保圖示不透明
+                    iconImage.sprite = unit.character.radialMenuIcon; // <--- [修改] 設定給 iconImage
+                    iconImage.color = Color.white;
                 }
-                else
+                else if (iconImage != null) // 有 Image 但沒 Sprite
                 {
-                    // 如果忘了指定圖示，給個警告，並顯示預設圖或空白
                     Debug.LogWarning($"物件 {unit.character.name} 沒有指定 RadialMenuIcon!", unit.character.gameObject);
-                    slotImage.sprite = null; // 或者給一個預設問號圖示 Sprite
-                    var tempColor = Color.gray; // 用灰色表示缺少圖示
-                    tempColor.a = inactiveSlotAlpha;
-                    slotImage.color = tempColor;
+                    iconImage.sprite = null;
+                    var tempColor = Color.gray; tempColor.a = inactiveSlotAlpha; iconImage.color = tempColor;
                 }
                 slotGO.name = $"Slot_{i}_{unit.character.name}";
             }
-            else if (slotImage != null) // 空白 Slot
+            else if (iconImage != null) // 空白 Slot
             {
-                slotImage.sprite = null;
-                var tempColor = Color.white;
-                tempColor.a = inactiveSlotAlpha;
-                slotImage.color = tempColor;
+                iconImage.sprite = null;
+                var tempColor = Color.white; tempColor.a = inactiveSlotAlpha; iconImage.color = tempColor;
                 slotGO.name = $"Slot_{i}_Empty";
             }
 
