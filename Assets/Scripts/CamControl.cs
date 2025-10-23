@@ -58,8 +58,7 @@ public class CamControl : MonoBehaviour
     {
         if (IsInputPaused || FollowTarget == null) // Also check FollowTarget just in case
         {
-            // Maybe just skip rotation input but keep following? Depends on desired effect.
-            // For now, let's freeze everything:
+            Debug.Log($"{this.GetType().Name} Update: IsInputPaused = {IsInputPaused}");
             return; // Don't process rotation, positioning, etc.
         }
 
@@ -78,8 +77,7 @@ public class CamControl : MonoBehaviour
     {
         if (IsInputPaused || FollowTarget == null) // Also check FollowTarget just in case
         {
-            // Maybe just skip rotation input but keep following? Depends on desired effect.
-            // For now, let's freeze everything:
+            Debug.Log($"{this.GetType().Name} Update: IsInputPaused = {IsInputPaused}");
             return; // Don't process rotation, positioning, etc.
         }
 
