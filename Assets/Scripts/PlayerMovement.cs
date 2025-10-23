@@ -57,6 +57,7 @@ public class PlayerMovement : MonoBehaviour
     {
         rb = GetComponent<Rigidbody>();
         capsuleCollider = GetComponent<CapsuleCollider>();
+        audioSource = GetComponent<AudioSource>();
 
         playerActions = new InputSystem_Actions();
         teamManager = FindAnyObjectByType<TeamManager>();
