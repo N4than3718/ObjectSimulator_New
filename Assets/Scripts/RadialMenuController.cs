@@ -171,8 +171,10 @@ public class RadialMenuController : MonoBehaviour
 
     private void CloseMenu(InputAction.CallbackContext context)
     {
+        int indexToSwitchTo = lastValidHoverIndex;
         // [新增] 強力 Debug
         Debug.Log("RadialMenuController: CloseMenu ACTION TRIGGERED!");
+        Debug.LogError($"!!!!!!!! CLOSE MENU ENTERED: lastValidHoverIndex was {lastValidHoverIndex}. Snapped value indexToSwitchTo = {indexToSwitchTo} !!!!!!!!", this.gameObject);
 
         if (!isMenuOpen || teamManager == null)
         {
@@ -185,7 +187,6 @@ public class RadialMenuController : MonoBehaviour
         SetCameraInputPause(false);
         Cursor.lockState = CursorLockMode.Locked; // 鎖定滑鼠
         Cursor.visible = false;
-        Time.timeScale = originalTimeScale; // 恢復時間流速
 
         Debug.Log($"CloseMenu: Attempting switch using lastValidHoverIndex = {lastValidHoverIndex}");
 
@@ -197,22 +198,29 @@ public class RadialMenuController : MonoBehaviour
         }
 
         // 根據鎖定的 Index 執行切換
-        if (lastValidHoverIndex != -1 && lastValidHoverIndex < teamManager.team.Length
-            && teamManager.team[lastValidHoverIndex].character != null)
+        if (indexToSwitchTo != -1 && indexToSwitchTo < teamManager.team.Length
+                    && teamManager.team[indexToSwitchTo].character != null)
         {
-            Debug.Log($"CloseMenu: Condition PASSED using lastValidHoverIndex. Calling teamManager.SwitchToCharacterByIndex({lastValidHoverIndex})...");
-            teamManager.SwitchToCharacterByIndex(lastValidHoverIndex);
+            Debug.Log($"CloseMenu: Condition PASSED using snapped index. Calling teamManager.SwitchToCharacterByIndex({indexToSwitchTo})...");
+            teamManager.SwitchToCharacterByIndex(indexToSwitchTo);
         }
         else
         {
-            Debug.LogWarning($"CloseMenu: No valid character selected (lastValidHoverIndex = {lastValidHoverIndex}). No switch performed.");
+            Debug.LogWarning($"CloseMenu: No valid character selected (snapped index = {indexToSwitchTo}). No switch performed.");
         }
 
         currentHoverIndex = -1;
         lastValidHoverIndex = -1;
         previousRenderedHoverIndex = -1;
 
-        ClearSlots();
+        if (Time.timeScale != originalTimeScale && originalTimeScale > 0)
+        {
+            Time.timeScale = originalTimeScale;
+        }
+        else if (Time.timeScale == 0)
+        { // Safety net if original was 0
+            Time.timeScale = 1f;
+        }
     }
 
     private void SetChildrenVisibility(bool isVisible)
@@ -225,7 +233,8 @@ public class RadialMenuController : MonoBehaviour
         if (!isVisible)
         {
             ClearSlots(); // 確保關閉時清除
-                          // 確保重置縮放狀態 (如果動畫被打斷)
+
+            // 確保重置縮放狀態 (如果動畫被打斷)
             if (previousRenderedHoverIndex != -1 && previousRenderedHoverIndex < spawnedSlots.Count && spawnedSlots[previousRenderedHoverIndex] != null) { spawnedSlots[previousRenderedHoverIndex].transform.localScale = normalScale; }
             currentHoverIndex = -1;
             lastValidHoverIndex = -1;
@@ -359,8 +368,7 @@ public class RadialMenuController : MonoBehaviour
         else
         {
             currentHoverIndex = -1; // 指向無效區域
-                                    // **不要**在這裡重置 lastValidHoverIndex
-                                    // Debug.Log($"Update: Invalid Hover. Last Valid remains {lastValidHoverIndex}");
+            Debug.Log($"Update: currentHoverIndex set to -1. lastValidHoverIndex remains {lastValidHoverIndex}"); // 檢查 Log
         }
 
         // --- [修改] 根據 Hover 狀態變化處理縮放 ---
