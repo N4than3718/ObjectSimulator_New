@@ -1,7 +1,8 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
-using UnityEngine.UI; // 需要引用 UI 命名空間
+using UnityEngine.UI;
 using System.Collections.Generic;
+using System.Collections; // <--- [新增] 為了 Coroutine
 
 public class RadialMenuController : MonoBehaviour
 {
@@ -12,63 +13,155 @@ public class RadialMenuController : MonoBehaviour
     [Header("UI 元素")]
     [SerializeField] private GameObject menuRoot; // 就是掛載這個腳本的物件
     [SerializeField] private Transform slotsContainer; // 所有 Slot UI 的父物件
-    [SerializeField] private GameObject slotPrefab; // 代表一個選項的 UI Prefab (例如一個帶有 Image 的 GameObject)
+    [SerializeField] private GameObject slotPrefab; // 代表一個選項的 UI Prefab
+    // [SerializeField] private Image selectorHighlight; // <-- 已刪除
 
     [Header("輪盤設定")]
-    [SerializeField] private float radius = 150f; // 輪盤半徑
-    [SerializeField] private float inactiveSlotAlpha = 0.5f; // 空白選項的透明度
-    [SerializeField] [Range(0f, 1f)] private float timeScaleWhenOpen = 0.1f; // 開啟時的時間流速 (0=暫停, 1=正常)
+    [SerializeField] private float radius = 150f;
+    [SerializeField] private float inactiveSlotAlpha = 0.5f;
+    [SerializeField][Range(0f, 1f)] private float timeScaleWhenOpen = 0.1f;
 
-    [Header("選中效果")] // <--- [新增]
-    [SerializeField] private Vector3 normalScale = Vector3.one; // 正常大小 (1, 1, 1)
-    [SerializeField] private Vector3 highlightedScale = new Vector3(1.3f, 1.3f, 1.3f); // 放大倍率
-    [SerializeField] private float scaleLerpSpeed = 10f; // 縮放動畫速度 (可選)
+    [Header("選中效果")]
+    [SerializeField] private Vector3 normalScale = Vector3.one;
+    [SerializeField] private Vector3 highlightedScale = new Vector3(1.3f, 1.3f, 1.3f);
+    [SerializeField] private float scaleLerpSpeed = 10f;
 
     private List<GameObject> spawnedSlots = new List<GameObject>();
     private bool isMenuOpen = false;
     private int currentSelectionIndex = -1;
     private int previousSelectionIndex = -1;
     private float originalTimeScale = 1f;
+    private bool actionSubscribed = false; // <--- [新增] 追蹤訂閱狀態
 
     // --- Input System Setup ---
     private void Awake()
     {
+        // [新增] 強力 Debug: 確認 Awake 是否執行
+        Debug.Log($"RadialMenuController: Awake() called on {this.gameObject.name}. Is gameObject active in hierarchy? {this.gameObject.activeInHierarchy}", this.gameObject);
+
         if (teamManager == null) teamManager = FindAnyObjectByType<TeamManager>(); // 自動找 (備案)
-        // 確保一開始是關閉的
-        if (menuRoot != null) menuRoot.SetActive(false);
-        else Debug.LogError("Menu Root 未設定!");
+
+        // [修改] 把 Input System 的訂閱邏輯移到 Awake
+        SubscribeToAction();
+
+        // 確保一開始是關閉的 (如果 menuRoot 是自己， Awake 時它應該是 activeSelf=true, activeInHierarchy=false)
+        if (menuRoot == this.gameObject)
+        {
+            Debug.Log($"RadialMenuController: Awake - menuRoot is self. Initial activeSelf: {menuRoot.activeSelf}. Setting inactive NOW.");
+            // 不要在 Awake 裡 SetActive(false)，因為這會阻止 Start 執行
+            // 我們依賴 Inspector 裡預設就是 Inactive
+        }
+        else if (menuRoot != null)
+        {
+            Debug.Log($"RadialMenuController: Awake - menuRoot is '{menuRoot.name}'. Initial activeSelf: {menuRoot.activeSelf}. Setting inactive NOW.");
+            menuRoot.SetActive(false); // 如果 menuRoot 是其他物件，可以在 Awake 關閉
+        }
+        else
+        {
+            Debug.LogError("Menu Root 未設定!");
+        }
     }
 
+    // [新增] 獨立的訂閱方法
+    private void SubscribeToAction()
+    {
+        if (openMenuActionRef == null || openMenuActionRef.action == null)
+        {
+            Debug.LogError("RadialMenuController: Cannot subscribe, openMenuActionRef is not set!", this.gameObject);
+            return;
+        }
+
+        if (!actionSubscribed)
+        {
+            try
+            {
+                openMenuActionRef.action.Enable(); // 先啟用 Action
+                openMenuActionRef.action.started += OpenMenu; // 按下 Tab (Hold 開始)
+                openMenuActionRef.action.canceled += CloseMenu; // 放開 Tab (Hold 結束)
+                actionSubscribed = true;
+                Debug.Log("RadialMenuController: Successfully subscribed to input action events in Awake.", this.gameObject);
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogError($"RadialMenuController: Error subscribing to input action: {e.Message}", this.gameObject);
+            }
+        }
+        else
+        {
+            Debug.LogWarning("RadialMenuController: Already subscribed to input actions.", this.gameObject);
+        }
+    }
+
+    // [修改] OnEnable 現在只做 Debug
     private void OnEnable()
     {
-        Debug.Log("RadialMenuController: OnEnable called!");
-        if (openMenuActionRef == null || openMenuActionRef.action == null) return;
-        openMenuActionRef.action.Enable();
-        openMenuActionRef.action.started += OpenMenu; // 按下 Tab (Hold 開始)
-        Debug.Log("RadialMenuController: Subscribed to openMenuAction started event.");
-        openMenuActionRef.action.canceled += CloseMenu; // 放開 Tab (Hold 結束)
+        Debug.Log($"RadialMenuController: OnEnable() called on {this.gameObject.name}. SHOULD NOT HAPPEN IF STARTING INACTIVE.", this.gameObject);
+        // 如果 Awake 裡的訂閱因為某些原因失敗了，這裡可以再試一次 (備案)
+        // SubscribeToAction();
     }
 
+    // [修改] OnDisable 現在只做 Debug
     private void OnDisable()
     {
-        if (openMenuActionRef == null || openMenuActionRef.action == null) return;
-        openMenuActionRef.action.started -= OpenMenu;
-        openMenuActionRef.action.canceled -= CloseMenu;
-        openMenuActionRef.action.Disable();
-
-        // 確保關閉時恢復正常狀態 (以防萬一)
-        if (isMenuOpen) ForceCloseMenu();
+        Debug.Log($"RadialMenuController: OnDisable() called on {this.gameObject.name}.", this.gameObject);
+        // If the menu was forced closed by disabling the object, ensure state resets
+        // if (isMenuOpen) ForceCloseMenu(); // 這可能導致重複呼叫 ForceCloseMenu
     }
+
+    // [修改] 把 Input System 的取消訂閱邏輯移到 OnDestroy
+    private void OnDestroy()
+    {
+        Debug.Log($"RadialMenuController: OnDestroy() called on {this.gameObject.name}. Unsubscribing.", this.gameObject);
+        if (openMenuActionRef == null || openMenuActionRef.action == null || !actionSubscribed) return;
+
+        try
+        {
+            openMenuActionRef.action.started -= OpenMenu;
+            openMenuActionRef.action.canceled -= CloseMenu;
+            // 考慮是否 Disable Action，取決於你的 Action 管理方式
+            // openMenuActionRef.action.Disable();
+            actionSubscribed = false;
+        }
+        catch (System.Exception e)
+        {
+            Debug.LogError($"RadialMenuController: Error unsubscribing from input action: {e.Message}", this.gameObject);
+        }
+
+        // 確保 TimeScale 恢復正常
+        if (Time.timeScale != 1f && originalTimeScale != 0) // 避免 Time.timeScale 被卡住
+        {
+            Debug.LogWarning($"RadialMenuController: Resetting TimeScale from {Time.timeScale} to {originalTimeScale} in OnDestroy.");
+            Time.timeScale = originalTimeScale > 0 ? originalTimeScale : 1f;
+        }
+    }
+
 
     // --- Menu Logic ---
     private void OpenMenu(InputAction.CallbackContext context)
     {
-        Debug.Log("OpenMenu called!");
-        if (isMenuOpen || teamManager == null) return;
+        // [新增] 強力 Debug
+        Debug.Log("RadialMenuController: OpenMenu ACTION TRIGGERED!");
 
-        Debug.Log("Radial Menu: Opening...");
+        if (isMenuOpen || teamManager == null || menuRoot == null)
+        {
+            Debug.LogWarning($"OpenMenu prevented: isMenuOpen={isMenuOpen}, teamManagerNull={teamManager == null}, menuRootNull={menuRoot == null}");
+            return;
+        }
+
+        Debug.Log("RadialMenuController: Opening Menu...");
         isMenuOpen = true;
+
+        // [新增] 強力 Debug
+        Debug.Log($"OpenMenu: Activating menuRoot '{menuRoot.name}'...");
         menuRoot.SetActive(true);
+        Debug.Log($"OpenMenu: menuRoot '{menuRoot.name}' activeSelf is NOW {menuRoot.activeSelf}");
+
+        if (!menuRoot.activeInHierarchy)
+        {
+            Debug.LogError("OpenMenu: menuRoot SetActive(true) finished, BUT activeInHierarchy is FALSE! Check parent objects.", menuRoot);
+        }
+
+
         Cursor.lockState = CursorLockMode.None; // 解鎖滑鼠
         Cursor.visible = true;
 
@@ -77,36 +170,84 @@ public class RadialMenuController : MonoBehaviour
 
         PopulateSlots(); // 根據隊伍動態生成選項
         currentSelectionIndex = -1; // 重置選項
-        previousSelectionIndex = -1; // <--- [新增] 重置上一個選項
-        Debug.Log($"Menu Root Active State: {menuRoot.activeSelf}");
+        previousSelectionIndex = -1; // 重置上一個選項
     }
 
     private void CloseMenu(InputAction.CallbackContext context)
     {
-        if (!isMenuOpen || teamManager == null) return;
+        // [新增] 強力 Debug
+        Debug.Log("RadialMenuController: CloseMenu ACTION TRIGGERED!");
 
-        Debug.Log($"Radial Menu: Closing... Selected Index: {currentSelectionIndex}");
+        if (!isMenuOpen || teamManager == null || menuRoot == null)
+        {
+            Debug.LogWarning($"CloseMenu prevented: isMenuOpen={isMenuOpen}, teamManagerNull={teamManager == null}, menuRootNull={menuRoot == null}");
+            return;
+        }
+
+        Debug.Log($"RadialMenuController: Closing Menu... Selected Index: {currentSelectionIndex}");
         isMenuOpen = false;
+
+        // [新增] 強力 Debug
+        Debug.Log($"CloseMenu: Deactivating menuRoot '{menuRoot.name}'...");
         menuRoot.SetActive(false);
+        Debug.Log($"CloseMenu: menuRoot '{menuRoot.name}' activeSelf is NOW {menuRoot.activeSelf}");
+
+
         Cursor.lockState = CursorLockMode.Locked; // 鎖定滑鼠
         Cursor.visible = false;
         Time.timeScale = originalTimeScale; // 恢復時間流速
 
-        if (previousSelectionIndex != -1 && previousSelectionIndex < spawnedSlots.Count)
+        if (previousSelectionIndex != -1 && previousSelectionIndex < spawnedSlots.Count && spawnedSlots[previousSelectionIndex] != null)
         {
-            // SetScale(spawnedSlots[previousSelectionIndex].transform, normalScale); // 直接設定
-            StartCoroutine(ScaleCoroutine(spawnedSlots[previousSelectionIndex].transform, normalScale)); // 或用動畫
+            StartCoroutine(ScaleCoroutine(spawnedSlots[previousSelectionIndex].transform, normalScale));
         }
 
-        // --- 執行切換 ---
         if (currentSelectionIndex != -1 && currentSelectionIndex < teamManager.team.Length
-            && teamManager.team[currentSelectionIndex].character != null) // 確保選中的是有效隊友
+            && teamManager.team[currentSelectionIndex].character != null)
         {
-            teamManager.SwitchToCharacterByIndex(currentSelectionIndex); // <--- 呼叫 TeamManager 的新方法
+            teamManager.SwitchToCharacterByIndex(currentSelectionIndex);
         }
 
-        ClearSlots(); // 清理舊選項
+        ClearSlots();
     }
+
+    // ForceCloseMenu 保持不變...
+
+    // PopulateSlots 保持不變...
+
+    // ClearSlots 保持不變...
+
+    // Update 保持不變 (包含縮放邏輯)...
+
+    // SetScale 保持不變...
+
+    // ScaleCoroutine 保持不變...
+
+
+    // --- [新增] 手動 Debug in Update (備案) ---
+    /*
+    void Update()
+    {
+        // 只能在 isMenuOpen = false 時檢查開啟
+        if (!isMenuOpen && Keyboard.current != null && Keyboard.current.tabKey.wasPressedThisFrame)
+        {
+            Debug.LogWarning("MANUAL DEBUG: Tab was pressed this frame. Forcing OpenMenu...");
+            // 手動模擬 Input System 的 context (雖然這裡用不到)
+            OpenMenu(new InputAction.CallbackContext());
+        }
+        // 只能在 isMenuOpen = true 時檢查關閉
+        else if (isMenuOpen && Keyboard.current != null && Keyboard.current.tabKey.wasReleasedThisFrame)
+        {
+             Debug.LogWarning("MANUAL DEBUG: Tab was released this frame. Forcing CloseMenu...");
+             CloseMenu(new InputAction.CallbackContext());
+        }
+
+        // --- 原本的 Update 選擇邏輯 ---
+        if (!isMenuOpen) return;
+        // ... (你原本計算角度和縮放的邏輯) ...
+    }
+    */
+
 
     private void ForceCloseMenu() // 緊急關閉用 (例如 OnDisable)
     {
