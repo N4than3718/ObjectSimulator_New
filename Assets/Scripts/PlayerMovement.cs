@@ -215,25 +215,19 @@ public class PlayerMovement : MonoBehaviour
     private void HandleJump()
     {
         if (playerActions == null || rb == null) return;
-        if (playerActions.Player.Jump.IsPressed() && IsGrounded)
+        if (playerActions.Player.Jump.WasPressedThisFrame() && IsGrounded)
         {
             float jumpForce = Mathf.Sqrt(jumpHeight * -2f * Physics.gravity.y);
             rb.linearVelocity = new Vector3(rb.linearVelocity.x, jumpForce, rb.linearVelocity.z);
+
+            if (audioSource != null && jumpSound != null)
+            {
+                // 如果你看到這條 Log，但還是沒聲音，問題 100% 在 AudioListener
+                Debug.Log($"HandleJump: PASSED safety check. Firing audio '{jumpSound.name}'.");
+                audioSource.PlayOneShot(jumpSound);
+            }
         }
 
-        if (audioSource != null && jumpSound != null)
-        {
-            // 如果你看到這條 Log，但還是沒聲音，問題 100% 在 AudioListener
-            Debug.Log($"HandleJump: PASSED safety check. Firing audio '{jumpSound.name}'.");
-            audioSource.PlayOneShot(jumpSound);
-        }
-        else
-        {
-            // 如果你看到這條 Error，就是你 Inspector 沒拉
-            Debug.LogError($"HandleJump: FAILED safety check. Cannot play sound.");
-            if (audioSource == null) Debug.LogError("Reason: AudioSource (喇叭) is null.");
-            if (jumpSound == null) Debug.LogError("Reason: JumpSound (音效檔) is null. Please drag clip into Inspector.");
-        }
     }
 
     private void ApplyExtraGravity()
