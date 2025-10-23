@@ -148,7 +148,7 @@ public class RadialMenuController : MonoBehaviour
         Debug.Log("RadialMenuController: Opening Menu...");
         isMenuOpen = true;
         SetChildrenVisibility(true);
-
+        SetCameraInputPause(true);
         Cursor.lockState = CursorLockMode.None; // 解鎖滑鼠
         Cursor.visible = true;
 
@@ -173,7 +173,7 @@ public class RadialMenuController : MonoBehaviour
         Debug.Log($"RadialMenuController: Closing Menu... Selected Index: {currentSelectionIndex}");
         isMenuOpen = false;
         SetChildrenVisibility(false);
-
+        SetCameraInputPause(false);
         Cursor.lockState = CursorLockMode.Locked; // 鎖定滑鼠
         Cursor.visible = false;
         Time.timeScale = originalTimeScale; // 恢復時間流速
@@ -251,6 +251,7 @@ public class RadialMenuController : MonoBehaviour
     {
         isMenuOpen = false;
         SetChildrenVisibility(false);
+        SetCameraInputPause(false);
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
         Time.timeScale = originalTimeScale > 0 ? originalTimeScale : 1f; // 避免 TimeScale 變 0
@@ -431,5 +432,21 @@ public class RadialMenuController : MonoBehaviour
         }
         // 確保最終 scale 是精確的
         if (targetTransform != null) targetTransform.localScale = targetScale;
+    }
+
+    private void SetCameraInputPause(bool paused)
+    {
+        if (teamManager == null) return;
+
+        Debug.Log($"Setting camera input pause state to: {paused}");
+        List<MonoBehaviour> allControllers = teamManager.GetAllCameraControllers();
+
+        foreach (var controller in allControllers)
+        {
+            if (controller is CamControl charCamCtrl)
+            {
+                charCamCtrl.IsInputPaused = paused;
+            }
+        }
     }
 }

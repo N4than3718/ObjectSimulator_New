@@ -23,9 +23,8 @@ public class CamControl : MonoBehaviour
     private float yaw = 0f;
     private float pitch = 0f;
     private Vector2 lookInput;
-
-    // // 這個公開屬性如果確定 MovementAnimator 沒用到，可以考慮移除
-    // public Vector2 RotationInput { get; private set; }
+    public bool IsInputPaused { get; set; } = false;
+    public Vector2 RotationInput { get; private set; }
 
     void Awake()
     {
@@ -57,8 +56,15 @@ public class CamControl : MonoBehaviour
     // ▼▼▼ Update 依然只負責讀取輸入 ▼▼▼
     void Update()
     {
+        if (IsInputPaused || FollowTarget == null) // Also check FollowTarget just in case
+        {
+            // Maybe just skip rotation input but keep following? Depends on desired effect.
+            // For now, let's freeze everything:
+            return; // Don't process rotation, positioning, etc.
+        }
+
         lookInput = playerActions.Player.Look.ReadValue<Vector2>();
-        // RotationInput = lookInput; // 如果 RotationInput 沒用到，可以註解掉或刪除
+        RotationInput = lookInput; // 如果 RotationInput 沒用到，可以註解掉或刪除
     }
 
     private void OnUnlockCursor(InputAction.CallbackContext context)
@@ -67,15 +73,16 @@ public class CamControl : MonoBehaviour
         Cursor.visible = true;
     }
 
-    // ▼▼▼ 移除 FixedUpdate() ▼▼▼
-    // void FixedUpdate()
-    // {
-    //     // ... 所有邏輯移到 LateUpdate ...
-    // }
-
     // ▼▼▼ 新增：LateUpdate()，用於處理攝影機移動和旋轉 ▼▼▼
     void LateUpdate()
     {
+        if (IsInputPaused || FollowTarget == null) // Also check FollowTarget just in case
+        {
+            // Maybe just skip rotation input but keep following? Depends on desired effect.
+            // For now, let's freeze everything:
+            return; // Don't process rotation, positioning, etc.
+        }
+
         // 1. 計算目標旋轉角度 (使用 Update 中讀取的 lookInput)
         //    注意：這裡用 Time.deltaTime 是因為 LateUpdate 跟隨幀率
         yaw += lookInput.x * rotateSpeed;

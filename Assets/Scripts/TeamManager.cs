@@ -412,6 +412,27 @@ public class TeamManager : MonoBehaviour
         }
     }
 
+    public List<MonoBehaviour> GetAllCameraControllers()
+    {
+        List<MonoBehaviour> controllers = new List<MonoBehaviour>();
+
+        // 1. 加入 Spectator Controller
+        if (spectatorController != null)
+        {
+            controllers.Add(spectatorController);
+        }
+
+        // 2. 加入隊伍中所有角色的 Camera Controller
+        foreach (var unit in team)
+        {
+            if (unit.characterCamera != null) // 檢查 CamControl 引用
+            {
+                controllers.Add(unit.characterCamera);
+            }
+        }
+        return controllers;
+    }
+
     // --- SetUnitControl ---
     private void SetUnitControl(TeamUnit unit, bool isActive, bool forceDisable = false)
     {
