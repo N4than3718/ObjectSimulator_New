@@ -895,10 +895,10 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
                 {
                     ""name"": ""OpenRadialMenu"",
                     ""type"": ""Button"",
-                    ""id"": ""4c61aceb-ab85-4ce0-8d60-ca1b56b62b6f"",
+                    ""id"": ""38c59e79-2f03-476a-a0d5-509f52f775a7"",
                     ""expectedControlType"": """",
                     ""processors"": """",
-                    ""interactions"": ""Hold(duration=0.1)"",
+                    ""interactions"": """",
                     ""initialStateCheck"": false
                 }
             ],
@@ -1323,9 +1323,9 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
                 },
                 {
                     ""name"": """",
-                    ""id"": ""4539ae52-5d8f-42f9-bc03-215565fa32a9"",
+                    ""id"": ""334228c4-c305-4d0b-87d3-b66a2ee101f5"",
                     ""path"": ""<Keyboard>/tab"",
-                    ""interactions"": """",
+                    ""interactions"": ""Hold(duration=0.1)"",
                     ""processors"": """",
                     ""groups"": """",
                     ""action"": ""OpenRadialMenu"",
