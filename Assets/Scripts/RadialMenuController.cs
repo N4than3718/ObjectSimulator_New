@@ -61,6 +61,7 @@ public class RadialMenuController : MonoBehaviour
     // --- Menu Logic ---
     private void OpenMenu(InputAction.CallbackContext context)
     {
+        Debug.Log("OpenMenu called!");
         if (isMenuOpen || teamManager == null) return;
 
         Debug.Log("Radial Menu: Opening...");
@@ -75,6 +76,7 @@ public class RadialMenuController : MonoBehaviour
         PopulateSlots(); // 根據隊伍動態生成選項
         currentSelectionIndex = -1; // 重置選項
         previousSelectionIndex = -1; // <--- [新增] 重置上一個選項
+        Debug.Log($"Menu Root Active State: {menuRoot.activeSelf}");
     }
 
     private void CloseMenu(InputAction.CallbackContext context)
