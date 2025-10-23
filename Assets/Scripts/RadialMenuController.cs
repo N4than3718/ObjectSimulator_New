@@ -30,8 +30,9 @@ public class RadialMenuController : MonoBehaviour
 
     private List<GameObject> spawnedSlots = new List<GameObject>();
     private bool isMenuOpen = false;
-    private int currentSelectionIndex = -1;
-    private int previousSelectionIndex = -1;
+    private int currentHoverIndex = -1;       // <--- [新增] 當前滑鼠指向的 Index (-1 = 無效)
+    private int lastValidHoverIndex = -1;     // <--- [新增] 最後一個滑鼠指向過的 *有效* Index
+    private int previousRenderedHoverIndex = -1;
     private float originalTimeScale = 1f;
     private bool actionSubscribed = false; // <--- [新增] 追蹤訂閱狀態
 
@@ -49,8 +50,9 @@ public class RadialMenuController : MonoBehaviour
 
         // 重置狀態
         isMenuOpen = false;
-        currentSelectionIndex = -1;
-        previousSelectionIndex = -1;
+        currentHoverIndex = -1;
+        lastValidHoverIndex = -1;
+        previousRenderedHoverIndex = -1;
         originalTimeScale = 1f;
 
         // 驗證引用
@@ -162,8 +164,9 @@ public class RadialMenuController : MonoBehaviour
         Time.timeScale = timeScaleWhenOpen; // 減慢時間
 
         PopulateSlots(); // 根據隊伍動態生成選項
-        currentSelectionIndex = -1; // 重置選項
-        previousSelectionIndex = -1; // 重置上一個選項
+        currentHoverIndex = -1;
+        lastValidHoverIndex = -1;
+        previousRenderedHoverIndex = -1;
     }
 
     private void CloseMenu(InputAction.CallbackContext context)
@@ -176,7 +179,7 @@ public class RadialMenuController : MonoBehaviour
             return;
         }
 
-        Debug.Log($"RadialMenuController: Closing Menu... Selected Index: {currentSelectionIndex}");
+        Debug.Log($"RadialMenuController: Closing Menu... Selected Index: {currentHoverIndex}");
         isMenuOpen = false;
         SetChildrenVisibility(false);
         SetCameraInputPause(false);
@@ -184,26 +187,30 @@ public class RadialMenuController : MonoBehaviour
         Cursor.visible = false;
         Time.timeScale = originalTimeScale; // 恢復時間流速
 
-        if (previousSelectionIndex != -1 && previousSelectionIndex < spawnedSlots.Count && spawnedSlots[previousSelectionIndex] != null)
+        Debug.Log($"CloseMenu: Attempting switch using lastValidHoverIndex = {lastValidHoverIndex}");
+
+        // 把當前（或上一幀）放大的縮回去
+        int indexToScaleDown = (currentHoverIndex != -1) ? currentHoverIndex : previousRenderedHoverIndex;
+        if (indexToScaleDown != -1 && indexToScaleDown < spawnedSlots.Count && spawnedSlots[indexToScaleDown] != null)
         {
-            StartCoroutine(ScaleCoroutine(spawnedSlots[previousSelectionIndex].transform, normalScale));
+            StartCoroutine(ScaleCoroutine(spawnedSlots[indexToScaleDown].transform, normalScale));
         }
 
-        Debug.Log($"CloseMenu: Attempting switch. currentSelectionIndex = {currentSelectionIndex}");
-        if (currentSelectionIndex != -1 && currentSelectionIndex < teamManager.team.Length)
+        // 根據鎖定的 Index 執行切換
+        if (lastValidHoverIndex != -1 && lastValidHoverIndex < teamManager.team.Length
+            && teamManager.team[lastValidHoverIndex].character != null)
         {
-            Debug.Log($"CloseMenu: Checking team slot {currentSelectionIndex}. Character is: {(teamManager.team[currentSelectionIndex].character == null ? "NULL" : teamManager.team[currentSelectionIndex].character.name)}");
+            Debug.Log($"CloseMenu: Condition PASSED using lastValidHoverIndex. Calling teamManager.SwitchToCharacterByIndex({lastValidHoverIndex})...");
+            teamManager.SwitchToCharacterByIndex(lastValidHoverIndex);
         }
-        else if (currentSelectionIndex != -1)
+        else
         {
-            Debug.LogWarning($"CloseMenu: currentSelectionIndex {currentSelectionIndex} seems out of bounds for team length {teamManager.team.Length}");
+            Debug.LogWarning($"CloseMenu: No valid character selected (lastValidHoverIndex = {lastValidHoverIndex}). No switch performed.");
         }
 
-        if (currentSelectionIndex != -1 && currentSelectionIndex < teamManager.team.Length
-            && teamManager.team[currentSelectionIndex].character != null)
-        {
-            teamManager.SwitchToCharacterByIndex(currentSelectionIndex);
-        }
+        currentHoverIndex = -1;
+        lastValidHoverIndex = -1;
+        previousRenderedHoverIndex = -1;
 
         ClearSlots();
     }
@@ -219,9 +226,10 @@ public class RadialMenuController : MonoBehaviour
         {
             ClearSlots(); // 確保關閉時清除
                           // 確保重置縮放狀態 (如果動畫被打斷)
-            if (previousSelectionIndex != -1 && previousSelectionIndex < spawnedSlots.Count && spawnedSlots[previousSelectionIndex] != null) { spawnedSlots[previousSelectionIndex].transform.localScale = normalScale; }
-            previousSelectionIndex = -1;
-            currentSelectionIndex = -1;
+            if (previousRenderedHoverIndex != -1 && previousRenderedHoverIndex < spawnedSlots.Count && spawnedSlots[previousRenderedHoverIndex] != null) { spawnedSlots[previousRenderedHoverIndex].transform.localScale = normalScale; }
+            currentHoverIndex = -1;
+            lastValidHoverIndex = -1;
+            previousRenderedHoverIndex = -1;
         }
     }
 
@@ -234,11 +242,13 @@ public class RadialMenuController : MonoBehaviour
         Cursor.visible = false;
         Time.timeScale = originalTimeScale > 0 ? originalTimeScale : 1f; // 避免 TimeScale 變 0
 
-        if (previousSelectionIndex != -1 && previousSelectionIndex < spawnedSlots.Count)
+        if (previousRenderedHoverIndex != -1 && previousRenderedHoverIndex < spawnedSlots.Count)
         {
-            // spawnedSlots[previousSelectionIndex].transform.localScale = normalScale; // 直接設定
+            spawnedSlots[previousRenderedHoverIndex].transform.localScale = normalScale; // 直接設定
         }
-        previousSelectionIndex = -1; // 重置
+        currentHoverIndex = -1;
+        lastValidHoverIndex = -1;
+        previousRenderedHoverIndex = -1;
         ClearSlots();
     }
 
@@ -320,65 +330,52 @@ public class RadialMenuController : MonoBehaviour
         Vector2 direction = mousePos - centerPos;
         float deadZoneRadius = radius * 0.2f;
 
-        // [新增 Debug] 顯示原始數據
-        // Debug.Log($"Mouse: {mousePos}, Center: {centerPos}, Dir: {direction}, Mag: {direction.magnitude}");
+        int calculatedIndex = -1; // 預設無效
 
-        if (direction.magnitude < deadZoneRadius)
+        if (direction.magnitude >= deadZoneRadius) // 只有在 Dead Zone 外才計算
         {
-            // 在 Dead Zone 內，取消選擇
-            currentSelectionIndex = -1;
-            // ... (處理縮放) ... // <-- 把縮回上一個選項的邏輯放在這裡
-            if (previousSelectionIndex != -1 && previousSelectionIndex < spawnedSlots.Count && spawnedSlots[previousSelectionIndex] != null)
+            float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
+            if (angle < 0) angle += 360f;
+            int teamSize = teamManager.team.Length;
+            if (teamSize > 0)
             {
-                StartCoroutine(ScaleCoroutine(spawnedSlots[previousSelectionIndex].transform, normalScale));
-                previousSelectionIndex = -1; // 重置 previous
+                float angleStep = 360f / teamSize;
+                float uiAngle = (450f - angle) % 360f;
+                float adjustedUiAngle = (uiAngle + angleStep / 2f) % 360f;
+                calculatedIndex = Mathf.FloorToInt(adjustedUiAngle / angleStep);
             }
-            return;
         }
 
-        float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
-        if (angle < 0) angle += 360f; // 轉換到 0~360
+        // --- [修改] 更新 Hover 狀態 ---
+        previousRenderedHoverIndex = currentHoverIndex; // 記住上一幀是誰被放大
 
-        // --- 步驟 4: [修改] 計算 Index ---
-        int teamSize = teamManager.team.Length;
-        if (teamSize == 0) return; // 防止除以零
-        float angleStep = 360f / teamSize;
-
-        // [修改] 角度校正：把 atan2 的角度 (0 度在右) 轉換成 UI 的角度 (0 度在上)
-        // atan2 的 90 度是 UI 的 0 度
-        // atan2 的 0 度是 UI 的 90 度
-        // atan2 的 270 度是 UI 的 180 度
-        // atan2 的 180 度是 UI 的 270 度
-        // 公式： uiAngle = (450 - atan2Angle) % 360
-        float uiAngle = (450f - angle) % 360f;
-
-        // [修改] 根據 UI 角度計算索引 (0 在上方，順時針)
-        // 偏移半個角度，讓分割線落在選項之間
-        float adjustedUiAngle = (uiAngle + angleStep / 2f) % 360f; // <-- 用校正後的 uiAngle
-        int calculatedIndex = Mathf.FloorToInt(adjustedUiAngle / angleStep); // <-- 這就是我們的 uiIndex
-
-        // [新增 Debug]
-        // Debug.Log($"Atan2 Angle: {angle:F1}, UI Angle: {uiAngle:F1}, Adjusted UI Angle: {adjustedUiAngle:F1}, Calculated Index: {calculatedIndex}");
-
-
-        // --- 步驟 5: 更新選擇和縮放 ---
-        previousSelectionIndex = currentSelectionIndex; // 記住舊的
-
-        // 使用 calculatedIndex 作為最終索引
-        if (calculatedIndex >= 0 && calculatedIndex < teamSize && teamManager.team[calculatedIndex].character != null)
+        // 檢查 calculatedIndex 是否指向有效隊友
+        if (calculatedIndex >= 0 && calculatedIndex < teamManager.team.Length && teamManager.team[calculatedIndex].character != null)
         {
-            currentSelectionIndex = calculatedIndex; // <--- 直接使用算出來的 index
+            currentHoverIndex = calculatedIndex; // 更新當前指向
+            lastValidHoverIndex = calculatedIndex; // **鎖定**最後一個有效的指向
+            // Debug.Log($"Update: Valid Hover {currentHoverIndex}. Last Valid {lastValidHoverIndex}");
         }
         else
         {
-            currentSelectionIndex = -1;
+            currentHoverIndex = -1; // 指向無效區域
+                                    // **不要**在這裡重置 lastValidHoverIndex
+                                    // Debug.Log($"Update: Invalid Hover. Last Valid remains {lastValidHoverIndex}");
         }
 
-        // --- 縮放邏輯 (保持不變) ---
-        if (currentSelectionIndex != previousSelectionIndex)
+        // --- [修改] 根據 Hover 狀態變化處理縮放 ---
+        if (currentHoverIndex != previousRenderedHoverIndex)
         {
-            if (previousSelectionIndex != -1 && previousSelectionIndex < spawnedSlots.Count && spawnedSlots[previousSelectionIndex] != null) { StartCoroutine(ScaleCoroutine(spawnedSlots[previousSelectionIndex].transform, normalScale)); }
-            if (currentSelectionIndex != -1 && currentSelectionIndex < spawnedSlots.Count && spawnedSlots[currentSelectionIndex] != null) { StartCoroutine(ScaleCoroutine(spawnedSlots[currentSelectionIndex].transform, highlightedScale)); }
+            // 把上一個放大的縮回去
+            if (previousRenderedHoverIndex != -1 && previousRenderedHoverIndex < spawnedSlots.Count && spawnedSlots[previousRenderedHoverIndex] != null)
+            {
+                StartCoroutine(ScaleCoroutine(spawnedSlots[previousRenderedHoverIndex].transform, normalScale));
+            }
+            // 把現在指向的放大
+            if (currentHoverIndex != -1 && currentHoverIndex < spawnedSlots.Count && spawnedSlots[currentHoverIndex] != null)
+            {
+                StartCoroutine(ScaleCoroutine(spawnedSlots[currentHoverIndex].transform, highlightedScale));
+            }
         }
     }
 
