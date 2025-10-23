@@ -428,7 +428,7 @@ MonoBehaviour:
   slotPrefab: {fileID: 4485895296823182877, guid: f875c350465a3f049ae579e35fb61114, type: 3}
   backgroundObject: {fileID: 1595706455}
   slotsContainerObject: {fileID: 774845855}
-  radius: 150
+  radius: 225
   inactiveSlotAlpha: 0.5
   timeScaleWhenOpen: 0.1
   normalScale: {x: 1, y: 1, z: 1}
