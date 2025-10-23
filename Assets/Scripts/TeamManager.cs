@@ -383,6 +383,35 @@ public class TeamManager : MonoBehaviour
         }
     }
 
+    public void SwitchToCharacterByIndex(int index)
+    {
+        // 基本的邊界和有效性檢查
+        if (index < 0 || index >= team.Length || team[index].character == null)
+        {
+            Debug.LogWarning($"SwitchToCharacterByIndex: 無效的索引 {index} 或該位置無角色。");
+            return;
+        }
+
+        if (currentState == GameState.Spectator)
+        {
+            Debug.Log($"Switching from Spectator to index {index} ({team[index].character.name})");
+            EnterPossessingMode(index); // 從觀察者模式進入附身
+        }
+        else if (currentState == GameState.Possessing)
+        {
+            if (index == activeCharacterIndex)
+            {
+                Debug.Log($"SwitchToCharacterByIndex: Index {index} is already active.");
+                return; // 已經是當前角色，不做事
+            }
+            else
+            {
+                Debug.Log($"Switching from index {activeCharacterIndex} to {index} ({team[index].character.name})");
+                SwitchToCharacter(index); // 附身模式下切換角色
+            }
+        }
+    }
+
     // --- SetUnitControl ---
     private void SetUnitControl(TeamUnit unit, bool isActive, bool forceDisable = false)
     {
