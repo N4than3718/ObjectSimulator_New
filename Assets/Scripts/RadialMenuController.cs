@@ -284,26 +284,37 @@ public class RadialMenuController : MonoBehaviour
             float y = radius * Mathf.Sin(angleRad);
             slotGO.GetComponent<RectTransform>().anchoredPosition = new Vector2(x, y);
 
-            // 更新 Slot 內容 (例如圖示、透明度)
             Image slotImage = slotGO.GetComponentInChildren<Image>(); // 假設 Prefab 裡有 Image
             TeamUnit unit = teamManager.team[i];
 
             if (unit.character != null && slotImage != null)
             {
-                // TODO: 根據 unit.character 設置圖示 (需要你有圖示資源)
-                // slotImage.sprite = GetIconForCharacter(unit.character);
-                slotImage.color = Color.white; // 正常顯示
+                // 從 PlayerMovement 讀取指定的圖示
+                if (unit.character.radialMenuIcon != null)
+                {
+                    slotImage.sprite = unit.character.radialMenuIcon; // <--- 設定 Sprite
+                    //slotImage.color = Color.white; // 確保圖示不透明
+                }
+                else
+                {
+                    // 如果忘了指定圖示，給個警告，並顯示預設圖或空白
+                    Debug.LogWarning($"物件 {unit.character.name} 沒有指定 RadialMenuIcon!", unit.character.gameObject);
+                    slotImage.sprite = null; // 或者給一個預設問號圖示 Sprite
+                    var tempColor = Color.gray; // 用灰色表示缺少圖示
+                    tempColor.a = inactiveSlotAlpha;
+                    slotImage.color = tempColor;
+                }
                 slotGO.name = $"Slot_{i}_{unit.character.name}";
             }
-            else if (slotImage != null)
+            else if (slotImage != null) // 空白 Slot
             {
-                // 空白或無效 Slot
-                slotImage.sprite = null; // 清空圖示
+                slotImage.sprite = null;
                 var tempColor = Color.white;
-                tempColor.a = inactiveSlotAlpha; // 設為半透明
+                tempColor.a = inactiveSlotAlpha;
                 slotImage.color = tempColor;
                 slotGO.name = $"Slot_{i}_Empty";
             }
+
             slotGO.transform.localScale = normalScale;
             slotGO.SetActive(true);
         }
