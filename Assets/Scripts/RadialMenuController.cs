@@ -214,19 +214,22 @@ public class RadialMenuController : MonoBehaviour
 
         Debug.Log($"CloseMenu: Attempting switch using lastValidHoverIndex = {lastValidHoverIndex}");
 
-        // 把當前（或上一幀）放大的縮回去
+        // 1. 立刻停止所有正在執行的縮放動畫
+        StopAllCoroutines();
+
+        // 2. 直接把最後高亮的元素（如果有）縮回正常大小
         int indexToScaleDown = (currentHoverIndex != -1) ? currentHoverIndex : previousRenderedHoverIndex;
         if (indexToScaleDown != -1)
         {
+            // 直接設定 Slot 大小
             if (indexToScaleDown < spawnedSlots.Count && spawnedSlots[indexToScaleDown] != null)
             {
-                // SetScale(spawnedSlots[indexToScaleDown].transform, slotNormalScale); // <-- 使用 slotNormalScale
-                StartCoroutine(ScaleCoroutine(spawnedSlots[indexToScaleDown].transform, slotNormalScale));
+                SetScale(spawnedSlots[indexToScaleDown].transform, slotNormalScale); // 使用直接設定
             }
+            // 直接設定 Segment 大小
             if (indexToScaleDown < backgroundSegments.Count && backgroundSegments[indexToScaleDown] != null)
             {
-                // SetScale(backgroundSegments[indexToScaleDown].transform, segmentNormalScale); // <-- 使用 segmentNormalScale
-                StartCoroutine(ScaleCoroutine(backgroundSegments[indexToScaleDown].transform, segmentNormalScale));
+                SetScale(backgroundSegments[indexToScaleDown].transform, segmentNormalScale); // 使用直接設定
             }
         }
 
@@ -287,17 +290,10 @@ public class RadialMenuController : MonoBehaviour
         int indexToScaleDown = (currentHoverIndex != -1) ? currentHoverIndex : previousRenderedHoverIndex;
         if (indexToScaleDown != -1)
         {
-            if (indexToScaleDown < spawnedSlots.Count && spawnedSlots[indexToScaleDown] != null)
-            {
-                // SetScale(spawnedSlots[indexToScaleDown].transform, slotNormalScale); // <-- 使用 slotNormalScale
-                StartCoroutine(ScaleCoroutine(spawnedSlots[indexToScaleDown].transform, slotNormalScale));
-            }
-            if (indexToScaleDown < backgroundSegments.Count && backgroundSegments[indexToScaleDown] != null)
-            {
-                // SetScale(backgroundSegments[indexToScaleDown].transform, segmentNormalScale); // <-- 使用 segmentNormalScale
-                StartCoroutine(ScaleCoroutine(backgroundSegments[indexToScaleDown].transform, segmentNormalScale));
-            }
+            if (indexToScaleDown < spawnedSlots.Count && spawnedSlots[indexToScaleDown] != null) { SetScale(spawnedSlots[indexToScaleDown].transform, slotNormalScale); }
+            if (indexToScaleDown < backgroundSegments.Count && backgroundSegments[indexToScaleDown] != null) { SetScale(backgroundSegments[indexToScaleDown].transform, segmentNormalScale); }
         }
+
         currentHoverIndex = -1;
         lastValidHoverIndex = -1;
         previousRenderedHoverIndex = -1;
