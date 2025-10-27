@@ -431,8 +431,10 @@ MonoBehaviour:
   radius: 225
   inactiveSlotAlpha: 0.5
   timeScaleWhenOpen: 0.1
-  normalScale: {x: 1, y: 1, z: 1}
-  highlightedScale: {x: 1.3, y: 1.3, z: 1.3}
+  slotNormalScale: {x: 1, y: 1, z: 1}
+  slotHighlightedScale: {x: 1.3, y: 1.3, z: 1.3}
+  segmentNormalScale: {x: 0.45, y: 0.45, z: 0.45}
+  segmentHighlightedScale: {x: 0.5, y: 0.5, z: 0.5}
   scaleLerpSpeed: 10
 --- !u!1 &330585543
 GameObject:
