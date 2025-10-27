@@ -27,8 +27,10 @@ public class RadialMenuController : MonoBehaviour
     [SerializeField][Range(0f, 1f)] private float timeScaleWhenOpen = 0.1f;
 
     [Header("選中效果")]
-    [SerializeField] private Vector3 normalScale = Vector3.one;
-    [SerializeField] private Vector3 highlightedScale = new Vector3(1.3f, 1.3f, 1.3f);
+    [SerializeField] private Vector3 slotNormalScale = Vector3.one;       // <-- [修改] 改名，更清晰
+    [SerializeField] private Vector3 slotHighlightedScale = new Vector3(1.3f, 1.3f, 1.3f); // <-- [修改] 改名
+    [SerializeField] private Vector3 segmentNormalScale = Vector3.one;    // <-- [新增] Segment 正常大小
+    [SerializeField] private Vector3 segmentHighlightedScale = new Vector3(1.1f, 1.1f, 1.1f); // <-- [新增] Segment 放大倍率
     [SerializeField] private float scaleLerpSpeed = 10f;
 
     private List<GameObject> spawnedSlots = new List<GameObject>();
@@ -214,9 +216,18 @@ public class RadialMenuController : MonoBehaviour
 
         // 把當前（或上一幀）放大的縮回去
         int indexToScaleDown = (currentHoverIndex != -1) ? currentHoverIndex : previousRenderedHoverIndex;
-        if (indexToScaleDown != -1 && indexToScaleDown < spawnedSlots.Count && spawnedSlots[indexToScaleDown] != null)
+        if (indexToScaleDown != -1)
         {
-            StartCoroutine(ScaleCoroutine(spawnedSlots[indexToScaleDown].transform, normalScale));
+            if (indexToScaleDown < spawnedSlots.Count && spawnedSlots[indexToScaleDown] != null)
+            {
+                // SetScale(spawnedSlots[indexToScaleDown].transform, slotNormalScale); // <-- 使用 slotNormalScale
+                StartCoroutine(ScaleCoroutine(spawnedSlots[indexToScaleDown].transform, slotNormalScale));
+            }
+            if (indexToScaleDown < backgroundSegments.Count && backgroundSegments[indexToScaleDown] != null)
+            {
+                // SetScale(backgroundSegments[indexToScaleDown].transform, segmentNormalScale); // <-- 使用 segmentNormalScale
+                StartCoroutine(ScaleCoroutine(backgroundSegments[indexToScaleDown].transform, segmentNormalScale));
+            }
         }
 
         // 根據鎖定的 Index 執行切換
@@ -257,7 +268,7 @@ public class RadialMenuController : MonoBehaviour
             ClearSlots(); // 確保關閉時清除
 
             // 確保重置縮放狀態 (如果動畫被打斷)
-            if (previousRenderedHoverIndex != -1 && previousRenderedHoverIndex < spawnedSlots.Count && spawnedSlots[previousRenderedHoverIndex] != null) { spawnedSlots[previousRenderedHoverIndex].transform.localScale = normalScale; }
+            if (previousRenderedHoverIndex != -1 && previousRenderedHoverIndex < spawnedSlots.Count && spawnedSlots[previousRenderedHoverIndex] != null) { spawnedSlots[previousRenderedHoverIndex].transform.localScale = slotNormalScale; }
             currentHoverIndex = -1;
             lastValidHoverIndex = -1;
             previousRenderedHoverIndex = -1;
@@ -273,9 +284,19 @@ public class RadialMenuController : MonoBehaviour
         Cursor.visible = false;
         Time.timeScale = originalTimeScale > 0 ? originalTimeScale : 1f; // 避免 TimeScale 變 0
 
-        if (previousRenderedHoverIndex != -1 && previousRenderedHoverIndex < spawnedSlots.Count)
+        int indexToScaleDown = (currentHoverIndex != -1) ? currentHoverIndex : previousRenderedHoverIndex;
+        if (indexToScaleDown != -1)
         {
-            spawnedSlots[previousRenderedHoverIndex].transform.localScale = normalScale; // 直接設定
+            if (indexToScaleDown < spawnedSlots.Count && spawnedSlots[indexToScaleDown] != null)
+            {
+                // SetScale(spawnedSlots[indexToScaleDown].transform, slotNormalScale); // <-- 使用 slotNormalScale
+                StartCoroutine(ScaleCoroutine(spawnedSlots[indexToScaleDown].transform, slotNormalScale));
+            }
+            if (indexToScaleDown < backgroundSegments.Count && backgroundSegments[indexToScaleDown] != null)
+            {
+                // SetScale(backgroundSegments[indexToScaleDown].transform, segmentNormalScale); // <-- 使用 segmentNormalScale
+                StartCoroutine(ScaleCoroutine(backgroundSegments[indexToScaleDown].transform, segmentNormalScale));
+            }
         }
         currentHoverIndex = -1;
         lastValidHoverIndex = -1;
@@ -336,7 +357,7 @@ public class RadialMenuController : MonoBehaviour
                 slotGO.name = $"Slot_{i}_Empty";
             }
 
-            slotGO.transform.localScale = normalScale;
+            slotGO.transform.localScale = slotNormalScale;
             slotGO.SetActive(true);
         }
     }
@@ -362,6 +383,8 @@ public class RadialMenuController : MonoBehaviour
         float deadZoneRadius = radius * 0.2f;
 
         int calculatedIndex = -1; // 預設無效
+
+        int previousRenderedHoverIndexForScale = previousRenderedHoverIndex;
 
         if (direction.magnitude >= deadZoneRadius) // 只有在 Dead Zone 外才計算
         {
@@ -399,12 +422,23 @@ public class RadialMenuController : MonoBehaviour
             // 把上一個放大的縮回去
             if (previousRenderedHoverIndex != -1 && previousRenderedHoverIndex < spawnedSlots.Count && spawnedSlots[previousRenderedHoverIndex] != null)
             {
-                StartCoroutine(ScaleCoroutine(spawnedSlots[previousRenderedHoverIndex].transform, normalScale));
+                StartCoroutine(ScaleCoroutine(spawnedSlots[previousRenderedHoverIndex].transform, slotNormalScale));
             }
+
+            if (previousRenderedHoverIndexForScale < backgroundSegments.Count && backgroundSegments[previousRenderedHoverIndexForScale] != null)
+            {
+                StartCoroutine(ScaleCoroutine(backgroundSegments[previousRenderedHoverIndexForScale].transform, segmentNormalScale)); // 使用相同的 normalScale
+            }
+
             // 把現在指向的放大
             if (currentHoverIndex != -1 && currentHoverIndex < spawnedSlots.Count && spawnedSlots[currentHoverIndex] != null)
             {
-                StartCoroutine(ScaleCoroutine(spawnedSlots[currentHoverIndex].transform, highlightedScale));
+                StartCoroutine(ScaleCoroutine(spawnedSlots[currentHoverIndex].transform, slotHighlightedScale));
+            }
+
+            if (currentHoverIndex < backgroundSegments.Count && backgroundSegments[currentHoverIndex] != null)
+            {
+                StartCoroutine(ScaleCoroutine(backgroundSegments[currentHoverIndex].transform, segmentHighlightedScale)); // 使用相同的 highlightedScale
             }
         }
     }
