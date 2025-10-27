@@ -310,7 +310,7 @@ public class RadialMenuController : MonoBehaviour
             else if (iconImage != null) // ªÅ¥Õ Slot
             {
                 iconImage.sprite = null;
-                var tempColor = Color.white; tempColor.a = inactiveSlotAlpha; iconImage.color = tempColor;
+                iconImage.color = Color.clear;
                 slotGO.name = $"Slot_{i}_Empty";
             }
 
