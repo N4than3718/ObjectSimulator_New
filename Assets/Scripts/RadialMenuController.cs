@@ -165,6 +165,7 @@ public class RadialMenuController : MonoBehaviour
     {
         // [新增] 強力 Debug
         Debug.Log("RadialMenuController: OpenMenu ACTION TRIGGERED!");
+        StopAllCoroutines(); // 清理任何可能殘留的舊動畫
 
         if (teamManager != null && teamManager.CurrentGameState == TeamManager.GameState.Spectator)
         {
