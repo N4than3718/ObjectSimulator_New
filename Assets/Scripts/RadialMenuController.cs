@@ -15,8 +15,11 @@ public class RadialMenuController : MonoBehaviour
     [SerializeField] private GameObject slotPrefab; // 代表一個選項的 UI Prefab
 
     [Header("子物件引用 (代替 MenuRoot)")]
-    [SerializeField] private GameObject backgroundObject; // 拖 Background 物件
     [SerializeField] private GameObject slotsContainerObject;
+
+    [Header("背景區塊 (Segments)")] // <-- [新增]
+    [SerializeField] private GameObject backgroundSegmentsContainer; // <-- [新增] 把 BackgroundSegments 父物件拖到這裡
+    private List<Image> backgroundSegments = new List<Image>();
 
     [Header("輪盤設定")]
     [SerializeField] private float radius = 150f;
@@ -45,6 +48,8 @@ public class RadialMenuController : MonoBehaviour
 
         SubscribeToAction(); // Input System 訂閱
 
+        PopulateBackgroundSegments();
+
         // [修改] 確保 UI 一開始是隱藏的 (透過子物件)
         SetChildrenVisibility(false);
 
@@ -56,7 +61,7 @@ public class RadialMenuController : MonoBehaviour
         originalTimeScale = 1f;
 
         // 驗證引用
-        if (backgroundObject == null || slotsContainerObject == null || slotPrefab == null)
+        if (backgroundSegmentsContainer == null || slotsContainerObject == null || slotPrefab == null)
         {
             Debug.LogError("RadialMenuController: 子物件引用 (Background, SlotsContainer, SlotPrefab) 未在 Inspector 中設定!", this.gameObject);
         }
@@ -89,6 +94,23 @@ public class RadialMenuController : MonoBehaviour
         else
         {
             Debug.LogWarning("RadialMenuController: Already subscribed to input actions.", this.gameObject);
+        }
+    }
+
+    private void PopulateBackgroundSegments()
+    {
+        backgroundSegments.Clear();
+        if (backgroundSegmentsContainer != null)
+        {
+            // 假設 Segment Image 直接掛在 Container 底下
+            backgroundSegmentsContainer.GetComponentsInChildren<Image>(true, backgroundSegments); // true 包含 Inactive
+            Debug.Log($"Found {backgroundSegments.Count} background segment images.");
+            // 你可能需要根據名稱排序，確保索引 0 對應 Segment_0
+            backgroundSegments.Sort((a, b) => a.name.CompareTo(b.name));
+        }
+        else
+        {
+            Debug.LogError("Background Segments Container 未設定!");
         }
     }
 
@@ -225,7 +247,7 @@ public class RadialMenuController : MonoBehaviour
 
     private void SetChildrenVisibility(bool isVisible)
     {
-        if (backgroundObject != null) backgroundObject.SetActive(isVisible);
+        if (backgroundSegmentsContainer != null) backgroundSegmentsContainer.SetActive(isVisible);
         if (slotsContainerObject != null) slotsContainerObject.SetActive(isVisible);
         // if (centerDotObject != null) centerDotObject.SetActive(isVisible);
 
