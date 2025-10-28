@@ -197,7 +197,7 @@ public class PlayerMovement : MonoBehaviour
 
     private void GroundCheck()
     {
-         if (capsuleCollider == null) return;
+        if (capsuleCollider == null) return;
         Vector3 castOriginOffset = capsuleCollider.center;
         float halfExtent; float castRadius = capsuleCollider.radius * groundCheckRadiusModifier;
         switch (capsuleCollider.direction) {
