@@ -196,10 +196,33 @@ public class RadialMenuController : MonoBehaviour
 
     private void CloseMenu(InputAction.CallbackContext context)
     {
-        int indexToSwitchTo = lastValidHoverIndex;
-        // [新增] 強力 Debug
-        Debug.Log("RadialMenuController: CloseMenu ACTION TRIGGERED!");
-        Debug.LogError($"!!!!!!!! CLOSE MENU ENTERED: lastValidHoverIndex was {lastValidHoverIndex}. Snapped value indexToSwitchTo = {indexToSwitchTo} !!!!!!!!", this.gameObject);
+        int finalIndex = -1;
+        Vector2 finalPointerPos = Pointer.current.position.ReadValue();
+        Vector2 centerPosNow = this.GetComponent<RectTransform>().position; // 重新獲取中心點
+        Vector2 finalDirection = finalPointerPos - centerPosNow;
+        float deadZone = radius * 0.2f;
+
+        if (finalDirection.magnitude >= deadZone)
+        {
+            float finalAngle = Mathf.Atan2(finalDirection.y, finalDirection.x) * Mathf.Rad2Deg;
+            if (finalAngle < 0) finalAngle += 360f;
+            int teamSizeNow = teamManager.team.Length; // 重新獲取隊伍大小
+            if (teamSizeNow > 0)
+            {
+                float angleStepNow = 360f / teamSizeNow;
+                float finalUiAngle = (450f - finalAngle) % 360f;
+                float finalAdjustedUiAngle = (finalUiAngle + angleStepNow / 2f) % 360f;
+                finalIndex = Mathf.FloorToInt(finalAdjustedUiAngle / angleStepNow);
+
+                // 最後驗證
+                if (finalIndex < 0 || finalIndex >= teamSizeNow || teamManager.team[finalIndex].character == null)
+                {
+                    finalIndex = -1; // 如果算出來是無效 Slot，還是設為 -1
+                }
+            }
+        }
+        // 把這個即時算出來的值，作為我們的快照
+        int indexToSwitchTo = finalIndex;
 
         if (!isMenuOpen || teamManager == null)
         {
@@ -374,9 +397,9 @@ public class RadialMenuController : MonoBehaviour
         if (!isMenuOpen) return;
 
         // --- 步驟 1-3 不變: 取得 direction, 檢查 dead zone, 計算 atan2 angle ---
-        Vector2 mousePos = Mouse.current.position.ReadValue();
+        Vector2 pointerPos = Pointer.current.position.ReadValue();
         Vector2 centerPos = this.GetComponent<RectTransform>().position;
-        Vector2 direction = mousePos - centerPos;
+        Vector2 direction = pointerPos - centerPos; // <-- [修改]
         float deadZoneRadius = radius * 0.2f;
 
         int calculatedIndex = -1; // 預設無效
