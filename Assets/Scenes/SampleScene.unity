@@ -2725,6 +2725,8 @@ MonoBehaviour:
     isAvailable: 0
   spectatorCameraObject: {fileID: 330585543}
   highlightManager: {fileID: 2135395960}
+  sequentialSwitchSound: {fileID: 8300000, guid: d90b938358ff90543bbb2366b73192a5, type: 3}
+  directSwitchSound: {fileID: 8300000, guid: 1581ff6545c25904893c402805463996, type: 3}
 --- !u!4 &1493841723
 Transform:
   m_ObjectHideFlags: 0
