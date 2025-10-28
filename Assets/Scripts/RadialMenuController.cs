@@ -35,11 +35,15 @@ public class RadialMenuController : MonoBehaviour
 
     private List<GameObject> spawnedSlots = new List<GameObject>();
     private bool isMenuOpen = false;
+    private bool allowHoverDetection = false; // <--- [新增] 控制是否允許 Update 計算 Hover
+    private Coroutine allowHoverCoroutine = null; // <--- [新增] 追蹤延遲 Coroutine
     private int currentHoverIndex = -1;       // <--- [新增] 當前滑鼠指向的 Index (-1 = 無效)
     private int lastValidHoverIndex = -1;     // <--- [新增] 最後一個滑鼠指向過的 *有效* Index
     private int previousRenderedHoverIndex = -1;
     private float originalTimeScale = 1f;
     private bool actionSubscribed = false; // <--- [新增] 追蹤訂閱狀態
+
+    private Dictionary<Transform, Coroutine> runningScaleCoroutines = new Dictionary<Transform, Coroutine>();
 
     // --- Input System Setup ---
     private void Awake()
@@ -163,9 +167,12 @@ public class RadialMenuController : MonoBehaviour
     // --- Menu Logic ---
     private void OpenMenu(InputAction.CallbackContext context)
     {
-        // [新增] 強力 Debug
+        StopAllManagedScaleCoroutines(); // 清理任何可能殘留的舊動畫
         Debug.Log("RadialMenuController: OpenMenu ACTION TRIGGERED!");
-        StopAllCoroutines(); // 清理任何可能殘留的舊動畫
+        currentHoverIndex = -1;
+        lastValidHoverIndex = -1;
+        previousRenderedHoverIndex = -1;
+        allowHoverDetection = false; // <-- [新增] 先禁止偵測
 
         if (teamManager != null && teamManager.CurrentGameState == TeamManager.GameState.Spectator)
         {
@@ -189,9 +196,9 @@ public class RadialMenuController : MonoBehaviour
         Time.timeScale = timeScaleWhenOpen; // 減慢時間
 
         PopulateSlots(); // 根據隊伍動態生成選項
-        currentHoverIndex = -1;
-        lastValidHoverIndex = -1;
-        previousRenderedHoverIndex = -1;
+
+        if (allowHoverCoroutine != null) StopCoroutine(allowHoverCoroutine); // 以防萬一
+        allowHoverCoroutine = StartCoroutine(EnableHoverDetectionAfterDelay(0.1f)); // 例如延遲 0.1 秒
     }
 
     private void CloseMenu(InputAction.CallbackContext context)
@@ -236,10 +243,17 @@ public class RadialMenuController : MonoBehaviour
         Cursor.lockState = CursorLockMode.Locked; // 鎖定滑鼠
         Cursor.visible = false;
 
+        if (allowHoverCoroutine != null)
+        {
+            StopCoroutine(allowHoverCoroutine);
+            allowHoverCoroutine = null;
+        }
+        allowHoverDetection = false; // 重置
+
         Debug.Log($"CloseMenu: Attempting switch using lastValidHoverIndex = {lastValidHoverIndex}");
 
         // 1. 立刻停止所有正在執行的縮放動畫
-        StopAllCoroutines();
+        StopAllManagedScaleCoroutines();
 
         // 2. 直接把最後高亮的元素（如果有）縮回正常大小
         int indexToScaleDown = (currentHoverIndex != -1) ? currentHoverIndex : previousRenderedHoverIndex;
@@ -304,6 +318,14 @@ public class RadialMenuController : MonoBehaviour
 
     private void ForceCloseMenu() // 緊急關閉用 (例如 OnDisable)
     {
+        if (allowHoverCoroutine != null)
+        {
+            StopCoroutine(allowHoverCoroutine);
+            allowHoverCoroutine = null;
+        }
+        allowHoverDetection = false; // 重置
+
+        StopAllManagedScaleCoroutines();
         isMenuOpen = false;
         SetChildrenVisibility(false);
         SetCameraInputPause(false);
@@ -330,6 +352,15 @@ public class RadialMenuController : MonoBehaviour
     {
         ClearSlots();
         if (slotPrefab == null || slotsContainer == null || teamManager == null) return;
+
+        foreach (var segImage in backgroundSegments) // <-- 改用 segImage 變數名
+        {
+            if (segImage != null)
+            {
+                //Debug.Log($"PopulateSlots: Resetting Segment '{segImage.name}' to scale {segmentNormalScale}");
+                SetScale(segImage.transform, segmentNormalScale); // 直接設定
+            }
+        }
 
         int teamSize = teamManager.team.Length; // 用 MaxTeamSize 作為總 Slot 數
         float angleStep = 360f / teamSize;
@@ -377,24 +408,45 @@ public class RadialMenuController : MonoBehaviour
                 slotGO.name = $"Slot_{i}_Empty";
             }
 
-            slotGO.transform.localScale = slotNormalScale;
+            SetScale(slotGO.transform, slotNormalScale);
             slotGO.SetActive(true);
         }
     }
 
     private void ClearSlots()
     {
-        foreach (GameObject slot in spawnedSlots)
+        for (int i = spawnedSlots.Count - 1; i >= 0; i--) // 反向迭代比較安全
         {
-            Destroy(slot);
+            GameObject slotGO = spawnedSlots[i];
+            if (slotGO != null)
+            {
+                Transform slotTransform = slotGO.transform;
+                // 1. 停止 Slot 上的動畫
+                StopManagedScaleCoroutine(slotTransform);
+                // 2. 強制設回 Normal Scale
+                SetScale(slotTransform, slotNormalScale);
+
+                // 3. 停止對應 Segment 上的動畫 (如果存在)
+                if (i >= 0 && i < backgroundSegments.Count && backgroundSegments[i] != null)
+                {
+                    Transform segTransform = backgroundSegments[i].transform;
+                    StopManagedScaleCoroutine(segTransform);
+                    SetScale(segTransform, segmentNormalScale);
+                }
+
+                // 4. 最後才 Destroy
+                // Debug.Log($"Destroying slot {i}");
+                Destroy(slotGO);
+            }
         }
         spawnedSlots.Clear();
+        runningScaleCoroutines.Clear(); // <-- [新增] 確保字典也被清空
     }
 
     // --- Selection Logic (在 Update 中執行) ---
     void Update()
     {
-        if (!isMenuOpen) return;
+        if (!isMenuOpen || !allowHoverDetection) return;
 
         // --- 步驟 1-3 不變: 取得 direction, 檢查 dead zone, 計算 atan2 angle ---
         Vector2 pointerPos = Pointer.current.position.ReadValue();
@@ -436,30 +488,42 @@ public class RadialMenuController : MonoBehaviour
             Debug.Log($"Update: currentHoverIndex set to -1. lastValidHoverIndex remains {lastValidHoverIndex}"); // 檢查 Log
         }
 
-        // --- [修改] 根據 Hover 狀態變化處理縮放 ---
-        if (currentHoverIndex != previousRenderedHoverIndex)
+        if (currentHoverIndex != previousRenderedHoverIndexForScale) // 縮放 Index 改變
         {
-            // 把上一個放大的縮回去
-            if (previousRenderedHoverIndex != -1 && previousRenderedHoverIndex < spawnedSlots.Count && spawnedSlots[previousRenderedHoverIndex] != null)
+            // --- 縮回上一個 ---
+            if (previousRenderedHoverIndexForScale != -1)
             {
-                StartCoroutine(ScaleCoroutine(spawnedSlots[previousRenderedHoverIndex].transform, slotNormalScale));
+                // 縮回 Slot
+                if (previousRenderedHoverIndexForScale < spawnedSlots.Count && spawnedSlots[previousRenderedHoverIndexForScale] != null)
+                {
+                    // [修改] 補上 slotNormalScale
+                    StartManagedScaleCoroutine(spawnedSlots[previousRenderedHoverIndexForScale].transform, slotNormalScale);
+                }
+                // 同步縮回 Segment
+                if (previousRenderedHoverIndexForScale < backgroundSegments.Count && backgroundSegments[previousRenderedHoverIndexForScale] != null)
+                {
+                    // [修改] 補上 segmentNormalScale
+                    StartManagedScaleCoroutine(backgroundSegments[previousRenderedHoverIndexForScale].transform, segmentNormalScale);
+                }
             }
 
-            if (previousRenderedHoverIndexForScale < backgroundSegments.Count && backgroundSegments[previousRenderedHoverIndexForScale] != null)
+            // --- 放大現在的 ---
+            if (currentHoverIndex != -1)
             {
-                StartCoroutine(ScaleCoroutine(backgroundSegments[previousRenderedHoverIndexForScale].transform, segmentNormalScale)); // 使用相同的 normalScale
+                // 放大 Slot
+                if (currentHoverIndex < spawnedSlots.Count && spawnedSlots[currentHoverIndex] != null)
+                {
+                    // [修改] 補上 slotHighlightedScale
+                    StartManagedScaleCoroutine(spawnedSlots[currentHoverIndex].transform, slotHighlightedScale);
+                }
+                // 同步放大 Segment
+                if (currentHoverIndex < backgroundSegments.Count && backgroundSegments[currentHoverIndex] != null)
+                {
+                    // [修改] 補上 segmentHighlightedScale
+                    StartManagedScaleCoroutine(backgroundSegments[currentHoverIndex].transform, segmentHighlightedScale);
+                }
             }
-
-            // 把現在指向的放大
-            if (currentHoverIndex != -1 && currentHoverIndex < spawnedSlots.Count && spawnedSlots[currentHoverIndex] != null)
-            {
-                StartCoroutine(ScaleCoroutine(spawnedSlots[currentHoverIndex].transform, slotHighlightedScale));
-            }
-
-            if (currentHoverIndex < backgroundSegments.Count && backgroundSegments[currentHoverIndex] != null)
-            {
-                StartCoroutine(ScaleCoroutine(backgroundSegments[currentHoverIndex].transform, segmentHighlightedScale)); // 使用相同的 highlightedScale
-            }
+            previousRenderedHoverIndex = currentHoverIndex; // 更新記錄 (用新名比較好)
         }
     }
 
@@ -488,7 +552,80 @@ public class RadialMenuController : MonoBehaviour
             yield return null; // 等待下一幀
         }
         // 確保最終 scale 是精確的
-        if (targetTransform != null) targetTransform.localScale = targetScale;
+        if (targetTransform != null)
+        {
+            targetTransform.localScale = targetScale;
+            runningScaleCoroutines.Remove(targetTransform);
+        }
+    }
+
+    /// <summary>
+    /// 啟動一個新的縮放 Coroutine，並停止該 Transform 上舊的 Coroutine。
+    /// </summary>
+    private void StartManagedScaleCoroutine(Transform targetTransform, Vector3 targetScale)
+    {
+        if (targetTransform == null) return;
+
+        // 停止並移除舊的 Coroutine (如果存在)
+        if (runningScaleCoroutines.TryGetValue(targetTransform, out Coroutine existingCoroutine))
+        {
+            if (existingCoroutine != null) // Coroutine 可能已自然結束但未移除
+            {
+                // Debug.Log($"Stopping existing ScaleCoroutine on {targetTransform.name}");
+                StopCoroutine(existingCoroutine);
+            }
+            runningScaleCoroutines.Remove(targetTransform);
+        }
+
+        // --- [核心修改] 在啟動新動畫 *之前*，強制設定一次 Scale ---
+        // 判斷是要放大還是縮小，設定對應的起始 Scale (避免從中間狀態開始 Lerp)
+        // Vector3 startScale = (targetScale == slotHighlightedScale || targetScale == segmentHighlightedScale)
+        //                    ? (targetTransform.GetComponent<Image>() != null && backgroundSegments.Contains(targetTransform.GetComponent<Image>()) ? segmentNormalScale : slotNormalScale) // If scaling up, start from normal
+        //                    : (targetTransform.GetComponent<Image>() != null && backgroundSegments.Contains(targetTransform.GetComponent<Image>()) ? segmentHighlightedScale : slotHighlightedScale); // If scaling down, start from highlighted? No, Coroutine calculates start scale internally. Let's just set the target directly briefly? Or maybe not needed if Stop works well.
+
+        // 啟動新的 Coroutine 並記錄
+        Coroutine newCoroutine = StartCoroutine(ScaleCoroutine(targetTransform, targetScale));
+        runningScaleCoroutines[targetTransform] = newCoroutine;
+        // Debug.Log($"Started new ScaleCoroutine on {targetTransform.name} targeting {targetScale}");
+    }
+
+    /// <summary>
+    /// 停止指定 Transform 上的縮放 Coroutine。
+    /// </summary>
+    private void StopManagedScaleCoroutine(Transform targetTransform)
+    {
+        if (targetTransform != null && runningScaleCoroutines.TryGetValue(targetTransform, out Coroutine coroutine))
+        {
+            if (coroutine != null)
+            {
+                // Debug.Log($"Manually stopping ScaleCoroutine on {targetTransform.name}");
+                StopCoroutine(coroutine);
+            }
+            runningScaleCoroutines.Remove(targetTransform);
+        }
+    }
+
+    /// <summary>
+    /// 停止所有正在追蹤的縮放 Coroutine。
+    /// </summary>
+    private void StopAllManagedScaleCoroutines()
+    {
+        // Debug.Log($"Stopping all {runningScaleCoroutines.Count} managed ScaleCoroutines...");
+        // 複製一份 Keys 來迭代，因為 StopCoroutine 可能會間接觸發修改 Dictionary
+        List<Transform> keys = new List<Transform>(runningScaleCoroutines.Keys);
+        foreach (var transform in keys)
+        {
+            StopManagedScaleCoroutine(transform);
+        }
+        runningScaleCoroutines.Clear(); // 確保清空
+    }
+
+    private System.Collections.IEnumerator EnableHoverDetectionAfterDelay(float delay)
+    {
+        yield return new WaitForSecondsRealtime(delay); // 使用 Realtime 避免受 TimeScale 影響
+        allowHoverDetection = true;
+        // Debug.Log("Hover detection enabled.");
+        allowHoverCoroutine = null;
     }
 
     private void SetCameraInputPause(bool paused)
