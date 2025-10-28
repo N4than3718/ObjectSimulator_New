@@ -11,9 +11,11 @@ public struct TeamUnit
     public bool isAvailable;
 }
 
+[RequireComponent(typeof(AudioSource))] // <-- [新增] 強制要有 AudioSource
 public class TeamManager : MonoBehaviour
 {
     public enum GameState { Spectator, Possessing }
+    private enum SwitchMethod { Sequential, Direct, Unknown }
 
     [Header("Game State")]
     [SerializeField] private GameState currentState = GameState.Spectator;
@@ -29,6 +31,11 @@ public class TeamManager : MonoBehaviour
 
     [Header("References (Add HighlightManager)")]
     [SerializeField] private HighlightManager highlightManager;
+
+    [Header("音效設定 (SFX)")] // <-- [新增]
+    [SerializeField] private AudioClip sequentialSwitchSound; // <-- [新增] Q/E 音效 (例如 Switch_short)
+    [SerializeField] private AudioClip directSwitchSound;     // <-- [新增] 輪盤/直接選擇音效 (例如 Switch)
+    private AudioSource audioSource;
 
     private int activeCharacterIndex = -1;
     private InputSystem_Actions playerActions;
@@ -74,9 +81,10 @@ public class TeamManager : MonoBehaviour
     {
         playerActions = new InputSystem_Actions();
 
-        // !! [修復] 刪除 `team[i] = null;`。struct 陣列會自動初始化為 "空" (所有欄位為預設值)
+        audioSource = GetComponent<AudioSource>(); // <-- [新增]
+        if (audioSource == null) Debug.LogError("TeamManager 缺少 AudioSource 元件!", this.gameObject); // <-- [新增]
+        else audioSource.playOnAwake = false;
 
-        // ▼▼▼ 自動查找 ▼▼▼
         if (highlightManager == null) highlightManager = FindAnyObjectByType<HighlightManager>();
 
         // !! [修復] 取得 SpectatorController 元件
@@ -183,7 +191,7 @@ public class TeamManager : MonoBehaviour
         for (int i = 0; i < team.Length; i++)
         {
             // !! [修復] 檢查 .character
-            if (team[i].character?.gameObject == characterObject) { EnterPossessingMode(i); return; }
+            if (team[i].character?.gameObject == characterObject) { EnterPossessingMode(i, SwitchMethod.Direct); return; }
         }
         TryAddCharacterToTeam(characterObject, true);
     }
@@ -230,7 +238,7 @@ public class TeamManager : MonoBehaviour
             team[emptySlotIndex] = newUnit;
             Debug.Log($"Added {characterObject.name} to team slot {emptySlotIndex}.");
 
-            if (possessAfterAdding) { EnterPossessingMode(emptySlotIndex); }
+            if (possessAfterAdding) { EnterPossessingMode(emptySlotIndex, SwitchMethod.Direct); }
             else { SetUnitControl(newUnit, false, true); }
 
             if (highlightManager != null) highlightManager.ForceHighlightUpdate();
@@ -318,7 +326,7 @@ public class TeamManager : MonoBehaviour
     }
 
     // --- EnterPossessingMode ---
-    private void EnterPossessingMode(int newIndex)
+    private void EnterPossessingMode(int newIndex, SwitchMethod method = SwitchMethod.Unknown)
     {
         // !! [修復] 檢查 .character
         if (newIndex < 0 || newIndex >= team.Length || team[newIndex].character == null)
@@ -331,7 +339,7 @@ public class TeamManager : MonoBehaviour
         currentState = GameState.Possessing;
         spectatorCameraObject.SetActive(false);
         if (spectatorController != null) spectatorController.enabled = false; // 確保
-        SwitchToCharacter(newIndex);
+        SwitchToCharacter(newIndex, method);
         Debug.Log($"Possessing {team[newIndex].character.name} (Slot {newIndex}).");
     }
 
@@ -344,7 +352,7 @@ public class TeamManager : MonoBehaviour
         while (nextIndex != initialIndex)
         {
             // !! [修復] 檢查 .character
-            if (team[nextIndex].character != null) { SwitchToCharacter(nextIndex); return; }
+            if (team[nextIndex].character != null) { SwitchToCharacter(nextIndex, SwitchMethod.Sequential); ; return; }
             nextIndex = (nextIndex + 1) % team.Length;
         }
     }
@@ -358,13 +366,13 @@ public class TeamManager : MonoBehaviour
         while (prevIndex != initialIndex)
         {
             // !! [修復] 檢查 .character
-            if (team[prevIndex].character != null) { SwitchToCharacter(prevIndex); return; }
+            if (team[prevIndex].character != null) { SwitchToCharacter(prevIndex, SwitchMethod.Sequential); return; }
             prevIndex = (prevIndex - 1 + team.Length) % team.Length;
         }
     }
 
     // --- SwitchToCharacter ---
-    private void SwitchToCharacter(int newIndex)
+    private void SwitchToCharacter(int newIndex, SwitchMethod method = SwitchMethod.Unknown)
     {
         // !! [修復] 檢查 .character
         if (activeCharacterIndex != -1 && activeCharacterIndex < team.Length && team[activeCharacterIndex].character != null)
@@ -373,6 +381,7 @@ public class TeamManager : MonoBehaviour
         }
         activeCharacterIndex = newIndex;
         SetUnitControl(team[activeCharacterIndex], true);
+        PlaySwitchSound(method);
 
         if (highlightManager != null)
         {
@@ -396,7 +405,7 @@ public class TeamManager : MonoBehaviour
         if (currentState == GameState.Spectator)
         {
             Debug.Log($"Switching from Spectator to index {index} ({team[index].character.name})");
-            EnterPossessingMode(index); // 從觀察者模式進入附身
+            EnterPossessingMode(index, SwitchMethod.Direct); // 從觀察者模式進入附身
         }
         else if (currentState == GameState.Possessing)
         {
@@ -408,8 +417,36 @@ public class TeamManager : MonoBehaviour
             else
             {
                 Debug.Log($"Switching from index {activeCharacterIndex} to {index} ({team[index].character.name})");
-                SwitchToCharacter(index); // 附身模式下切換角色
+                SwitchToCharacter(index, SwitchMethod.Direct); // 附身模式下切換角色
             }
+        }
+    }
+
+    private void PlaySwitchSound(SwitchMethod method)
+    {
+        AudioClip clipToPlay = null;
+        switch (method)
+        {
+            case SwitchMethod.Sequential:
+                clipToPlay = sequentialSwitchSound;
+                break;
+            case SwitchMethod.Direct:
+                clipToPlay = directSwitchSound;
+                break;
+            case SwitchMethod.Unknown: // 如果不知道來源，可以播預設或不播
+            default:
+                Debug.LogWarning("PlaySwitchSound called with Unknown method.");
+                // clipToPlay = sequentialSwitchSound; // 或者選一個預設
+                break;
+        }
+
+        if (audioSource != null && clipToPlay != null)
+        {
+            audioSource.PlayOneShot(clipToPlay);
+        }
+        else if (clipToPlay == null)
+        {
+            Debug.LogWarning($"Switch sound not played: Clip for method '{method}' is not assigned.");
         }
     }
 
