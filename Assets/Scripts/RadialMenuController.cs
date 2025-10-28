@@ -197,26 +197,6 @@ public class RadialMenuController : MonoBehaviour
 
         PopulateSlots(); // 根據隊伍動態生成選項
 
-        // 重設 Slots
-        foreach (var slotGO in spawnedSlots)
-        {
-            if (slotGO != null)
-            {
-                // 先停掉可能剛被 PopulateSlots 意外啟動的 Coroutine (雖然不太可能)
-                // StopManagedScaleCoroutine(slotGO.transform); // 或許不需要？
-                SetScale(slotGO.transform, slotNormalScale); // <<<--- 強制設回 Normal
-            }
-        }
-        // 重設 Segments (再次確保)
-        foreach (var segImage in backgroundSegments)
-        {
-            if (segImage != null)
-            {
-                // StopManagedScaleCoroutine(segImage.transform); // 或許不需要？
-                SetScale(segImage.transform, segmentNormalScale); // <<<--- 強制設回 Normal
-            }
-        }
-
         if (allowHoverCoroutine != null) StopCoroutine(allowHoverCoroutine); // 以防萬一
         allowHoverCoroutine = StartCoroutine(EnableHoverDetectionAfterDelay(0.1f)); // 例如延遲 0.1 秒
     }
@@ -258,7 +238,6 @@ public class RadialMenuController : MonoBehaviour
 
         Debug.Log($"RadialMenuController: Closing Menu... Selected Index: {currentHoverIndex}");
         isMenuOpen = false;
-        SetChildrenVisibility(false);
         SetCameraInputPause(false);
         Cursor.lockState = CursorLockMode.Locked; // 鎖定滑鼠
         Cursor.visible = false;
@@ -272,22 +251,22 @@ public class RadialMenuController : MonoBehaviour
 
         Debug.Log($"CloseMenu: Attempting switch using lastValidHoverIndex = {lastValidHoverIndex}");
 
-        // 1. 立刻停止所有正在執行的縮放動畫
+        // 立刻停止所有正在執行的縮放動畫
         StopAllManagedScaleCoroutines();
 
-        // 2. 直接把最後高亮的元素（如果有）縮回正常大小
-        int indexToScaleDown = (currentHoverIndex != -1) ? currentHoverIndex : previousRenderedHoverIndex;
-        if (indexToScaleDown != -1)
+        foreach (var slotGO in spawnedSlots)
         {
-            // 直接設定 Slot 大小
-            if (indexToScaleDown < spawnedSlots.Count && spawnedSlots[indexToScaleDown] != null)
+            if (slotGO != null)
             {
-                SetScale(spawnedSlots[indexToScaleDown].transform, slotNormalScale); // 使用直接設定
+                SetScale(slotGO.transform, slotNormalScale);
             }
-            // 直接設定 Segment 大小
-            if (indexToScaleDown < backgroundSegments.Count && backgroundSegments[indexToScaleDown] != null)
+        }
+
+        foreach (var segImage in backgroundSegments)
+        {
+            if (segImage != null)
             {
-                SetScale(backgroundSegments[indexToScaleDown].transform, segmentNormalScale); // 使用直接設定
+                SetScale(segImage.transform, segmentNormalScale);
             }
         }
 
@@ -315,6 +294,7 @@ public class RadialMenuController : MonoBehaviour
         { // Safety net if original was 0
             Time.timeScale = 1f;
         }
+        SetChildrenVisibility(false);
     }
 
     private void SetChildrenVisibility(bool isVisible)
@@ -327,9 +307,6 @@ public class RadialMenuController : MonoBehaviour
         if (!isVisible)
         {
             ClearSlots(); // 確保關閉時清除
-
-            // 確保重置縮放狀態 (如果動畫被打斷)
-            if (previousRenderedHoverIndex != -1 && previousRenderedHoverIndex < spawnedSlots.Count && spawnedSlots[previousRenderedHoverIndex] != null) { spawnedSlots[previousRenderedHoverIndex].transform.localScale = slotNormalScale; }
             currentHoverIndex = -1;
             lastValidHoverIndex = -1;
             previousRenderedHoverIndex = -1;
