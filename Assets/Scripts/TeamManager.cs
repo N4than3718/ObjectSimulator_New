@@ -249,7 +249,7 @@ public class TeamManager : MonoBehaviour
             team[emptySlotIndex] = newUnit;
             Debug.Log($"Added {characterObject.name} to team slot {emptySlotIndex}.");
 
-            if (possessAfterAdding) { EnterPossessingMode(emptySlotIndex, SwitchMethod.Direct); }
+            if (possessAfterAdding) { EnterPossessingMode(emptySlotIndex, SwitchMethod.Sequential); }
             else { SetUnitControl(newUnit, false, true); }
 
             if (highlightManager != null) highlightManager.ForceHighlightUpdate();
