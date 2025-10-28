@@ -197,6 +197,35 @@ public class RadialMenuController : MonoBehaviour
 
         PopulateSlots(); // 根據隊伍動態生成選項
 
+        int initialHoverIndex = CalculateHoverIndex(Pointer.current.position.ReadValue());
+
+        if (initialHoverIndex != -1)
+        {
+            // 如果初始位置就在某個有效選項上，直接設定它為高亮大小 (無動畫)
+            Debug.Log($"OpenMenu: Initial hover is valid ({initialHoverIndex}). Setting highlighted scale directly.");
+            if (initialHoverIndex < spawnedSlots.Count && spawnedSlots[initialHoverIndex] != null)
+            {
+                SetScale(spawnedSlots[initialHoverIndex].transform, slotHighlightedScale);
+            }
+            if (initialHoverIndex < backgroundSegments.Count && backgroundSegments[initialHoverIndex] != null)
+            {
+                SetScale(backgroundSegments[initialHoverIndex].transform, segmentHighlightedScale);
+            }
+
+            // 設定當前和「上一幀」的索引為同一個值，防止 Update 觸發動畫
+            currentHoverIndex = initialHoverIndex;
+            previousRenderedHoverIndex = initialHoverIndex; // <--- 關鍵！
+            lastValidHoverIndex = initialHoverIndex;      // <--- 也要初始化
+        }
+        else
+        {
+            // 如果初始不在任何有效選項上，確保索引都是 -1 (之前已經重置過，再次確認)
+            Debug.Log("OpenMenu: Initial hover is invalid (-1).");
+            currentHoverIndex = -1;
+            previousRenderedHoverIndex = -1;
+            lastValidHoverIndex = -1;
+        }
+
         if (allowHoverCoroutine != null) StopCoroutine(allowHoverCoroutine); // 以防萬一
         allowHoverCoroutine = StartCoroutine(EnableHoverDetectionAfterDelay(0.1f)); // 例如延遲 0.1 秒
     }
@@ -451,31 +480,18 @@ public class RadialMenuController : MonoBehaviour
         Vector2 direction = pointerPos - centerPos; // <-- [修改]
         float deadZoneRadius = radius * 0.2f;
 
-        int calculatedIndex = -1; // 預設無效
+        int calculatedIndex = CalculateHoverIndex(pointerPos); // 預設無效
 
         int previousRenderedHoverIndexForScale = previousRenderedHoverIndex;
 
-        if (direction.magnitude >= deadZoneRadius) // 只有在 Dead Zone 外才計算
-        {
-            float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
-            if (angle < 0) angle += 360f;
-            int teamSize = teamManager.team.Length;
-            if (teamSize > 0)
-            {
-                float angleStep = 360f / teamSize;
-                float uiAngle = (450f - angle) % 360f;
-                float adjustedUiAngle = (uiAngle + angleStep / 2f) % 360f;
-                calculatedIndex = Mathf.FloorToInt(adjustedUiAngle / angleStep);
-            }
-        }
+        currentHoverIndex = (calculatedIndex != -1) ? calculatedIndex : -1;
 
         // --- [修改] 更新 Hover 狀態 ---
         previousRenderedHoverIndex = currentHoverIndex; // 記住上一幀是誰被放大
 
         // 檢查 calculatedIndex 是否指向有效隊友
-        if (calculatedIndex >= 0 && calculatedIndex < teamManager.team.Length && teamManager.team[calculatedIndex].character != null)
+        if (currentHoverIndex != -1)
         {
-            currentHoverIndex = calculatedIndex; // 更新當前指向
             lastValidHoverIndex = calculatedIndex; // **鎖定**最後一個有效的指向
             // Debug.Log($"Update: Valid Hover {currentHoverIndex}. Last Valid {lastValidHoverIndex}");
         }
@@ -522,6 +538,56 @@ public class RadialMenuController : MonoBehaviour
             }
             previousRenderedHoverIndex = currentHoverIndex; // 更新記錄 (用新名比較好)
         }
+    }
+
+    /// <summary>
+    /// 根據螢幕座標計算滑鼠指向的有效 Radial Menu 索引。
+    /// </summary>
+    /// <param name="pointerPos">滑鼠在螢幕上的位置</param>
+    /// <returns>有效的隊友索引，如果不在有效區域或指向空隊友則返回 -1</returns>
+    private int CalculateHoverIndex(Vector2 pointerPos)
+    {
+        // 檢查 TeamManager 是否存在，避免 NullReferenceException
+        if (teamManager == null || teamManager.team == null) return -1;
+
+        Vector2 centerPos = this.GetComponent<RectTransform>().position;
+        Vector2 direction = pointerPos - centerPos;
+        float deadZoneRadius = radius * 0.2f; // 你設定的中心無效區域半徑
+        int calculatedIndex = -1;             // 預設為無效
+        int teamSize = teamManager.team.Length; // 使用實際隊伍大小
+
+        // 必須在 Dead Zone 之外且隊伍不為空才計算
+        if (direction.magnitude >= deadZoneRadius && teamSize > 0)
+        {
+            // 1. 計算角度 (atan2 返回弧度，轉為角度)
+            float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
+            // 將角度範圍從 (-180, 180] 轉換到 [0, 360)
+            if (angle < 0) angle += 360f;
+
+            // 2. 計算每個選項佔據的角度
+            float angleStep = 360f / teamSize;
+
+            // 3. 調整角度以匹配 UI 佈局 (例如，0 度可能在右側，但 UI 的 0 號元素在頂部)
+            //    (450 - angle) % 360 將 0 度移到頂部，並順時針增加
+            float uiAngle = (450f - angle) % 360f;
+
+            // 4. 為了讓索引切換發生在兩個選項之間，將角度偏移半個 step
+            float adjustedUiAngle = (uiAngle + angleStep / 2f) % 360f;
+
+            // 5. 計算索引
+            calculatedIndex = Mathf.FloorToInt(adjustedUiAngle / angleStep);
+
+            // 6. Clamp 索引以防萬一 (例如，接近 360 度時的浮點誤差)
+            calculatedIndex = Mathf.Clamp(calculatedIndex, 0, teamSize - 1);
+
+            // 7. 最後驗證：檢查索引是否有效且指向實際存在的角色
+            if (calculatedIndex < 0 || calculatedIndex >= teamManager.team.Length || teamManager.team[calculatedIndex].character == null)
+            {
+                calculatedIndex = -1; // 如果指向無效或空 Slot，則視為無效
+            }
+        }
+        // 返回計算出的索引 (-1 表示無效)
+        return calculatedIndex;
     }
 
     private void SetScale(Transform targetTransform, Vector3 targetScale)
