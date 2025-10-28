@@ -1,3 +1,5 @@
+using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -19,6 +21,7 @@ public class TeamManager : MonoBehaviour
 
     [Header("Game State")]
     [SerializeField] private GameState currentState = GameState.Spectator;
+    private bool isTransitioning = false;
 
     [Header("Team Setup")]
     private const int MaxTeamSize = 8;
@@ -37,9 +40,14 @@ public class TeamManager : MonoBehaviour
     [SerializeField] private AudioClip directSwitchSound;     // <-- [新增] 輪盤/直接選擇音效 (例如 Switch)
     private AudioSource audioSource;
 
+    [Header("視覺效果")] // <--- [新增]
+    [SerializeField] private float cameraTransitionDuration = 0.5f; // 切換動畫時間 (秒)
+    [SerializeField] private AnimationCurve transitionCurve = AnimationCurve.EaseInOut(0, 0, 1, 1); // 動畫曲線 (可選)
+
     private int activeCharacterIndex = -1;
     private InputSystem_Actions playerActions;
     public GameState CurrentGameState => currentState;
+    private Camera spectatorCameraComponent; // <--- [新增] 存 Spectator 的 Camera 元件
 
     // --- 公開屬性 ---
     public Transform CurrentCameraTransform
@@ -90,6 +98,8 @@ public class TeamManager : MonoBehaviour
         // !! [修復] 取得 SpectatorController 元件
         if (spectatorCameraObject != null)
         {
+            spectatorCameraComponent = spectatorCameraObject.GetComponent<Camera>(); // [新增]
+            if (spectatorCameraComponent == null) Debug.LogError("SpectatorCameraObject 缺少 Camera 元件!", spectatorCameraObject); // [新增]
             spectatorController = spectatorCameraObject.GetComponent<SpectatorController>();
         }
 
@@ -328,6 +338,7 @@ public class TeamManager : MonoBehaviour
     // --- EnterPossessingMode ---
     private void EnterPossessingMode(int newIndex, SwitchMethod method = SwitchMethod.Unknown)
     {
+        if (isTransitioning) { Debug.LogWarning("Already transitioning, ignoring possess request."); return; } // 防止重入
         // !! [修復] 檢查 .character
         if (newIndex < 0 || newIndex >= team.Length || team[newIndex].character == null)
         {
@@ -336,38 +347,54 @@ public class TeamManager : MonoBehaviour
             return;
         }
 
-        currentState = GameState.Possessing;
-        spectatorCameraObject.SetActive(false);
-        if (spectatorController != null) spectatorController.enabled = false; // 確保
-        SwitchToCharacter(newIndex, method);
+        Transform startTransform = (spectatorCameraObject != null) ? spectatorCameraObject.transform : this.transform; // 起始點是 Spectator
+        Transform endTransform = team[newIndex].characterCamera.transform;
+        if (endTransform == null) { Debug.LogError($"Target character {team[newIndex].character.name} camera transform is null!"); return; }
+
+        StartCoroutine(TransitionCameraCoroutine(startTransform, endTransform, newIndex, SwitchMethod.Sequential));
         Debug.Log($"Possessing {team[newIndex].character.name} (Slot {newIndex}).");
     }
 
     // --- SwitchNextCharacter ---
     private void SwitchNextCharacter()
     {
+        if (isTransitioning) { Debug.LogWarning("Already transitioning, ignoring switch request."); return; } // 防止重入
         if (currentState != GameState.Possessing || team.Length <= 1) return;
         int initialIndex = activeCharacterIndex;
         int nextIndex = (activeCharacterIndex + 1) % team.Length;
         while (nextIndex != initialIndex)
         {
-            // !! [修復] 檢查 .character
-            if (team[nextIndex].character != null) { SwitchToCharacter(nextIndex, SwitchMethod.Sequential); ; return; }
-            nextIndex = (nextIndex + 1) % team.Length;
+            Transform startTransform = null;
+            Transform endTransform = team[nextIndex].characterCamera.transform;
+            startTransform = (activeCharacterIndex >= 0 && team[activeCharacterIndex].characterCamera != null) ? team[activeCharacterIndex].characterCamera.transform : spectatorCameraObject.transform;
+
+            if (activeCharacterIndex >= 0 && activeCharacterIndex < team.Length && team[activeCharacterIndex].character != null)
+            {
+                SetUnitControl(team[activeCharacterIndex], false, true); // 強制禁用
+            }
+            StartCoroutine(TransitionCameraCoroutine(startTransform, endTransform, nextIndex, SwitchMethod.Sequential));
         }
     }
 
     // --- SwitchPreviousCharacter ---
     private void SwitchPreviousCharacter()
     {
+        if (isTransitioning) { Debug.LogWarning("Already transitioning, ignoring switch request."); return; } // 防止重入
         if (currentState != GameState.Possessing || team.Length <= 1) return;
         int initialIndex = activeCharacterIndex;
         int prevIndex = (activeCharacterIndex - 1 + team.Length) % team.Length;
+
         while (prevIndex != initialIndex)
         {
-            // !! [修復] 檢查 .character
-            if (team[prevIndex].character != null) { SwitchToCharacter(prevIndex, SwitchMethod.Sequential); return; }
-            prevIndex = (prevIndex - 1 + team.Length) % team.Length;
+            Transform startTransform = null;
+            Transform endTransform = team[prevIndex].characterCamera.transform;
+            startTransform = (activeCharacterIndex >= 0 && team[activeCharacterIndex].characterCamera != null) ? team[activeCharacterIndex].characterCamera.transform : spectatorCameraObject.transform;
+
+            if (activeCharacterIndex >= 0 && activeCharacterIndex < team.Length && team[activeCharacterIndex].character != null)
+            {
+                SetUnitControl(team[activeCharacterIndex], false, true); // 強制禁用
+            }
+            StartCoroutine(TransitionCameraCoroutine(startTransform, endTransform, prevIndex, SwitchMethod.Sequential));
         }
     }
 
@@ -395,6 +422,7 @@ public class TeamManager : MonoBehaviour
 
     public void SwitchToCharacterByIndex(int index)
     {
+        if (isTransitioning) { Debug.LogWarning("Already transitioning, ignoring switch request."); return; } // 防止重入
         // 基本的邊界和有效性檢查
         if (index < 0 || index >= team.Length || team[index].character == null)
         {
@@ -402,10 +430,12 @@ public class TeamManager : MonoBehaviour
             return;
         }
 
+        Transform startTransform = null;
+        Transform endTransform = team[index].characterCamera.transform;
+
         if (currentState == GameState.Spectator)
         {
-            Debug.Log($"Switching from Spectator to index {index} ({team[index].character.name})");
-            EnterPossessingMode(index, SwitchMethod.Direct); // 從觀察者模式進入附身
+            startTransform = (spectatorCameraObject != null) ? spectatorCameraObject.transform : this.transform;
         }
         else if (currentState == GameState.Possessing)
         {
@@ -414,12 +444,17 @@ public class TeamManager : MonoBehaviour
                 Debug.Log($"SwitchToCharacterByIndex: Index {index} is already active.");
                 return; // 已經是當前角色，不做事
             }
-            else
+
+            startTransform = (activeCharacterIndex >= 0 && team[activeCharacterIndex].characterCamera != null) ? team[activeCharacterIndex].characterCamera.transform : spectatorCameraObject.transform; // 從舊角色攝影機開始
+            if (activeCharacterIndex >= 0 && activeCharacterIndex < team.Length && team[activeCharacterIndex].character != null)
             {
-                Debug.Log($"Switching from index {activeCharacterIndex} to {index} ({team[index].character.name})");
-                SwitchToCharacter(index, SwitchMethod.Direct); // 附身模式下切換角色
+                SetUnitControl(team[activeCharacterIndex], false, true); // 強制禁用
             }
         }
+        else { /* ... Error Log ... */ return; }
+
+        if (startTransform == null || endTransform == null) { Debug.LogError("SwitchToCharacterByIndex: Start or End Transform is null!"); return; }
+        StartCoroutine(TransitionCameraCoroutine(startTransform, endTransform, index, SwitchMethod.Direct));
     }
 
     private void PlaySwitchSound(SwitchMethod method)
@@ -490,6 +525,17 @@ public class TeamManager : MonoBehaviour
         var animator = unit.character.GetComponent<MovementAnimator>();
         if (animator != null) animator.enabled = isActive;
 
+        if (unit.characterCamera != null)
+        {
+            // Coroutine 結束時 isTransitioning 應為 false, isActive 為 true
+            // 禁用舊角色時 isTransitioning 可能為 true, isActive 為 false
+            unit.characterCamera.gameObject.SetActive(isActive); // <-- 控制 Camera GO
+
+            // 啟用 CamControl 腳本 (如果有的話)
+            CamControl camScript = unit.characterCamera.GetComponent<CamControl>();
+            if (camScript != null) camScript.enabled = isActive;
+        }
+
         if (isActive)
         {
             if (unit.characterCamera != null)
@@ -499,6 +545,8 @@ public class TeamManager : MonoBehaviour
                 unit.character.cameraTransform = unit.characterCamera.transform;
                 // !! [重要] 確保 CamControl 跟隨正確的目標
                 unit.characterCamera.FollowTarget = unit.cameraFollowTarget;
+                CamControl camScript = unit.characterCamera.GetComponent<CamControl>();
+                if (camScript != null) camScript.FollowTarget = unit.cameraFollowTarget;
             }
             else
             {
@@ -555,5 +603,85 @@ public class TeamManager : MonoBehaviour
             if (team[i].character?.gameObject == characterObject) { return true; }
         }
         return false;
+    }
+
+    /// <summary>
+    /// 處理攝影機平滑過渡的 Coroutine
+    /// </summary>
+    /// <param name="startTransform">起始位置/旋轉</param>
+    /// <param name="endTransform">目標位置/旋轉</param>
+    /// <param name="targetIndex">動畫結束後要啟用的角色索引</param>
+    private IEnumerator TransitionCameraCoroutine(Transform startTransform, Transform endTransform, int targetIndex, SwitchMethod method = SwitchMethod.Unknown)
+    {
+        isTransitioning = true; // 標記開始轉換
+        Debug.Log($"Starting camera transition to index {targetIndex}...");
+
+        // --- 準備階段 ---
+        // 1. 確保 Spectator 攝影機物件是 Active 的，但控制器是 Inactive 的
+        if (spectatorController != null) spectatorController.enabled = false;
+        if (spectatorCameraObject != null) spectatorCameraObject.SetActive(true);
+        if (spectatorCameraComponent != null) spectatorCameraComponent.enabled = true; // 確保 Camera 元件啟用
+
+        // 2. 確保目標角色的所有東西 (腳本, Camera GO) 都是 Inactive
+        if (targetIndex >= 0 && targetIndex < team.Length && team[targetIndex].character != null)
+        {
+            SetUnitControl(team[targetIndex], false, true); // 強制禁用目標
+        }
+        else { Debug.LogError($"Transition target index {targetIndex} is invalid!"); isTransitioning = false; yield break; }
+
+
+        // 3. 把 Spectator 攝影機立刻"瞬移"到起始位置
+        Transform transitionCamTransform = spectatorCameraObject.transform;
+        transitionCamTransform.position = startTransform.position;
+        transitionCamTransform.rotation = startTransform.rotation;
+
+        // --- 動畫階段 ---
+        float elapsedTime = 0f;
+        PlaySwitchSound(method);
+        while (elapsedTime < cameraTransitionDuration)
+        {
+            // 如果目標物件在動畫中途被摧毀了，終止動畫
+            if (endTransform == null || team[targetIndex].characterCamera == null)
+            {
+                Debug.LogWarning("Camera transition target destroyed mid-animation. Aborting.");
+                // 可能需要決定回到 Spectator 模式或做其他處理
+                EnterSpectatorMode(); // 回到 Spectator 比較安全
+                isTransitioning = false;
+                yield break;
+            }
+
+            elapsedTime += Time.unscaledDeltaTime; // 使用 unscaledDeltaTime 避免受 TimeScale 影響
+            float t = Mathf.Clamp01(elapsedTime / cameraTransitionDuration);
+            float curvedT = transitionCurve.Evaluate(t); // 使用曲線
+
+            transitionCamTransform.position = Vector3.Lerp(startTransform.position, endTransform.position, curvedT);
+            transitionCamTransform.rotation = Quaternion.Slerp(startTransform.rotation, endTransform.rotation, curvedT);
+
+            yield return null; // 等待下一幀
+        }
+
+        // --- 結束階段 ---
+        Debug.Log($"Camera transition to index {targetIndex} finished.");
+        // 1. 精確設定到最終位置/旋轉
+        transitionCamTransform.position = endTransform.position;
+        transitionCamTransform.rotation = endTransform.rotation;
+
+        // 2. 停用 Spectator 攝影機物件
+        if (spectatorCameraObject != null) spectatorCameraObject.SetActive(false);
+        if (spectatorCameraComponent != null) spectatorCameraComponent.enabled = false;
+
+        // 3. 更新狀態 (必須在啟用新角色之前！)
+        currentState = GameState.Possessing;
+        activeCharacterIndex = targetIndex;
+
+        // 4. 啟用目標角色 (SetUnitControl 會啟用 PlayerMovement, CamControl 和 Camera GO)
+        SetUnitControl(team[targetIndex], true);
+
+        // 5. 解除轉換標記
+        isTransitioning = false;
+        Debug.Log($"Now possessing {team[targetIndex].character.name}");
+
+        // 6. (可選) 強制更新高亮？SetUnitControl 裡面應該會做了
+        // if (highlightManager != null) highlightManager.ForceHighlightUpdate();
     }
 }
