@@ -17,7 +17,7 @@ public struct TeamUnit
 public class TeamManager : MonoBehaviour
 {
     public enum GameState { Spectator, Possessing }
-    private enum SwitchMethod { Sequential, Direct, Unknown }
+    public enum SwitchMethod { Sequential, Direct, Unknown }
 
     [Header("Game State")]
     [SerializeField] private GameState currentState = GameState.Spectator;
@@ -41,7 +41,8 @@ public class TeamManager : MonoBehaviour
     private AudioSource audioSource;
 
     [Header("視覺效果")] // <--- [新增]
-    [SerializeField] private float cameraTransitionDuration = 0.5f; // 切換動畫時間 (秒)
+    [SerializeField] private float directTransitionDuration = 0.5f;   // <-- [改名/新增] 輪盤/直接選擇的動畫時間
+    [SerializeField] private float sequentialTransitionDuration = 0.2f;
     [SerializeField] private AnimationCurve transitionCurve = AnimationCurve.EaseInOut(0, 0, 1, 1); // 動畫曲線 (可選)
 
     private int activeCharacterIndex = -1;
@@ -201,7 +202,7 @@ public class TeamManager : MonoBehaviour
         for (int i = 0; i < team.Length; i++)
         {
             // !! [修復] 檢查 .character
-            if (team[i].character?.gameObject == characterObject) { EnterPossessingMode(i, SwitchMethod.Direct); return; }
+            if (team[i].character?.gameObject == characterObject) { EnterPossessingMode(i, SwitchMethod.Sequential); return; }
         }
         TryAddCharacterToTeam(characterObject, true);
     }
@@ -336,7 +337,7 @@ public class TeamManager : MonoBehaviour
     }
 
     // --- EnterPossessingMode ---
-    private void EnterPossessingMode(int newIndex, SwitchMethod method = SwitchMethod.Unknown)
+    private void EnterPossessingMode(int newIndex, SwitchMethod method = SwitchMethod.Sequential)
     {
         if (isTransitioning) { Debug.LogWarning("Already transitioning, ignoring possess request."); return; } // 防止重入
         // !! [修復] 檢查 .character
@@ -346,17 +347,11 @@ public class TeamManager : MonoBehaviour
             EnterSpectatorMode();
             return;
         }
-
-        Transform startTransform = (spectatorCameraObject != null) ? spectatorCameraObject.transform : this.transform; // 起始點是 Spectator
-        Transform endTransform = team[newIndex].characterCamera.transform;
-        if (endTransform == null) { Debug.LogError($"Target character {team[newIndex].character.name} camera transform is null!"); return; }
-
-        StartCoroutine(TransitionCameraCoroutine(startTransform, endTransform, newIndex, SwitchMethod.Sequential));
-        Debug.Log($"Possessing {team[newIndex].character.name} (Slot {newIndex}).");
+        SwitchToCharacterByIndex(newIndex, method); // 把 method 傳下去
     }
 
     // --- SwitchNextCharacter ---
-    private void SwitchNextCharacter()
+    private void SwitchNextCharacter(SwitchMethod method = SwitchMethod.Sequential)
     {
         if (isTransitioning) { Debug.LogWarning("Already transitioning, ignoring switch request."); return; } // 防止重入
         if (currentState != GameState.Possessing || team.Length <= 1) return;
@@ -369,14 +364,14 @@ public class TeamManager : MonoBehaviour
             if (team[nextIndex].character != null) // 找到了下一個有效的隊友
             {
                 Debug.Log($"SwitchNextCharacter found target index: {nextIndex}. Calling SwitchToCharacterByIndex...");
-                SwitchToCharacterByIndex(nextIndex); // <--- [核心修改] 呼叫統一入口
+                SwitchToCharacterByIndex(nextIndex, method); // <--- [核心修改] 呼叫統一入口
                 return; // 找到就結束
             }
         }
     }
 
     // --- SwitchPreviousCharacter ---
-    private void SwitchPreviousCharacter()
+    private void SwitchPreviousCharacter(SwitchMethod method = SwitchMethod.Sequential)
     {
         if (isTransitioning) { Debug.LogWarning("Already transitioning, ignoring switch request."); return; } // 防止重入
         if (currentState != GameState.Possessing || team.Length <= 1) return;
@@ -389,7 +384,7 @@ public class TeamManager : MonoBehaviour
             if (team[prevIndex].character != null) // 找到了下一個有效的隊友
             {
                 Debug.Log($"SwitchNextCharacter found target index: {prevIndex}. Calling SwitchToCharacterByIndex...");
-                SwitchToCharacterByIndex(prevIndex); // <--- [核心修改] 呼叫統一入口
+                SwitchToCharacterByIndex(prevIndex, method); // <--- [核心修改] 呼叫統一入口
                 return; // 找到就結束
             }
         }
@@ -417,7 +412,7 @@ public class TeamManager : MonoBehaviour
         }
     }
 
-    public void SwitchToCharacterByIndex(int index)
+    public void SwitchToCharacterByIndex(int index, SwitchMethod method = SwitchMethod.Direct)
     {
         if (isTransitioning) { Debug.LogWarning("Already transitioning, ignoring switch request."); return; } // 防止重入
         // 基本的邊界和有效性檢查
@@ -451,7 +446,7 @@ public class TeamManager : MonoBehaviour
         else { /* ... Error Log ... */ return; }
 
         if (startTransform == null || endTransform == null) { Debug.LogError("SwitchToCharacterByIndex: Start or End Transform is null!"); return; }
-        StartCoroutine(TransitionCameraCoroutine(startTransform, endTransform, index, SwitchMethod.Direct));
+        StartCoroutine(TransitionCameraCoroutine(startTransform, endTransform, index, method));
     }
 
     private void PlaySwitchSound(SwitchMethod method)
@@ -613,6 +608,8 @@ public class TeamManager : MonoBehaviour
         isTransitioning = true; // 標記開始轉換
         Debug.Log($"Starting camera transition to index {targetIndex}...");
 
+        float duration = (method == SwitchMethod.Sequential) ? sequentialTransitionDuration : directTransitionDuration;
+
         // --- 準備階段 ---
         // 1. 確保 Spectator 攝影機物件是 Active 的，但控制器是 Inactive 的
         if (spectatorController != null) spectatorController.enabled = false;
@@ -635,7 +632,7 @@ public class TeamManager : MonoBehaviour
         // --- 動畫階段 ---
         float elapsedTime = 0f;
         PlaySwitchSound(method);
-        while (elapsedTime < cameraTransitionDuration)
+        while (elapsedTime < duration)
         {
             // 如果目標物件在動畫中途被摧毀了，終止動畫
             if (endTransform == null || team[targetIndex].characterCamera == null)
@@ -648,7 +645,7 @@ public class TeamManager : MonoBehaviour
             }
 
             elapsedTime += Time.unscaledDeltaTime; // 使用 unscaledDeltaTime 避免受 TimeScale 影響
-            float t = Mathf.Clamp01(elapsedTime / cameraTransitionDuration);
+            float t = Mathf.Clamp01(elapsedTime / duration);
             float curvedT = transitionCurve.Evaluate(t); // 使用曲線
 
             transitionCamTransform.position = Vector3.Lerp(startTransform.position, endTransform.position, curvedT);
