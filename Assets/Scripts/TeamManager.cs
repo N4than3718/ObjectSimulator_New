@@ -360,19 +360,18 @@ public class TeamManager : MonoBehaviour
     {
         if (isTransitioning) { Debug.LogWarning("Already transitioning, ignoring switch request."); return; } // ňゎ
         if (currentState != GameState.Possessing || team.Length <= 1) return;
-        int initialIndex = activeCharacterIndex;
-        int nextIndex = (activeCharacterIndex + 1) % team.Length;
-        while (nextIndex != initialIndex)
-        {
-            Transform startTransform = null;
-            Transform endTransform = team[nextIndex].characterCamera.transform;
-            startTransform = (activeCharacterIndex >= 0 && team[activeCharacterIndex].characterCamera != null) ? team[activeCharacterIndex].characterCamera.transform : spectatorCameraObject.transform;
+        int teamSize = team.Length;
+        int currentValidIndex = activeCharacterIndex;
 
-            if (activeCharacterIndex >= 0 && activeCharacterIndex < team.Length && team[activeCharacterIndex].character != null)
+        for (int i = 1; i < teamSize; i++) // 程琩т teamSize - 1 Ω
+        {
+            int nextIndex = (currentValidIndex + i) % teamSize;
+            if (team[nextIndex].character != null) // тΤ钉ね
             {
-                SetUnitControl(team[activeCharacterIndex], false, true); // 眏窽ノ
+                Debug.Log($"SwitchNextCharacter found target index: {nextIndex}. Calling SwitchToCharacterByIndex...");
+                SwitchToCharacterByIndex(nextIndex); // <--- [みэ] ㊣参
+                return; // т碞挡
             }
-            StartCoroutine(TransitionCameraCoroutine(startTransform, endTransform, nextIndex, SwitchMethod.Sequential));
         }
     }
 
@@ -381,20 +380,18 @@ public class TeamManager : MonoBehaviour
     {
         if (isTransitioning) { Debug.LogWarning("Already transitioning, ignoring switch request."); return; } // ňゎ
         if (currentState != GameState.Possessing || team.Length <= 1) return;
-        int initialIndex = activeCharacterIndex;
-        int prevIndex = (activeCharacterIndex - 1 + team.Length) % team.Length;
+        int teamSize = team.Length;
+        int currentValidIndex = activeCharacterIndex;
 
-        while (prevIndex != initialIndex)
+        for (int i = 1; i < teamSize; i++) // 程琩т teamSize - 1 Ω
         {
-            Transform startTransform = null;
-            Transform endTransform = team[prevIndex].characterCamera.transform;
-            startTransform = (activeCharacterIndex >= 0 && team[activeCharacterIndex].characterCamera != null) ? team[activeCharacterIndex].characterCamera.transform : spectatorCameraObject.transform;
-
-            if (activeCharacterIndex >= 0 && activeCharacterIndex < team.Length && team[activeCharacterIndex].character != null)
+            int prevIndex = (currentValidIndex + i) % teamSize;
+            if (team[prevIndex].character != null) // тΤ钉ね
             {
-                SetUnitControl(team[activeCharacterIndex], false, true); // 眏窽ノ
+                Debug.Log($"SwitchNextCharacter found target index: {prevIndex}. Calling SwitchToCharacterByIndex...");
+                SwitchToCharacterByIndex(prevIndex); // <--- [みэ] ㊣参
+                return; // т碞挡
             }
-            StartCoroutine(TransitionCameraCoroutine(startTransform, endTransform, prevIndex, SwitchMethod.Sequential));
         }
     }
 
