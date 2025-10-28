@@ -197,6 +197,26 @@ public class RadialMenuController : MonoBehaviour
 
         PopulateSlots(); // 根據隊伍動態生成選項
 
+        // 重設 Slots
+        foreach (var slotGO in spawnedSlots)
+        {
+            if (slotGO != null)
+            {
+                // 先停掉可能剛被 PopulateSlots 意外啟動的 Coroutine (雖然不太可能)
+                // StopManagedScaleCoroutine(slotGO.transform); // 或許不需要？
+                SetScale(slotGO.transform, slotNormalScale); // <<<--- 強制設回 Normal
+            }
+        }
+        // 重設 Segments (再次確保)
+        foreach (var segImage in backgroundSegments)
+        {
+            if (segImage != null)
+            {
+                // StopManagedScaleCoroutine(segImage.transform); // 或許不需要？
+                SetScale(segImage.transform, segmentNormalScale); // <<<--- 強制設回 Normal
+            }
+        }
+
         if (allowHoverCoroutine != null) StopCoroutine(allowHoverCoroutine); // 以防萬一
         allowHoverCoroutine = StartCoroutine(EnableHoverDetectionAfterDelay(0.1f)); // 例如延遲 0.1 秒
     }
