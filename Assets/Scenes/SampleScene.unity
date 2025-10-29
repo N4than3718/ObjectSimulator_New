@@ -3782,7 +3782,7 @@ MonoBehaviour:
   jumpSound: {fileID: 8300000, guid: 6c6851817749c6f4389fe031b749df24, type: 3}
   jumpSoundVelocityThreshold: 0.5
   playerSpeed: 5
-  fastSpeed: 10
+  fastSpeed: 11.5
   rotationSpeed: 10
   uncontrolledAngularDrag: 0.05
   jumpHeight: 1.5
