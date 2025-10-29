@@ -209,33 +209,36 @@ public class PlayerMovement : MonoBehaviour
 
         float castRadius = capsuleCollider.radius * groundCheckRadiusModifier;
         float capsuleHeight = capsuleCollider.height;
-        Vector3 capsuleCenter = capsuleCollider.center;
+        Vector3 capsuleCenterLocal = capsuleCollider.center;
 
-        Vector3 castOrigin;
-        float castDistance;
-        Vector3 castDirection = Vector3.down; // 方向通常都是世界座標的下方
+        Vector3 point1, point2;
+        float halfHeight = Mathf.Max(castRadius, capsuleHeight / 2f);
+        float lineSegmentHalfLength = halfHeight - castRadius;
 
-        switch (colliderOrientation) // 使用我們新增的變數
+        switch (colliderOrientation)
         {
             case CapsuleOrientation.XAxis:
-            case CapsuleOrientation.ZAxis:
-                // --- 水平膠囊邏輯 ---
-                // 最簡單的方式：從中心點向下發射，距離為半徑 + leeway
-                castOrigin = transform.TransformPoint(capsuleCenter);
-                castDistance = capsuleCollider.radius + groundCheckLeeway;
-                // (如果需要更精確，可以考慮物體旋轉，但通常這個就夠了)
+                point1 = capsuleCenterLocal + Vector3.left * lineSegmentHalfLength;
+                point2 = capsuleCenterLocal + Vector3.right * lineSegmentHalfLength;
                 break;
-
-            case CapsuleOrientation.YAxis: // 垂直膠囊 (Y 軸)
-            default: // 預設使用 Y 軸邏輯
-                     // --- 垂直膠囊邏輯 (原本的邏輯) ---
-                     // 計算膠囊底部球心的本地 Y 坐標
-                float bottomSphereCenterY = capsuleCenter.y - (capsuleHeight / 2f) + castRadius;
-                Vector3 bottomSphereCenterLocal = new Vector3(capsuleCenter.x, bottomSphereCenterY, capsuleCenter.z);
-                castOrigin = transform.TransformPoint(bottomSphereCenterLocal);
-                castDistance = groundCheckLeeway + 0.05f; // 從底部球心出發，只需要很短的距離
+            case CapsuleOrientation.ZAxis:
+                point1 = capsuleCenterLocal + Vector3.back * lineSegmentHalfLength;
+                point2 = capsuleCenterLocal + Vector3.forward * lineSegmentHalfLength;
+                break;
+            case CapsuleOrientation.YAxis:
+            default:
+                point1 = capsuleCenterLocal + Vector3.down * lineSegmentHalfLength;
+                point2 = capsuleCenterLocal + Vector3.up * lineSegmentHalfLength;
                 break;
         }
+
+        Vector3 point1World = transform.TransformPoint(point1);
+        Vector3 point2World = transform.TransformPoint(point2);
+        Vector3 lowerSphereCenterWorld = (point1World.y < point2World.y) ? point1World : point2World;
+        Vector3 castOrigin = lowerSphereCenterWorld;
+        float castDistance = castRadius + groundCheckLeeway;
+        Vector3 castDirection = Vector3.down;
+
         LayerMask combinedMask = groundLayer | platformLayer;
         bool hitGround = Physics.SphereCast(castOrigin, castRadius, castDirection, out RaycastHit hitInfo, castDistance, combinedMask);
         IsGrounded = hitGround;
@@ -303,27 +306,35 @@ public class PlayerMovement : MonoBehaviour
 
         float castRadius = capsuleCollider.radius * groundCheckRadiusModifier;
         float capsuleHeight = capsuleCollider.height;
-        Vector3 capsuleCenter = capsuleCollider.center;
+        Vector3 capsuleCenterLocal = capsuleCollider.center;
 
-        Vector3 castOrigin;
-        float castDistance;
-        Vector3 castDirection = Vector3.down;
+        Vector3 point1, point2;
+        float halfHeight = Mathf.Max(castRadius, capsuleHeight / 2f);
+        float lineSegmentHalfLength = halfHeight - castRadius;
 
         switch (colliderOrientation)
         {
             case CapsuleOrientation.XAxis:
+                point1 = capsuleCenterLocal + Vector3.left * lineSegmentHalfLength;
+                point2 = capsuleCenterLocal + Vector3.right * lineSegmentHalfLength;
+                break;
             case CapsuleOrientation.ZAxis:
-                castOrigin = transform.TransformPoint(capsuleCenter);
-                castDistance = capsuleCollider.radius + groundCheckLeeway;
+                point1 = capsuleCenterLocal + Vector3.back * lineSegmentHalfLength;
+                point2 = capsuleCenterLocal + Vector3.forward * lineSegmentHalfLength;
                 break;
             case CapsuleOrientation.YAxis:
             default:
-                float bottomSphereCenterY = capsuleCenter.y - (capsuleHeight / 2f) + castRadius;
-                Vector3 bottomSphereCenterLocal = new Vector3(capsuleCenter.x, bottomSphereCenterY, capsuleCenter.z);
-                castOrigin = transform.TransformPoint(bottomSphereCenterLocal);
-                castDistance = groundCheckLeeway + 0.05f;
+                point1 = capsuleCenterLocal + Vector3.down * lineSegmentHalfLength;
+                point2 = capsuleCenterLocal + Vector3.up * lineSegmentHalfLength;
                 break;
         }
+
+        Vector3 point1World = transform.TransformPoint(point1);
+        Vector3 point2World = transform.TransformPoint(point2);
+        Vector3 lowerSphereCenterWorld = (point1World.y < point2World.y) ? point1World : point2World;
+        Vector3 castOrigin = lowerSphereCenterWorld;
+        float castDistance = castRadius + groundCheckLeeway;
+        Vector3 castDirection = Vector3.down;
 
         Gizmos.DrawWireSphere(castOrigin + Vector3.down * castDistance, castRadius);
 
