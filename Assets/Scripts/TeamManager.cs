@@ -325,18 +325,43 @@ public class TeamManager : MonoBehaviour
     // --- EnterSpectatorMode ---
     private void EnterSpectatorMode()
     {
+        if (isTransitioning)
+        {
+            Debug.LogWarning("EnterSpectatorMode called while transitioning! Forcing transition flag to false.");
+            isTransitioning = false; // 強制解除
+        }
+
+        Debug.Log("Entered Spectator Mode...");
         currentState = GameState.Spectator;
+
         // !! [修復] 檢查 .character
         if (activeCharacterIndex >= 0 && activeCharacterIndex < team.Length && team[activeCharacterIndex].character != null)
         {
             Debug.Log($"Disabling character {team[activeCharacterIndex].character.name} before entering Spectator.");
             SetUnitControl(team[activeCharacterIndex], false, true);
         }
+
         activeCharacterIndex = -1;
-        spectatorCameraObject.SetActive(true);
-        if (spectatorController != null) spectatorController.enabled = true; // 確保
+
+        if (spectatorCameraObject != null)
+        {
+            spectatorCameraObject.SetActive(true); // 啟用 GO
+            Debug.Log("Spectator Camera GameObject activated.");
+            if (spectatorController != null)
+            {
+                spectatorController.enabled = true; // 啟用控制器腳本
+                Debug.Log("Spectator Controller script enabled.");
+            }
+            if (spectatorCameraComponent != null)
+            {
+                spectatorCameraComponent.enabled = true; // <-- [新增] 確保 Camera 元件啟用
+                Debug.Log("Spectator Camera component enabled.");
+            }
+            else { Debug.LogError("Spectator Camera Component is NULL!"); }
+        }
+        else { Debug.LogError("Spectator Camera Object is NULL!"); }
+
         if (highlightManager != null) highlightManager.ForceHighlightUpdate();
-        Debug.Log("Entered Spectator Mode.");
     }
 
     // --- EnterPossessingMode ---
