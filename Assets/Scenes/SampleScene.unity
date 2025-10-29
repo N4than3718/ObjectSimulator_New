@@ -655,6 +655,7 @@ MonoBehaviour:
   myCharacterCamera: {fileID: 1402469981}
   myFollowTarget: {fileID: 957414671}
   jumpSound: {fileID: 8300000, guid: 6c6851817749c6f4389fe031b749df24, type: 3}
+  jumpSoundVelocityThreshold: 0.5
   playerSpeed: 5
   fastSpeed: 10
   rotationSpeed: 10
@@ -1887,6 +1888,7 @@ MonoBehaviour:
   myCharacterCamera: {fileID: 1746449004}
   myFollowTarget: {fileID: 643507237}
   jumpSound: {fileID: 8300000, guid: 6c6851817749c6f4389fe031b749df24, type: 3}
+  jumpSoundVelocityThreshold: 0.5
   playerSpeed: 5
   fastSpeed: 10
   rotationSpeed: 10
