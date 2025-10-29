@@ -36,13 +36,20 @@ public class PlayerMovement : MonoBehaviour
     [Header("跳躍與重力")]
     [SerializeField] private float jumpHeight = 1.5f;
     [SerializeField] private float gravityMultiplier = 2.5f;
+
     [Header("地面檢測")]
     [SerializeField] [Range(0.1f, 1f)] private float groundCheckRadiusModifier = 0.9f;
     [SerializeField] private float groundCheckLeeway = 0.1f;
     [SerializeField] private LayerMask groundLayer;
     [SerializeField] private LayerMask platformLayer;
+
+    [Header("碰撞體設定")]
+    [Tooltip("手動指定膠囊碰撞體的朝向，影響地面檢測")]
+    [SerializeField] private CapsuleOrientation colliderOrientation = CapsuleOrientation.YAxis;
+
     [Header("Possessed Mode Interaction & Highlighting")]
     [SerializeField] private float interactionDistance = 10f;
+
     [Header("Dynamic Outline")]
     [SerializeField] private float minOutlineWidth = 0.003f;
     [SerializeField] private float maxOutlineWidth = 0.04f;
@@ -52,6 +59,7 @@ public class PlayerMovement : MonoBehaviour
     private Vector2 moveInput;
     private HighlightableObject currentlyTargetedPlayerObject;
 
+    public enum CapsuleOrientation { YAxis, XAxis, ZAxis }
     public bool IsGrounded { get; private set; }
     public float CurrentHorizontalSpeed { get; private set; }
     private float CurrentSpeed => (playerActions != null && playerActions.Player.Sprint.IsPressed()) ? fastSpeed : playerSpeed;
@@ -198,18 +206,40 @@ public class PlayerMovement : MonoBehaviour
     private void GroundCheck()
     {
         if (capsuleCollider == null) return;
-        Vector3 castOriginOffset = capsuleCollider.center;
-        float halfExtent; float castRadius = capsuleCollider.radius * groundCheckRadiusModifier;
-        switch (capsuleCollider.direction) {
-            case 0: case 2: halfExtent = capsuleCollider.radius; break; // Horizontal
-            case 1: default: halfExtent = capsuleCollider.height / 2f; break; // Vertical
+
+        float castRadius = capsuleCollider.radius * groundCheckRadiusModifier;
+        float capsuleHeight = capsuleCollider.height;
+        Vector3 capsuleCenter = capsuleCollider.center;
+
+        Vector3 castOrigin;
+        float castDistance;
+        Vector3 castDirection = Vector3.down; // 方向通常都是世界座標的下方
+
+        switch (colliderOrientation) // 使用我們新增的變數
+        {
+            case CapsuleOrientation.XAxis:
+            case CapsuleOrientation.ZAxis:
+                // --- 水平膠囊邏輯 ---
+                // 最簡單的方式：從中心點向下發射，距離為半徑 + leeway
+                castOrigin = transform.TransformPoint(capsuleCenter);
+                castDistance = capsuleCollider.radius + groundCheckLeeway;
+                // (如果需要更精確，可以考慮物體旋轉，但通常這個就夠了)
+                break;
+
+            case CapsuleOrientation.YAxis: // 垂直膠囊 (Y 軸)
+            default: // 預設使用 Y 軸邏輯
+                     // --- 垂直膠囊邏輯 (原本的邏輯) ---
+                     // 計算膠囊底部球心的本地 Y 坐標
+                float bottomSphereCenterY = capsuleCenter.y - (capsuleHeight / 2f) + castRadius;
+                Vector3 bottomSphereCenterLocal = new Vector3(capsuleCenter.x, bottomSphereCenterY, capsuleCenter.z);
+                castOrigin = transform.TransformPoint(bottomSphereCenterLocal);
+                castDistance = groundCheckLeeway + 0.05f; // 從底部球心出發，只需要很短的距離
+                break;
         }
-        Vector3 castOrigin = transform.TransformPoint(castOriginOffset);
-        float castDistance = halfExtent - castRadius + groundCheckLeeway;
-        if (castDistance < 0.01f) castDistance = 0.01f;
         LayerMask combinedMask = groundLayer | platformLayer;
         IsGrounded = Physics.SphereCast(castOrigin, castRadius, Vector3.down, out _, castDistance, combinedMask);
     }
+
      private void HandlePossessedHighlight()
     {
         if (cameraTransform == null) return;
@@ -269,15 +299,31 @@ public class PlayerMovement : MonoBehaviour
         if (capsuleCollider == null) capsuleCollider = GetComponent<CapsuleCollider>();
         if (capsuleCollider == null) return;
         Gizmos.color = IsGrounded ? Color.green : Color.red;
-        Vector3 castOriginOffset = capsuleCollider.center;
-        float halfExtent; float castRadius = capsuleCollider.radius * groundCheckRadiusModifier;
-        switch (capsuleCollider.direction) {
-            case 0: case 2: halfExtent = capsuleCollider.radius; break;
-            case 1: default: halfExtent = capsuleCollider.height / 2f; break;
+
+        float castRadius = capsuleCollider.radius * groundCheckRadiusModifier;
+        float capsuleHeight = capsuleCollider.height;
+        Vector3 capsuleCenter = capsuleCollider.center;
+
+        Vector3 castOrigin;
+        float castDistance;
+        Vector3 castDirection = Vector3.down;
+
+        switch (colliderOrientation)
+        {
+            case CapsuleOrientation.XAxis:
+            case CapsuleOrientation.ZAxis:
+                castOrigin = transform.TransformPoint(capsuleCenter);
+                castDistance = capsuleCollider.radius + groundCheckLeeway;
+                break;
+            case CapsuleOrientation.YAxis:
+            default:
+                float bottomSphereCenterY = capsuleCenter.y - (capsuleHeight / 2f) + castRadius;
+                Vector3 bottomSphereCenterLocal = new Vector3(capsuleCenter.x, bottomSphereCenterY, capsuleCenter.z);
+                castOrigin = transform.TransformPoint(bottomSphereCenterLocal);
+                castDistance = groundCheckLeeway + 0.05f;
+                break;
         }
-        Vector3 castOrigin = transform.TransformPoint(castOriginOffset);
-        float castDistance = halfExtent - castRadius + groundCheckLeeway;
-        if (castDistance < 0.01f) castDistance = 0.01f;
+
         Gizmos.DrawWireSphere(castOrigin + Vector3.down * castDistance, castRadius);
 
         if (rb == null) rb = GetComponent<Rigidbody>();
