@@ -281,6 +281,7 @@ public class TeamManager : MonoBehaviour
             // !! [修復] 用 new TeamUnit() 清空 struct
             team[foundIndex] = new TeamUnit();
 
+            Debug.Log($"RemoveCharacter: FoundIndex={foundIndex}, CurrentActiveIndex={activeCharacterIndex}, CurrentState={currentState}");
             if (currentState == GameState.Possessing && activeCharacterIndex == foundIndex)
             {
                 Debug.Log("Caught character was the active one. Attempting to switch...");
@@ -299,10 +300,12 @@ public class TeamManager : MonoBehaviour
         for (int i = 1; i < team.Length; i++)
         {
             int checkIndex = (removedIndex - i + team.Length) % team.Length;
+            Debug.Log($"SwitchToPreviousOrSpectator: Checking index {checkIndex}. Character is {(team[checkIndex].character == null ? "NULL" : team[checkIndex].character.name)}");
             // !! [修復] 檢查 .character
             if (team[checkIndex].character != null)
             {
                 nextAvailableIndex = checkIndex;
+                Debug.Log($"SwitchToPreviousOrSpectator: Found next available character at index {nextAvailableIndex}"); // <-- [新增]
                 break;
             }
         }
@@ -339,6 +342,7 @@ public class TeamManager : MonoBehaviour
     // --- EnterPossessingMode ---
     private void EnterPossessingMode(int newIndex, SwitchMethod method = SwitchMethod.Sequential)
     {
+        Debug.Log($"EnterPossessingMode called for index {newIndex}, method: {method}. isTransitioning={isTransitioning}"); // <-- [新增]
         if (isTransitioning) { Debug.LogWarning("Already transitioning, ignoring possess request."); return; } // 防止重入
         // !! [修復] 檢查 .character
         if (newIndex < 0 || newIndex >= team.Length || team[newIndex].character == null)
@@ -347,6 +351,7 @@ public class TeamManager : MonoBehaviour
             EnterSpectatorMode();
             return;
         }
+        Debug.Log($"EnterPossessingMode: Index valid. Calling SwitchToCharacterByIndex..."); // <-- [新增]
         SwitchToCharacterByIndex(newIndex, method); // 把 method 傳下去
     }
 
