@@ -207,13 +207,13 @@ public class PlayerMovement : MonoBehaviour
     {
         if (capsuleCollider == null) return;
 
-        float castRadius = capsuleCollider.radius * groundCheckRadiusModifier;
+        float checkRadius = capsuleCollider.radius * groundCheckRadiusModifier;
         float capsuleHeight = capsuleCollider.height;
         Vector3 capsuleCenterLocal = capsuleCollider.center;
 
         Vector3 point1, point2;
-        float halfHeight = Mathf.Max(castRadius, capsuleHeight / 2f);
-        float lineSegmentHalfLength = halfHeight - castRadius;
+        float halfHeight = Mathf.Max(capsuleCollider.radius, capsuleHeight / 2f);
+        float lineSegmentHalfLength = halfHeight - capsuleCollider.radius;
 
         switch (colliderOrientation)
         {
@@ -236,15 +236,63 @@ public class PlayerMovement : MonoBehaviour
         Vector3 point2World = transform.TransformPoint(point2);
         Vector3 lowerSphereCenterWorld = (point1World.y < point2World.y) ? point1World : point2World;
         Vector3 castOrigin = lowerSphereCenterWorld;
-        float castDistance = castRadius + groundCheckLeeway;
+        float castDistance = checkRadius + groundCheckLeeway;
         Vector3 castDirection = Vector3.down;
 
         LayerMask combinedMask = groundLayer | platformLayer;
-        bool hitGround = Physics.SphereCast(castOrigin, castRadius, castDirection, out RaycastHit hitInfo, castDistance, combinedMask);
+        bool hitGround = Physics.SphereCast(castOrigin, checkRadius, castDirection, out RaycastHit hitInfo, castDistance, combinedMask);
         IsGrounded = hitGround;
+
+#if UNITY_EDITOR
+        string debugInfo = $"Obj: {gameObject.name}, Orient: {colliderOrientation}, LowSphereW: {lowerSphereCenterWorld:F3}, CastOrigin: {castOrigin:F3}, CheckRadius: {checkRadius:F3}, CastDist: {castDistance:F3}";
+        Color rayColor = IsGrounded ? Color.green : Color.red;
+        Debug.DrawRay(castOrigin, castDirection * (IsGrounded ? hitInfo.distance : castDistance), rayColor, 0.0f, false);
+
+        if (!IsGrounded) // 只在失敗時打印 Log
+        {
+            Debug.LogWarning($"GroundCheck FAILED! {debugInfo}");
+
+            // 1. 檢查 Layer Mask 是否為空
+            if (combinedMask.value == 0)
+            {
+                Debug.LogError(" -> LayerMasks (groundLayer | platformLayer) ARE EMPTY! Assign layers in Inspector.", this);
+            }
+
+            // 2. 進行更長的 Raycast 檢查 (忽略 Layer Mask，看看是否能打到任何東西)
+            float longDist = 5f;
+            if (Physics.Raycast(castOrigin, castDirection, out RaycastHit rayHit, longDist))
+            {
+                Debug.LogWarning($" -> Simple Raycast hit '{rayHit.collider.name}' (Layer: {LayerMask.LayerToName(rayHit.collider.gameObject.layer)}) at dist {rayHit.distance:F3}. Was it the wrong layer?");
+                // 檢查擊中點是否在預期距離內
+                if (rayHit.distance <= castDistance)
+                {
+                    Debug.LogError($" ---> Raycast hit within expected distance but SphereCast missed! Check LayerMasks or Physics Settings (Queries Hit Triggers?). Collider: {rayHit.collider}", rayHit.collider);
+                }
+            }
+            else
+            {
+                Debug.LogWarning($" -> Simple Raycast found NOTHING within {longDist}m downwards.");
+            }
+
+            // 3. 檢查 Physics.queriesHitTriggers
+            bool queriesHitTriggers = Physics.queriesHitTriggers;
+            if (queriesHitTriggers)
+            {
+                // 如果 Ground 是 Trigger Collider，但你不希望檢測到它，需要關閉這個設定
+                // Edit -> Project Settings -> Physics -> Queries Hit Triggers (取消勾選)
+                Debug.LogWarning(" -> Physics.queriesHitTriggers is TRUE. Is your ground collider accidentally set to 'Is Trigger'?");
+            }
+            // 反之，如果 Ground 是 Trigger Collider 而你 *希望* 檢測到它，這個必須是 true
+
+            // 4. [驗證] 再次確認 Collider 參數
+            // Debug.Log($" -> Collider Params: Center={capsuleCollider.center}, Radius={capsuleCollider.radius}, Height={capsuleCollider.height}, Direction={capsuleCollider.direction}");
+            // Debug.Log($" -> PlayerMovement Params: RadiusMod={groundCheckRadiusModifier}, Leeway={groundCheckLeeway}");
+
+        }
+#endif
     }
 
-     private void HandlePossessedHighlight()
+    private void HandlePossessedHighlight()
     {
         if (cameraTransform == null) return;
         Ray ray = new Ray(cameraTransform.position, cameraTransform.forward);
