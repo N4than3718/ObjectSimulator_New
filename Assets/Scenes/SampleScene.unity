@@ -1242,7 +1242,7 @@ MonoBehaviour:
   movementThreshold: 0.1
   patrolSpeed: 8
   chaseSpeed: 15
-  captureDistance: 1.5
+  captureDistance: 2.5
   aiUpdateInterval: 0.2
   currentAlertLevel: 0
 --- !u!114 &593485720
