@@ -207,6 +207,8 @@ public class PlayerMovement : MonoBehaviour
     {
         if (capsuleCollider == null) return;
 
+        Debug.LogError($"Checking {gameObject.name}: Collider Radius={capsuleCollider.radius}, Modifier={groundCheckRadiusModifier}");
+
         float checkRadius = capsuleCollider.radius * groundCheckRadiusModifier;
         float capsuleHeight = capsuleCollider.height;
         Vector3 capsuleCenterLocal = capsuleCollider.center;
@@ -235,8 +237,10 @@ public class PlayerMovement : MonoBehaviour
         Vector3 point1World = transform.TransformPoint(point1);
         Vector3 point2World = transform.TransformPoint(point2);
         Vector3 lowerSphereCenterWorld = (point1World.y < point2World.y) ? point1World : point2World;
-        Vector3 castOrigin = lowerSphereCenterWorld;
-        float castDistance = checkRadius + groundCheckLeeway;
+        Vector3 castOriginBase = lowerSphereCenterWorld;
+        float liftAmount = 0.01f; // 抬高一點點
+        Vector3 castOrigin = castOriginBase + Vector3.up * liftAmount;
+        float castDistance = checkRadius + groundCheckLeeway + liftAmount;
         Vector3 castDirection = Vector3.down;
 
         LayerMask combinedMask = groundLayer | platformLayer;
@@ -352,13 +356,13 @@ public class PlayerMovement : MonoBehaviour
         if (capsuleCollider == null) return;
         Gizmos.color = IsGrounded ? Color.green : Color.red;
 
-        float castRadius = capsuleCollider.radius * groundCheckRadiusModifier;
+        float checkRadius = capsuleCollider.radius * groundCheckRadiusModifier;
         float capsuleHeight = capsuleCollider.height;
         Vector3 capsuleCenterLocal = capsuleCollider.center;
 
         Vector3 point1, point2;
-        float halfHeight = Mathf.Max(castRadius, capsuleHeight / 2f);
-        float lineSegmentHalfLength = halfHeight - castRadius;
+        float halfHeight = Mathf.Max(capsuleCollider.radius, capsuleHeight / 2f);
+        float lineSegmentHalfLength = halfHeight - capsuleCollider.radius;
 
         switch (colliderOrientation)
         {
@@ -380,11 +384,13 @@ public class PlayerMovement : MonoBehaviour
         Vector3 point1World = transform.TransformPoint(point1);
         Vector3 point2World = transform.TransformPoint(point2);
         Vector3 lowerSphereCenterWorld = (point1World.y < point2World.y) ? point1World : point2World;
-        Vector3 castOrigin = lowerSphereCenterWorld;
-        float castDistance = castRadius + groundCheckLeeway;
+        Vector3 castOriginBase = lowerSphereCenterWorld;
+        float liftAmount = 0.01f; // 抬高一點點
+        Vector3 castOrigin = castOriginBase + Vector3.up * liftAmount;
+        float castDistance = checkRadius + groundCheckLeeway + liftAmount;
         Vector3 castDirection = Vector3.down;
 
-        Gizmos.DrawWireSphere(castOrigin + Vector3.down * castDistance, castRadius);
+        Gizmos.DrawWireSphere(castOrigin + Vector3.down * castDistance, checkRadius);
 
         if (rb == null) rb = GetComponent<Rigidbody>();
         if (rb != null)
