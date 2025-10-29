@@ -237,7 +237,8 @@ public class PlayerMovement : MonoBehaviour
                 break;
         }
         LayerMask combinedMask = groundLayer | platformLayer;
-        IsGrounded = Physics.SphereCast(castOrigin, castRadius, Vector3.down, out _, castDistance, combinedMask);
+        bool hitGround = Physics.SphereCast(castOrigin, castRadius, castDirection, out RaycastHit hitInfo, castDistance, combinedMask);
+        IsGrounded = hitGround;
     }
 
      private void HandlePossessedHighlight()
