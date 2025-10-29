@@ -22,6 +22,8 @@ public class PlayerMovement : MonoBehaviour
 
     [Header("音效設定 (SFX)")]
     [SerializeField] private AudioClip jumpSound;
+    [Tooltip("播放跳躍音效前，允許的最大垂直速度")]
+    [SerializeField] private float jumpSoundVelocityThreshold = 0.5f;
 
     [Header("移動設定")]
     [SerializeField] private float playerSpeed = 5.0f;
@@ -58,6 +60,7 @@ public class PlayerMovement : MonoBehaviour
     private InputSystem_Actions playerActions;
     private Vector2 moveInput;
     private HighlightableObject currentlyTargetedPlayerObject;
+    private bool jumpHeld = false;
 
     public enum CapsuleOrientation { YAxis, XAxis, ZAxis }
     public bool IsGrounded { get; private set; }
@@ -97,8 +100,8 @@ public class PlayerMovement : MonoBehaviour
         if (playerActions == null) playerActions = new InputSystem_Actions();
         playerActions.Player.Enable();
         playerActions.Player.AddToTeam.performed += OnAddToTeam;
-        playerActions.Player.Jump.performed += OnJumpPerformed;
-
+        playerActions.Player.Jump.started += OnJumpStarted;
+        playerActions.Player.Jump.canceled += OnJumpCanceled;
         if (rb != null)
         {
             rb.freezeRotation = true;
@@ -112,7 +115,8 @@ public class PlayerMovement : MonoBehaviour
         {
             playerActions.Player.Disable();
             playerActions.Player.AddToTeam.performed -= OnAddToTeam;
-            playerActions.Player.Jump.performed -= OnJumpPerformed;
+            playerActions.Player.Jump.started -= OnJumpStarted;
+            playerActions.Player.Jump.canceled -= OnJumpCanceled;
         }
 
         if (currentlyTargetedPlayerObject != null)
@@ -128,16 +132,14 @@ public class PlayerMovement : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// 當跳躍 Action 被執行 (按下) 時觸發 (由 Input System 呼叫)
-    /// </summary>
-    private void OnJumpPerformed(InputAction.CallbackContext context)
+    private void OnJumpStarted(InputAction.CallbackContext context)
     {
-        // 只有在剛按下的時候，並且我們正好在地上，才播一次音效
-        if (IsGrounded)
-        {
-            PlayJumpSound(); // 我們把音效播放邏輯抽出來
-        }
+        jumpHeld = true;
+    }
+
+    private void OnJumpCanceled(InputAction.CallbackContext context)
+    {
+        jumpHeld = false;
     }
 
     /// <summary>
@@ -336,10 +338,21 @@ public class PlayerMovement : MonoBehaviour
     private void HandleJump()
     {
         if (playerActions == null || rb == null) return;
-        if (playerActions.Player.Jump.IsPressed() && IsGrounded)
+
+        bool jumpInputActive = playerActions.Player.Jump.WasPressedThisFrame() || jumpHeld;
+
+        if (jumpInputActive && IsGrounded)
         {
+            float currentVerticalVelocity = rb.linearVelocity.y;
+            bool canPlaySound = Mathf.Abs(currentVerticalVelocity) < jumpSoundVelocityThreshold;
+
             float jumpForce = Mathf.Sqrt(jumpHeight * -2f * Physics.gravity.y);
             rb.linearVelocity = new Vector3(rb.linearVelocity.x, jumpForce, rb.linearVelocity.z);
+
+            if (canPlaySound)
+            {
+                PlayJumpSound(); // 呼叫獨立的播放方法
+            }
         }
     }
 
