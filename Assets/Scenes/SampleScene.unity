@@ -1615,7 +1615,7 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 64
   colliderOrientation: 0
-  interactionDistance: 10
+  interactionDistance: 15
   minOutlineWidth: 0.003
   maxOutlineWidth: 0.04
   maxDistanceForOutline: 50
