@@ -1604,7 +1604,7 @@ MonoBehaviour:
   fastSpeed: 10
   rotationSpeed: 10
   uncontrolledAngularDrag: 0.05
-  jumpHeight: 1.5
+  jumpHeight: 1
   gravityMultiplier: 2.5
   groundCheckRadiusModifier: 0.9
   groundCheckLeeway: 0.1
