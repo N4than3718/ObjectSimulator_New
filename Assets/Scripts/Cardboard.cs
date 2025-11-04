@@ -4,15 +4,12 @@ using System.Collections.Generic;
 using System.Linq; // 這是 C# 的好東西，用來加總 (Sum)
 using UnityEngine;
 using UnityEngine.InputSystem;
-using static UnityEditor.Progress;
 
-// 確保它跟 PlayerMovement 掛在一起，也必須有一個 Collider
 [RequireComponent(typeof(PlayerMovement), typeof(Collider), typeof(ObjectStats))]
 public class Cardboard : MonoBehaviour
 {
     [Header("元件參考")]
     private PlayerMovement playerMovement;
-    private Collider containerTrigger;
     private InputSystem_Actions playerActions;
     private TeamManager teamManager;
 
@@ -38,11 +35,10 @@ public class Cardboard : MonoBehaviour
     [Header("庫存狀態")]
     [Tooltip("目前裝在裡面的物品清單 (除錯用)")]
     [SerializeField]
-    private List<ObjectStats> itemsInside = new List<ObjectStats>();
+    private Stack<ObjectStats> storedItems = new Stack<ObjectStats>();
 
     private ObjectStats selfObjectStats;
-    private Stack<GameObject> storedObjects = new Stack<GameObject>();
-    private List<Collider> detectedObjectsBuffer = new List<Collider>(10);
+    private Collider[] detectedObjectsBuffer = new Collider[10];
     private float fKeyHoldTimer = 0f;
 
     void Awake()
@@ -123,7 +119,7 @@ public class Cardboard : MonoBehaviour
     {
         Collider target = FindClosestNearbyObject();
 
-        if (target != null && storedObjects.Count < maxStorage)
+        if (target != null && storedItems.Count < maxStorage)
         {
             // 情況 1: 附近有東西，且還有空間 -> 儲存
             StoreObject(target.gameObject);
@@ -148,27 +144,22 @@ public class Cardboard : MonoBehaviour
     /// </summary>
     private void StoreObject(GameObject obj)
     {
-        Debug.Log($"[Cardboard] 儲存: {obj.name}。 目前容量: {storedObjects.Count + 1}/{maxStorage}");
-
-        // 1. 推入堆疊
-        storedObjects.Push(obj);
-
-        // 2. **重要**：通知 TeamManager 該物件已被移除 (這會處理視角切換和停用)
-        // TeamManager 的 RemoveCharacterFromTeam 會自動幫我們 SetActive(false)
-        teamManager.RemoveCharacterFromTeam(obj);
-
         ObjectStats item = obj.GetComponent<ObjectStats>();
 
-        // 確保 1. 它是物品 2. 它還沒在任何容器裡
+        // 確保 1. 它是物品 2. 它還沒在任何容器裡 3. 它不是自己
         if (item != null && item != selfObjectStats && !item.isInsideContainer)
         {
+            Debug.Log($"[Cardboard] 儲存: {obj.name}。 目前容量: {storedItems.Count + 1}/{maxStorage}"); // [修改]
+
+            // 1. 推入堆疊
             item.isInsideContainer = true;
-            itemsInside.Add(item);
+            storedItems.Push(item); // [修改]
 
-            // 重新計算總重量
+            // 2. 通知 TeamManager 移除
+            teamManager.RemoveCharacterFromTeam(obj);
+
+            // 3. 重新計算總重量
             UpdateTotalWeight();
-
-            Debug.Log($"[BoxContainer] {obj.name} (Weight: {item.weight}kg) 進入。");
         }
     }
 
@@ -177,26 +168,22 @@ public class Cardboard : MonoBehaviour
     /// </summary>
     private void SpitOutLastObject()
     {
-        if (storedObjects.Count > 0)
+        if (storedItems.Count > 0) // [修改]
         {
-            GameObject obj = storedObjects.Pop();
-            Debug.Log($"[Cardboard] 吐出: {obj.name}。 剩餘: {storedObjects.Count}");
+            // 1. 彈出堆疊
+            ObjectStats item = storedItems.Pop(); // [修改]
+            GameObject obj = item.gameObject;
+            item.isInsideContainer = false;
 
-            // 在吐出點啟用物件
+            Debug.Log($"[Cardboard] 吐出: {obj.name}。 剩餘: {storedItems.Count}"); // [修改]
+
+            // 2. 在吐出點啟用物件
             obj.transform.position = spitOutPoint.position;
             obj.SetActive(true);
-            // (不需要 TeamManager.Add，讓玩家自己決定是否要再次附身)
 
-            ObjectStats item = obj.GetComponent<ObjectStats>();
-            if (item != null && itemsInside.Contains(item))
-            {
-                item.isInsideContainer = false;
-                itemsInside.Remove(item);
-
-                // 重新計算總重量
-                UpdateTotalWeight();
-                Debug.Log($"[BoxContainer] {obj.name} 離開。");
-            }
+            // 3. 重新計算總重量
+            UpdateTotalWeight();
+            Debug.Log($"[BoxContainer] {obj.name} 離開。");
         }
         else
         {
@@ -209,9 +196,9 @@ public class Cardboard : MonoBehaviour
     /// </summary>
     private void SpitOutAllObjects()
     {
-        if (storedObjects.Count > 0)
+        if (storedItems.Count > 0)
         {
-            Debug.Log($"[Cardboard] 吐出全部 {storedObjects.Count} 個物件...");
+            Debug.Log($"[Cardboard] 吐出全部 {storedItems.Count} 個物件...");
             StartCoroutine(SpitAllCoroutine());
         }
     }
@@ -219,9 +206,11 @@ public class Cardboard : MonoBehaviour
     private IEnumerator SpitAllCoroutine()
     {
         float offsetDistance = 1.0f;
-        while (storedObjects.Count > 0)
+        while (storedItems.Count > 0)
         {
-            GameObject obj = storedObjects.Pop();
+            ObjectStats item = storedItems.Pop(); // [修改]
+            GameObject obj = item.gameObject;
+            item.isInsideContainer = false;
 
             // 計算吐出位置 (在前方散開)
             Vector3 spitPos = spitOutPoint.position + (transform.forward * offsetDistance) + (Random.insideUnitSphere * 0.1f);
@@ -230,20 +219,12 @@ public class Cardboard : MonoBehaviour
             obj.transform.position = spitPos;
             obj.SetActive(true);
 
-            ObjectStats item = obj.GetComponent<ObjectStats>();
-            if (item != null && itemsInside.Contains(item))
-            {
-                item.isInsideContainer = false;
-                itemsInside.Remove(item);
-
-                // 重新計算總重量
-                UpdateTotalWeight();
-                Debug.Log($"[BoxContainer] {obj.name} 離開。");
-            }
+            Debug.Log($"[BoxContainer] {obj.name} 離開。");
 
             offsetDistance += 0.5f; // 下一個吐遠一點
             yield return new WaitForSeconds(0.15f); // 稍微間隔
         }
+        UpdateTotalWeight();
     }
 
     /// <summary>
@@ -251,7 +232,6 @@ public class Cardboard : MonoBehaviour
     /// </summary>
     private Collider FindClosestNearbyObject()
     {
-        detectedObjectsBuffer.Clear();
         int hits = Physics.OverlapSphereNonAlloc(
             transform.position,
             detectionRadius,
@@ -278,6 +258,13 @@ public class Cardboard : MonoBehaviour
             {
                 continue;
             }
+
+            // [新增] 檢查對方是否也是 Cardboard，箱子不能裝箱子
+            if (hit.GetComponent<Cardboard>() != null) { continue; }
+
+            // [新增] 檢查對方是否已在容器中 (雖然 PlayerMovement enabled 應該=false了，但雙重保險)
+            ObjectStats stats = hit.GetComponent<ObjectStats>();
+            if (stats != null && stats.isInsideContainer) { continue; }
 
             // 找到最近的
             float sqrDist = (transform.position - hit.transform.position).sqrMagnitude;
@@ -306,7 +293,7 @@ public class Cardboard : MonoBehaviour
         float totalWeight = selfObjectStats.weight;
 
         // 使用 Linq.Sum() 快速加總
-        totalWeight += itemsInside.Sum(item => item.weight);
+        totalWeight += storedItems.Sum(item => item.weight);
 
         bool isOver = (totalWeight > weightThreshold);
 
