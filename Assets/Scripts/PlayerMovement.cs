@@ -259,44 +259,20 @@ public class PlayerMovement : MonoBehaviour
             return;
         }
 
-        // 1. 取得物件中心點 (世界座標)
+        // 取得碰撞體的世界最低點
         Vector3 objectCenter = coll.bounds.center;
-
-        // 2. 從中心點往世界下方很遠的地方找一個點
         Vector3 pointFarBelow = objectCenter + (Vector3.down * 10f);
-
-        // 3. 找出碰撞體表面 "最接近" 下方那個點的點 = 也就是碰撞體的「世界最低點」
         Vector3 lowestPointOnCollider = coll.ClosestPoint(pointFarBelow);
 
-        // 4. 設定 SphereCast 參數
-        // 我們把起點稍微往上抬一點 (例如半徑的 90%)，確保 SphereCast 不會一開始就穿透
-        float offset = groundCheckRadius * 0.9f;
-        Vector3 castOrigin = lowestPointOnCollider + (Vector3.up * offset);
+        // 設定 CheckSphere 參數
+        float checkRadius = groundCheckRadius; // 使用 Inspector 的半徑
+        float checkDistanceOffset = groundCheckLeeway / 2f; // 把檢測球心設在「最低點」再往下「Leeway」一半的位置
+        Vector3 checkSphereCenter = lowestPointOnCollider + (Vector3.down * checkDistanceOffset);
 
-        // 距離 = 抬升的距離 + leeway
-        float castDistance = offset + groundCheckLeeway;
-
-        float checkRadius = groundCheckRadius;
-        Vector3 castDirection = Vector3.down;
-
+        // 執行 CheckSphere
         LayerMask combinedMask = groundLayer | platformLayer;
-        bool hitGround = Physics.SphereCast(castOrigin, checkRadius, castDirection, out RaycastHit hitInfo, castDistance, combinedMask);
+        bool hitGround = Physics.CheckSphere(checkSphereCenter, checkRadius, combinedMask, QueryTriggerInteraction.Ignore);
         IsGrounded = hitGround;
-
-#if UNITY_EDITOR
-        Color rayColor = IsGrounded ? Color.green : Color.red;
-        // 繪製實際的 Cast 路徑
-        Debug.DrawRay(castOrigin, castDirection * (IsGrounded ? hitInfo.distance : castDistance), rayColor, 0.0f, false);
-        // 繪製最低點
-        // Gizmos.color = Color.magenta; // (Gizmos 只能在 OnDrawGizmos 跑, 這裡先註解)
-        // Gizmos.DrawSphere(lowestPointOnCollider, 0.05f);
-
-        if (!IsGrounded)
-        {
-            Debug.LogWarning($"GroundCheck FAILED! Obj: {gameObject.name}, CastOrigin: {castOrigin:F3}, CheckRadius: {checkRadius:F3}, CastDist: {castDistance:F3}");
-            // ... (你其他的 Debug Log) ...
-        }
-#endif
     }
 
     private void HandlePossessedHighlight()
@@ -376,27 +352,21 @@ public class PlayerMovement : MonoBehaviour
         // --- [修改] 繪製 GroundCheck Gizmos ---
         Gizmos.color = IsGrounded ? Color.green : Color.red;
 
-        // ▼▼▼ [核心修改] 使用與 GroundCheck 完全相同的計算邏輯 ▼▼▼
+        float checkRadius = groundCheckRadius;
+        float checkDistanceOffset = groundCheckLeeway / 2f;
+
+        // 計算 Gizmo 位置 (如果 coll.bounds 還沒準備好，可能會在 (0,0,0))
         Vector3 objectCenter = coll.bounds.center;
+        if (objectCenter == Vector3.zero && transform.position != Vector3.zero)
+        {
+            objectCenter = transform.position; // 備案
+        }
+
         Vector3 pointFarBelow = objectCenter + (Vector3.down * 10f);
         Vector3 lowestPointOnCollider = coll.ClosestPoint(pointFarBelow);
+        Vector3 checkSphereCenter = lowestPointOnCollider + (Vector3.down * checkDistanceOffset);
 
-        float checkRadius = groundCheckRadius;
-        float offset = groundCheckRadius * 0.9f;
-        Vector3 castOrigin = lowestPointOnCollider + (Vector3.up * offset);
-        float castDistance = offset + groundCheckLeeway;
-        Vector3 castDirection = Vector3.down;
-
-        Gizmos.color = Color.yellow;
-        Gizmos.DrawSphere(castOrigin, 0.02f);
-
-        // 繪製最低點 (洋紅色)
-        Gizmos.color = Color.magenta;
-        Gizmos.DrawSphere(lowestPointOnCollider, 0.02f);
-
-        // 繪製最終檢測球體的位置 (綠色/紅色)
-        Gizmos.color = IsGrounded ? Color.green : Color.red;
-        Gizmos.DrawWireSphere(castOrigin + castDirection * castDistance, checkRadius);
+        Gizmos.DrawWireSphere(checkSphereCenter, checkRadius);
 
         if (rb == null) rb = GetComponent<Rigidbody>();
         if (rb != null)
