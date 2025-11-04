@@ -1332,7 +1332,7 @@ Animator:
   m_Controller: {fileID: 9100000, guid: f28ebc5bce6e5a54eb3be357f9b68498, type: 2}
   m_CullingMode: 1
   m_UpdateMode: 0
-  m_ApplyRootMotion: 1
+  m_ApplyRootMotion: 0
   m_LinearVelocityBlending: 0
   m_StabilizeFeet: 0
   m_AnimatePhysics: 0
@@ -4232,6 +4232,7 @@ GameObject:
   - component: {fileID: 2128674179}
   - component: {fileID: 2128674178}
   - component: {fileID: 2128674177}
+  - component: {fileID: 2128674182}
   m_Layer: 6
   m_Name: Trainer
   m_TagString: Player
@@ -4456,6 +4457,28 @@ Rigidbody:
   m_Interpolate: 1
   m_Constraints: 0
   m_CollisionDetection: 0
+--- !u!95 &2128674182
+Animator:
+  serializedVersion: 7
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2128674175}
+  m_Enabled: 1
+  m_Avatar: {fileID: 9000000, guid: d6bbf58973501cc408cb712b5396ae38, type: 3}
+  m_Controller: {fileID: 9100000, guid: a997f2dd0f17afe44881c9af8fdff625, type: 2}
+  m_CullingMode: 1
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_AnimatePhysics: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0
 --- !u!1 &2135395959
 GameObject:
   m_ObjectHideFlags: 0
