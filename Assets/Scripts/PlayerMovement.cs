@@ -8,6 +8,7 @@ public class PlayerMovement : MonoBehaviour
     public Transform cameraTransform;
     private Rigidbody rb;
     private Collider coll;
+    private Collider[] groundCheckColliders = new Collider[5]; // <--- [新增] 緩衝區
     private TeamManager teamManager;
     private AudioSource audioSource;
     private Animator animator;
@@ -43,6 +44,7 @@ public class PlayerMovement : MonoBehaviour
     [Header("跳躍與重力")]
     [SerializeField] private float jumpHeight = 1.5f;
     [SerializeField] private float gravityMultiplier = 2.5f;
+    [SerializeField] private float jumpCooldown = 0.2f; // <--- [新增] 兩次跳躍間的最小間隔
 
     [Header("地面檢測")]
     [SerializeField] private float groundCheckRadius = 0.4f;
@@ -62,7 +64,7 @@ public class PlayerMovement : MonoBehaviour
     private Vector2 moveInput;
     private HighlightableObject currentlyTargetedPlayerObject;
     private bool jumpHeld = false;
-    private bool wasGroundedLastFrame = false;
+    private float lastJumpTime = -Mathf.Infinity;
 
     public enum CapsuleOrientation { YAxis, XAxis, ZAxis }
     public bool IsGrounded { get; private set; }
@@ -177,7 +179,6 @@ public class PlayerMovement : MonoBehaviour
         HandleJump();
         ApplyExtraGravity();
         UpdateAnimationParameters();
-        wasGroundedLastFrame = IsGrounded;
     }
 
     /// <summary>
@@ -268,11 +269,31 @@ public class PlayerMovement : MonoBehaviour
         float checkRadius = groundCheckRadius; // 使用 Inspector 的半徑
         float checkDistanceOffset = groundCheckLeeway / 2f; // 把檢測球心設在「最低點」再往下「Leeway」一半的位置
         Vector3 checkSphereCenter = lowestPointOnCollider + (Vector3.down * checkDistanceOffset);
-
-        // 執行 CheckSphere
         LayerMask combinedMask = groundLayer | platformLayer;
-        bool hitGround = Physics.CheckSphere(checkSphereCenter, checkRadius, combinedMask, QueryTriggerInteraction.Ignore);
-        IsGrounded = hitGround;
+
+        int numCollidersFound = Physics.OverlapSphereNonAlloc(
+         checkSphereCenter,
+         checkRadius,
+         groundCheckColliders, // 存入緩衝區
+         combinedMask,
+         QueryTriggerInteraction.Ignore
+     );
+
+        bool foundGround = false;
+        if (numCollidersFound > 0)
+        {
+            for (int i = 0; i < numCollidersFound; i++)
+            {
+                // 檢查碰到的 Collider 是不是 *不是* 我們自己
+                if (groundCheckColliders[i] != coll)
+                {
+                    foundGround = true; // 只要碰到任何一個 *不是自己* 的東西，就當作在地上
+                    break; // 找到就不用再查了
+                }
+            }
+        }
+
+        IsGrounded = foundGround;
     }
 
     private void HandlePossessedHighlight()
@@ -318,9 +339,11 @@ public class PlayerMovement : MonoBehaviour
 
         bool freshJumpPressed = playerActions.Player.Jump.WasPressedThisFrame();
 
-        bool heldJumpActive = jumpHeld && wasGroundedLastFrame;
+        bool heldJumpActive = jumpHeld;
 
-        if (freshJumpPressed || heldJumpActive && IsGrounded)
+        bool canJump = Time.fixedTime > lastJumpTime + jumpCooldown; // 使用 fixedTime
+
+        if (freshJumpPressed || heldJumpActive && IsGrounded && canJump)
         {
             float currentVerticalVelocity = rb.linearVelocity.y;
             bool canPlaySound = Mathf.Abs(currentVerticalVelocity) < jumpSoundVelocityThreshold;
@@ -336,6 +359,8 @@ public class PlayerMovement : MonoBehaviour
             {
                 PlayJumpSound(); // 呼叫獨立的播放方法
             }
+
+            lastJumpTime = Time.fixedTime;
         }
     }
 
