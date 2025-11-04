@@ -59,6 +59,8 @@ public class NpcAI : MonoBehaviour
     private float timeSinceLastSighting = 0f;
     private Vector3 lastSightingPosition;
     private Transform threatTarget = null;
+    private float currentAlertness = 0;
+    private Vector3 lastHeardNoisePosition;
 
     // IK & Grab 相關
     private Transform ikTargetPoint = null;     // IK 伸手瞄準的目標點 (GrabPoint 或物件 Root)
@@ -101,6 +103,7 @@ public class NpcAI : MonoBehaviour
         }
         else
         {
+            StealthManager.RegisterNpc(this);
             currentState = NpcState.Searching;
             agent.speed = patrolSpeed;
             if (patrolPoints != null && patrolPoints.Count > 0 && patrolPoints[0] != null) // 確保列表和第一個點存在
@@ -512,6 +515,24 @@ public class NpcAI : MonoBehaviour
         }
 
         return detectedMovingTarget;
+    }
+
+    public void HearNoise(float alertnessAmount, Vector3 noiseSource)
+    {
+        // 增加警戒值，並限制在 0-200 之間 [cite: 94]
+        currentAlertness += alertnessAmount;
+        currentAlertness = Mathf.Clamp(currentAlertness, 0, 200);
+
+        // 記錄最後聽到的位置
+        lastHeardNoisePosition = noiseSource;
+
+        // 判斷是否要切換狀態
+        // 根據你的企劃書，警戒值 100-199 會進入巡邏 
+        if (currentAlertness >= 100 && currentState == NpcState.Searching) // (假設你的基礎狀態是 Searching )
+        {
+            // 觸發 AI 狀態機，切換到「前往調查」
+            // (例如：SetDestination(noiseSource); [cite: 93])
+        }
     }
 
     // 巡邏
