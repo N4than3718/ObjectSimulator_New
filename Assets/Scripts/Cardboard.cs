@@ -11,6 +11,14 @@ public class Cardboard : MonoBehaviour
     private PlayerMovement playerMovement;
     private Collider containerTrigger; // 這是專門用來偵測物品的 Trigger
 
+    [Header("Heavy Push Settings")]
+    [Tooltip("超過這個重量，移動方式變為'重推'")]
+    [SerializeField] private float weightThreshold = 50f;
+    [Tooltip("重推的單次爆發力")]
+    [SerializeField] private float heavyPushForce = 50f;
+    [Tooltip("每次重推的間隔/動畫時長 (秒)")]
+    [SerializeField] private float pushInterval = 0.8f;
+
     [Header("庫存狀態")]
     [Tooltip("目前裝在裡面的物品清單 (除錯用)")]
     [SerializeField]
@@ -92,9 +100,11 @@ public class Cardboard : MonoBehaviour
         // 使用 Linq.Sum() 快速加總
         totalWeight += itemsInside.Sum(item => item.weight);
 
+        bool isOver = (totalWeight > weightThreshold);
+
         // **這就是關鍵：**
         // 把計算好的總重，"餵" 給 PlayerMovement 腳本
-        playerMovement.SetCurrentWeight(totalWeight);
+        playerMovement.SetWeightAndPushStats(totalWeight, isOver, heavyPushForce, pushInterval);
 
         //Debug.Log($"[BoxContainer] 總重量更新為: {totalWeight}kg");
     }
