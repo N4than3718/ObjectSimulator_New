@@ -457,6 +457,24 @@ public class PlayerMovement : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// (Public Setter) 允許 BoxContainer 或其他系統更新此物件的當前重量
+    /// </summary>
+    public void SetCurrentWeight(float newWeight)
+    {
+        currentWeight = newWeight;
+        // 你不需要在這裡呼叫 CheckOverEncumbered()，
+        // 因為你的 Update() 每一幀都會自動檢查 `currentWeight > weightThreshold`
+    }
+
+    /// <summary>
+    /// (Public Getter) 允許其他腳本讀取當前的重量 (例如用於 Debug)
+    /// </summary>
+    public float GetCurrentWeight()
+    {
+        return currentWeight;
+    }
+
     private IEnumerator HeavyPushCoroutine(Vector3 pushDirection)
     {
         isPushing = true; // 鎖定

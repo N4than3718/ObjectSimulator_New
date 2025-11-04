@@ -1,5 +1,6 @@
 using UnityEngine;
 
+[RequireComponent(typeof(Collider))]
 public class ObjectStats : MonoBehaviour
 {
     [Header("物件基礎屬性")]
@@ -9,7 +10,6 @@ public class ObjectStats : MonoBehaviour
     [Tooltip("這個物體是否容易發出聲音？(例如金屬 1.5, 布料 0.2)")]
     public float noiseMultiplier = 1.0f;
 
-    // 未來可以繼續擴展，例如：
-    // public bool isFragile; // 是否易碎
-    // public MaterialType materialType; // 材質類型
+    [HideInInspector]
+    public bool isInsideContainer = false;
 }

@@ -639,6 +639,7 @@ GameObject:
   - component: {fileID: 340754704}
   - component: {fileID: 340754703}
   - component: {fileID: 340754707}
+  - component: {fileID: 340754708}
   - component: {fileID: 340754702}
   - component: {fileID: 340754701}
   - component: {fileID: 340754706}
@@ -692,6 +693,10 @@ MonoBehaviour:
   playerSpeed: 5
   fastSpeed: 10
   rotationSpeed: 10
+  currentWeight: 0
+  weightThreshold: 50
+  heavyPushForce: 50
+  pushInterval: 0.8
   animationBaseSpeed: 3
   uncontrolledAngularDrag: 1
   jumpHeight: 1
@@ -889,6 +894,21 @@ AudioSource:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
+--- !u!114 &340754708
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 340754700}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 73c30630d28fa4c49b5d404f5e35a6f2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ObjectStats
+  weight: 1
+  noiseMultiplier: 1
+  isInsideContainer: 0
 --- !u!1001 &353365075
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -1559,6 +1579,8 @@ GameObject:
   - component: {fileID: 869523642}
   - component: {fileID: 869523641}
   - component: {fileID: 869523640}
+  - component: {fileID: 869523644}
+  - component: {fileID: 869523643}
   - component: {fileID: 869523639}
   - component: {fileID: 869523638}
   m_Layer: 6
@@ -1622,6 +1644,10 @@ MonoBehaviour:
   playerSpeed: 5
   fastSpeed: 10
   rotationSpeed: 10
+  currentWeight: 0
+  weightThreshold: 50
+  heavyPushForce: 50
+  pushInterval: 0.8
   animationBaseSpeed: 3
   uncontrolledAngularDrag: 0.05
   jumpHeight: 0.5
@@ -1786,6 +1812,34 @@ Rigidbody:
   m_Interpolate: 1
   m_Constraints: 0
   m_CollisionDetection: 0
+--- !u!114 &869523643
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 869523636}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c1d8ee5e6801a49489be47ec22967e26, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Cardboard
+  itemsInside: []
+--- !u!114 &869523644
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 869523636}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 73c30630d28fa4c49b5d404f5e35a6f2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ObjectStats
+  weight: 1
+  noiseMultiplier: 1
+  isInsideContainer: 0
 --- !u!1 &877677679 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: d6bbf58973501cc408cb712b5396ae38, type: 3}
@@ -2462,6 +2516,7 @@ GameObject:
   - component: {fileID: 1190774501}
   - component: {fileID: 1190774500}
   - component: {fileID: 1190774504}
+  - component: {fileID: 1190774505}
   - component: {fileID: 1190774499}
   - component: {fileID: 1190774498}
   - component: {fileID: 1190774503}
@@ -2515,6 +2570,10 @@ MonoBehaviour:
   playerSpeed: 5
   fastSpeed: 10
   rotationSpeed: 10
+  currentWeight: 0
+  weightThreshold: 50
+  heavyPushForce: 50
+  pushInterval: 0.8
   animationBaseSpeed: 3
   uncontrolledAngularDrag: 1
   jumpHeight: 1
@@ -2712,6 +2771,21 @@ AudioSource:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
+--- !u!114 &1190774505
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1190774497}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 73c30630d28fa4c49b5d404f5e35a6f2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ObjectStats
+  weight: 1
+  noiseMultiplier: 1
+  isInsideContainer: 0
 --- !u!1 &1363107009
 GameObject:
   m_ObjectHideFlags: 0
@@ -4451,6 +4525,7 @@ GameObject:
   - component: {fileID: 2128674181}
   - component: {fileID: 2128674180}
   - component: {fileID: 2128674179}
+  - component: {fileID: 2128674183}
   - component: {fileID: 2128674178}
   - component: {fileID: 2128674177}
   - component: {fileID: 2128674182}
@@ -4515,6 +4590,10 @@ MonoBehaviour:
   playerSpeed: 5
   fastSpeed: 11.5
   rotationSpeed: 10
+  currentWeight: 0
+  weightThreshold: 50
+  heavyPushForce: 50
+  pushInterval: 0.8
   animationBaseSpeed: 5
   uncontrolledAngularDrag: 0.05
   jumpHeight: 1.5
@@ -4701,6 +4780,21 @@ Animator:
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
   m_WriteDefaultValuesOnDisable: 0
+--- !u!114 &2128674183
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2128674175}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 73c30630d28fa4c49b5d404f5e35a6f2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ObjectStats
+  weight: 1
+  noiseMultiplier: 1
+  isInsideContainer: 0
 --- !u!1 &2135395959
 GameObject:
   m_ObjectHideFlags: 0
