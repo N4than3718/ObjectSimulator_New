@@ -10,6 +10,7 @@ public class PlayerMovement : MonoBehaviour
     private CapsuleCollider capsuleCollider;
     private TeamManager teamManager;
     private AudioSource audioSource;
+    private Animator animator;
     [Tooltip("用於指定 Rigidbody 重心的輔助物件 (可選)")]
     [SerializeField] private Transform centerOfMassHelper;
 
@@ -72,6 +73,7 @@ public class PlayerMovement : MonoBehaviour
         rb = GetComponent<Rigidbody>();
         capsuleCollider = GetComponent<CapsuleCollider>();
         audioSource = GetComponent<AudioSource>();
+        animator = GetComponent<Animator>();
 
         playerActions = new InputSystem_Actions();
         teamManager = FindAnyObjectByType<TeamManager>();
@@ -173,6 +175,22 @@ public class PlayerMovement : MonoBehaviour
         HandleMovement();
         HandleJump();
         ApplyExtraGravity();
+        UpdateAnimationParameters();
+    }
+
+    /// <summary>
+    /// 將 PlayerMovement 的狀態傳遞給 Animator
+    /// </summary>
+    private void UpdateAnimationParameters()
+    {
+        if (animator == null) return; // 如果沒掛 Animator 就跳過
+
+        // 1. 取得當前水平速度 (我們不關心 Y 軸)
+        float horizontalSpeed = new Vector3(rb.linearVelocity.x, 0, rb.linearVelocity.z).magnitude;
+
+        // 2. 傳遞參數
+        animator.SetFloat("Speed", horizontalSpeed);
+        animator.SetBool("IsGrounded", IsGrounded);
     }
 
     private void HandleMovement()
@@ -346,6 +364,10 @@ public class PlayerMovement : MonoBehaviour
             float currentVerticalVelocity = rb.linearVelocity.y;
             bool canPlaySound = Mathf.Abs(currentVerticalVelocity) < jumpSoundVelocityThreshold;
 
+            if (animator != null)
+            {
+                animator.SetTrigger("Jump");
+            }
             float jumpForce = Mathf.Sqrt(jumpHeight * -2f * Physics.gravity.y);
             rb.linearVelocity = new Vector3(rb.linearVelocity.x, jumpForce, rb.linearVelocity.z);
 
