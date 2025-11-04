@@ -153,24 +153,6 @@ public class NpcAI : MonoBehaviour
             // 2. 計算位置差並應用
             Vector3 positionDifference = grabSocket.position - _pointToAlignWithSocket.position;
             _heldObjectRef.position += positionDifference;
-
-            // 3. (關鍵) 持續修正 Scale (抵銷 NPC Model 的 Scale 影響)
-            //    在 LateUpdate 裡做可以防止動畫或其他因素意外修改 Scale
-            /*
-            Vector3 parentLossyScale = grabSocket.lossyScale;
-            Vector3 inverseScale = Vector3.one;
-            Debug.Log($"LateUpdate - Checking Socket LossyScale: {grabSocket.lossyScale.ToString("F3")}");
-            if (Mathf.Abs(parentLossyScale.x) > 1e-6f) inverseScale.x = 1.0f / parentLossyScale.x;
-            if (Mathf.Abs(parentLossyScale.y) > 1e-6f) inverseScale.y = 1.0f / parentLossyScale.y;
-            if (Mathf.Abs(parentLossyScale.z) > 1e-6f) inverseScale.z = 1.0f / parentLossyScale.z;
-            Debug.Log($"LateUpdate - Calculated inverseScale: {inverseScale.ToString("F3")}");
-            _heldObjectRef.localScale = inverseScale;
-            Debug.Log($"LateUpdate - AFTER setting localScale: {_heldObjectRef.localScale.ToString("F3")}");
-            Debug.Log($"LateUpdate Final State: Held LocalScale={_heldObjectRef.localScale.ToString("F3")}, Held LossyScale={_heldObjectRef.lossyScale.ToString("F3")}, Socket LossyScale={grabSocket.lossyScale.ToString("F3")}");
-            */
-            // --- 驗證 Log (Debug 時取消註解) ---
-            Debug.Log($"LateUpdate: Socket Pos={grabSocket.position.ToString("F3")}, PointToAlign Pos={_pointToAlignWithSocket.position.ToString("F3")}");
-            Debug.Log($"LateUpdate: Held Scale={_heldObjectRef.localScale.ToString("F3")}, LossyScale={_heldObjectRef.lossyScale.ToString("F3")}");
         }
     }
 
@@ -312,27 +294,16 @@ public class NpcAI : MonoBehaviour
             _pointToAlignWithSocket = (potentialGrabPoint != null) ? potentialGrabPoint : _heldObjectRef;
             // Debug.Log($"Holding '{_heldObjectRef.name}', Aligning '{_pointToAlignWithSocket.name}'");
 
-            // --- 1. 關閉物理 ---
+            // --- 關閉物理 ---
             Rigidbody rb = _heldObjectRef.GetComponent<Rigidbody>();
             if (rb != null) { rb.isKinematic = true; rb.useGravity = false; }
             Collider col = _heldObjectRef.GetComponent<Collider>();
             if (col != null) { col.enabled = false; }
 
-            // --- 2. 設定初始 Scale (抵銷父 Scale) ---
-            //    (不需要計算 Offset，由 LateUpdate 處理對齊)
-            /*
-            Vector3 parentLossyScale = grabSocket.lossyScale;
-            Vector3 inverseScale = Vector3.one;
-            if (Mathf.Abs(parentLossyScale.x) > 1e-6f) inverseScale.x = 1.0f / parentLossyScale.x;
-            if (Mathf.Abs(parentLossyScale.y) > 1e-6f) inverseScale.y = 1.0f / parentLossyScale.y;
-            if (Mathf.Abs(parentLossyScale.z) > 1e-6f) inverseScale.z = 1.0f / parentLossyScale.z;
-            _heldObjectRef.localScale = inverseScale; // 設定 Scale
-            */
-
-            // --- 3. 設定跟隨狀態 ---
+            // --- 設定跟隨狀態 ---
             _isHoldingObject = true;
 
-            // --- 4. 立即關閉 IK & 清除臨時變數 ---
+            // --- 立即關閉 IK & 清除臨時變數 ---
             handIKWeight = 0f; // 強制權重歸零
             ikTargetPoint = null; // 清除 IK 目標
             objectToGrab = null;  // 清除臨時指標
