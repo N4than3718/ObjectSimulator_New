@@ -7,7 +7,6 @@ public class PlayerMovement : MonoBehaviour
     [Header("元件參考")]
     public Transform cameraTransform;
     private Rigidbody rb;
-    private CapsuleCollider capsuleCollider;
     private Collider coll;
     private TeamManager teamManager;
     private AudioSource audioSource;
@@ -63,6 +62,7 @@ public class PlayerMovement : MonoBehaviour
     private Vector2 moveInput;
     private HighlightableObject currentlyTargetedPlayerObject;
     private bool jumpHeld = false;
+    private bool wasGroundedLastFrame = false;
 
     public enum CapsuleOrientation { YAxis, XAxis, ZAxis }
     public bool IsGrounded { get; private set; }
@@ -72,7 +72,6 @@ public class PlayerMovement : MonoBehaviour
     void Awake()
     {
         rb = GetComponent<Rigidbody>();
-        capsuleCollider = GetComponent<CapsuleCollider>();
         coll = GetComponent<Collider>();
         audioSource = GetComponent<AudioSource>();
         animator = GetComponent<Animator>();
@@ -178,6 +177,7 @@ public class PlayerMovement : MonoBehaviour
         HandleJump();
         ApplyExtraGravity();
         UpdateAnimationParameters();
+        wasGroundedLastFrame = IsGrounded;
     }
 
     /// <summary>
@@ -316,9 +316,11 @@ public class PlayerMovement : MonoBehaviour
     {
         if (playerActions == null || rb == null) return;
 
-        bool jumpInputActive = playerActions.Player.Jump.WasPressedThisFrame() || jumpHeld;
+        bool freshJumpPressed = playerActions.Player.Jump.WasPressedThisFrame();
 
-        if (jumpInputActive && IsGrounded)
+        bool heldJumpActive = jumpHeld && wasGroundedLastFrame;
+
+        if (freshJumpPressed || heldJumpActive && IsGrounded)
         {
             float currentVerticalVelocity = rb.linearVelocity.y;
             bool canPlaySound = Mathf.Abs(currentVerticalVelocity) < jumpSoundVelocityThreshold;
