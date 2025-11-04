@@ -253,7 +253,7 @@ public class PlayerMovement : MonoBehaviour
 
     private void GroundCheck()
     {
-        if (coll == null)
+        if (coll == null || rb == null)
         {
             IsGrounded = false;
             Debug.LogError($"GroundCheck FAILED: {gameObject.name} 缺少 Collider 元件!");
@@ -285,7 +285,7 @@ public class PlayerMovement : MonoBehaviour
             for (int i = 0; i < numCollidersFound; i++)
             {
                 // 檢查碰到的 Collider 是不是 *不是* 我們自己
-                if (groundCheckColliders[i] != coll)
+                if (groundCheckColliders[i].attachedRigidbody != rb)
                 {
                     foundGround = true; // 只要碰到任何一個 *不是自己* 的東西，就當作在地上
                     break; // 找到就不用再查了
