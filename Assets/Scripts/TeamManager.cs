@@ -547,6 +547,12 @@ public class TeamManager : MonoBehaviour
         var animator = unit.character.GetComponent<MovementAnimator>();
         if (animator != null) animator.enabled = isActive;
 
+        var cardboardSkill = unit.character.GetComponent<Cardboard>();
+        if (cardboardSkill != null)
+        {
+            cardboardSkill.enabled = isActive;
+        }
+
         if (unit.characterCamera != null)
         {
             // Coroutine 結束時 isTransitioning 應為 false, isActive 為 true

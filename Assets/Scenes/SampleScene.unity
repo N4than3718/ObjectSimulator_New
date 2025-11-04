@@ -1820,6 +1820,13 @@ MonoBehaviour:
   weightThreshold: 5
   heavyPushForce: 50
   pushInterval: 0.8
+  maxStorage: 3
+  detectionRadius: 2.5
+  possessableLayer:
+    serializedVersion: 2
+    m_Bits: 64
+  spitOutPoint: {fileID: 0}
+  holdDuration: 0.8
   itemsInside: []
 --- !u!114 &869523644
 MonoBehaviour:
