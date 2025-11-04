@@ -4427,7 +4427,7 @@ CapsuleCollider:
   serializedVersion: 2
   m_Radius: 0.2
   m_Height: 1.25
-  m_Direction: 0
+  m_Direction: 2
   m_Center: {x: 0, y: 0.2, z: 0}
 --- !u!54 &2128674181
 Rigidbody:
