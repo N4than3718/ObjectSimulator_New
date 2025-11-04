@@ -34,16 +34,6 @@ public class PlayerMovement : MonoBehaviour
     [Tooltip("角色轉向的速度")]
     [SerializeField] private float rotationSpeed = 10f;
 
-    [Header("Heavy Push Settings")] // <-- 1. 加上這些新變數
-    [Tooltip("當前總重量 (這個值應該由你的物品/庫存系統更新)")]
-    [SerializeField] private float currentWeight = 0f; // 讓它可以被其他腳本設定
-    [Tooltip("超過這個重量，移動方式變為'重推'")]
-    [SerializeField] private float weightThreshold = 50f;
-    [Tooltip("重推的單次爆發力")]
-    [SerializeField] private float heavyPushForce = 50f;
-    [Tooltip("每次重推的間隔/動畫時長 (秒)")]
-    [SerializeField] private float pushInterval = 0.8f;
-
     [Header("Animation Settings")]
     [Tooltip("動畫在 1x 速度播放時，對應的玩家移動速度 (m/s)")]
     [SerializeField] private float animationBaseSpeed = 5.0f;
@@ -78,6 +68,9 @@ public class PlayerMovement : MonoBehaviour
     private float lastJumpTime = -Mathf.Infinity;
     private bool isPushing = false;
     private bool isOverEncumbered = false;
+    private float currentWeight = 0f;
+    private float currentHeavyPushForce = 50f; // (保留預設值)
+    private float currentPushInterval = 0.8f;  // (保留預設值)
 
     public enum CapsuleOrientation { YAxis, XAxis, ZAxis }
     public bool IsGrounded { get; private set; }
@@ -186,8 +179,6 @@ public class PlayerMovement : MonoBehaviour
         moveInput = playerActions.Player.Move.ReadValue<Vector2>();
         HandlePossessedHighlight();
 
-        // 1. 檢查是否超重
-        isOverEncumbered = (currentWeight > weightThreshold);
         animator.SetBool("isOverEncumbered", isOverEncumbered); // 通知 Animator
 
         // 2. 獲取移動方向 (相對於攝影機)
@@ -458,17 +449,18 @@ public class PlayerMovement : MonoBehaviour
     }
 
     /// <summary>
-    /// (Public Setter) 允許 BoxContainer 或其他系統更新此物件的當前重量
+    /// (Public Setter) 允許 BoxContainer 更新此物件的所有重量相關狀態
     /// </summary>
-    public void SetCurrentWeight(float newWeight)
+    public void SetWeightAndPushStats(float newWeight, bool isNowOverEncumbered, float pushForce, float pushInterval)
     {
         currentWeight = newWeight;
-        // 你不需要在這裡呼叫 CheckOverEncumbered()，
-        // 因為你的 Update() 每一幀都會自動檢查 `currentWeight > weightThreshold`
+        isOverEncumbered = isNowOverEncumbered;
+        currentHeavyPushForce = pushForce;
+        currentPushInterval = pushInterval;
     }
 
     /// <summary>
-    /// (Public Getter) 允許其他腳本讀取當前的重量 (例如用於 Debug)
+    /// (Public Getter) 允許其他腳本讀取當前的重量
     /// </summary>
     public float GetCurrentWeight()
     {
@@ -484,10 +476,10 @@ public class PlayerMovement : MonoBehaviour
 
         // 2. 施加物理力 (等待物理幀)
         yield return new WaitForFixedUpdate();
-        rb.AddForce(pushDirection * heavyPushForce, ForceMode.Impulse); // 用 Impulse 模式
+        rb.AddForce(pushDirection * currentHeavyPushForce, ForceMode.Impulse); // <-- 使用 current
 
         // 3. 等待動畫/間隔結束
-        yield return new WaitForSeconds(pushInterval);
+        yield return new WaitForSeconds(currentPushInterval); // <-- 使用 current
 
         isPushing = false; // 解鎖
     }
