@@ -1817,7 +1817,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c1d8ee5e6801a49489be47ec22967e26, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Cardboard
-  weightThreshold: 50
+  weightThreshold: 5
   heavyPushForce: 50
   pushInterval: 0.8
   itemsInside: []
