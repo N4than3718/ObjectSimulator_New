@@ -427,12 +427,12 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 231161607}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 1190774502}
+  m_Father: {fileID: 751467312}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!65 &231161609
 BoxCollider:
@@ -742,6 +742,7 @@ MonoBehaviour:
   playerSpeed: 5
   fastSpeed: 10
   rotationSpeed: 10
+  animationBaseSpeed: 3
   uncontrolledAngularDrag: 1
   jumpHeight: 1.5
   gravityMultiplier: 2.5
@@ -1440,6 +1441,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 78840897}
+  - {fileID: 231161608}
   m_Father: {fileID: 1190774502}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &757258449
@@ -1668,6 +1670,7 @@ MonoBehaviour:
   playerSpeed: 5
   fastSpeed: 10
   rotationSpeed: 10
+  animationBaseSpeed: 3
   uncontrolledAngularDrag: 0.05
   jumpHeight: 1
   gravityMultiplier: 2.5
@@ -2530,6 +2533,7 @@ MonoBehaviour:
   playerSpeed: 5
   fastSpeed: 10
   rotationSpeed: 10
+  animationBaseSpeed: 3
   uncontrolledAngularDrag: 1
   jumpHeight: 1.5
   gravityMultiplier: 2.5
@@ -2612,7 +2616,6 @@ Transform:
   - {fileID: 751467312}
   - {fileID: 643507237}
   - {fileID: 167501585}
-  - {fileID: 231161608}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &1190774503
@@ -4423,6 +4426,7 @@ MonoBehaviour:
   playerSpeed: 5
   fastSpeed: 11.5
   rotationSpeed: 10
+  animationBaseSpeed: 5
   uncontrolledAngularDrag: 0.05
   jumpHeight: 1.5
   gravityMultiplier: 2.5
