@@ -693,10 +693,6 @@ MonoBehaviour:
   playerSpeed: 5
   fastSpeed: 10
   rotationSpeed: 10
-  currentWeight: 0
-  weightThreshold: 50
-  heavyPushForce: 50
-  pushInterval: 0.8
   animationBaseSpeed: 3
   uncontrolledAngularDrag: 1
   jumpHeight: 1
@@ -1579,6 +1575,7 @@ GameObject:
   - component: {fileID: 869523642}
   - component: {fileID: 869523641}
   - component: {fileID: 869523640}
+  - component: {fileID: 869523645}
   - component: {fileID: 869523644}
   - component: {fileID: 869523643}
   - component: {fileID: 869523639}
@@ -1644,10 +1641,6 @@ MonoBehaviour:
   playerSpeed: 5
   fastSpeed: 10
   rotationSpeed: 10
-  currentWeight: 0
-  weightThreshold: 50
-  heavyPushForce: 50
-  pushInterval: 0.8
   animationBaseSpeed: 3
   uncontrolledAngularDrag: 0.05
   jumpHeight: 0.5
@@ -1824,6 +1817,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c1d8ee5e6801a49489be47ec22967e26, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Cardboard
+  weightThreshold: 50
+  heavyPushForce: 50
+  pushInterval: 0.8
   itemsInside: []
 --- !u!114 &869523644
 MonoBehaviour:
@@ -1840,6 +1836,28 @@ MonoBehaviour:
   weight: 1
   noiseMultiplier: 1
   isInsideContainer: 0
+--- !u!95 &869523645
+Animator:
+  serializedVersion: 7
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 869523636}
+  m_Enabled: 1
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: c37aab9c863254842a889274e71f771d, type: 2}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_AnimatePhysics: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0
 --- !u!1 &877677679 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: d6bbf58973501cc408cb712b5396ae38, type: 3}
@@ -2570,10 +2588,6 @@ MonoBehaviour:
   playerSpeed: 5
   fastSpeed: 10
   rotationSpeed: 10
-  currentWeight: 0
-  weightThreshold: 50
-  heavyPushForce: 50
-  pushInterval: 0.8
   animationBaseSpeed: 3
   uncontrolledAngularDrag: 1
   jumpHeight: 1
@@ -4525,10 +4539,10 @@ GameObject:
   - component: {fileID: 2128674181}
   - component: {fileID: 2128674180}
   - component: {fileID: 2128674179}
+  - component: {fileID: 2128674182}
   - component: {fileID: 2128674183}
   - component: {fileID: 2128674178}
   - component: {fileID: 2128674177}
-  - component: {fileID: 2128674182}
   m_Layer: 6
   m_Name: Trainer
   m_TagString: Player
@@ -4590,10 +4604,6 @@ MonoBehaviour:
   playerSpeed: 5
   fastSpeed: 11.5
   rotationSpeed: 10
-  currentWeight: 0
-  weightThreshold: 50
-  heavyPushForce: 50
-  pushInterval: 0.8
   animationBaseSpeed: 5
   uncontrolledAngularDrag: 0.05
   jumpHeight: 1.5
