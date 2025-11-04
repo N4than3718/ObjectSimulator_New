@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -33,6 +34,16 @@ public class PlayerMovement : MonoBehaviour
     [Tooltip("角色轉向的速度")]
     [SerializeField] private float rotationSpeed = 10f;
 
+    [Header("Heavy Push Settings")] // <-- 1. 加上這些新變數
+    [Tooltip("當前總重量 (這個值應該由你的物品/庫存系統更新)")]
+    [SerializeField] private float currentWeight = 0f; // 讓它可以被其他腳本設定
+    [Tooltip("超過這個重量，移動方式變為'重推'")]
+    [SerializeField] private float weightThreshold = 50f;
+    [Tooltip("重推的單次爆發力")]
+    [SerializeField] private float heavyPushForce = 50f;
+    [Tooltip("每次重推的間隔/動畫時長 (秒)")]
+    [SerializeField] private float pushInterval = 0.8f;
+
     [Header("Animation Settings")]
     [Tooltip("動畫在 1x 速度播放時，對應的玩家移動速度 (m/s)")]
     [SerializeField] private float animationBaseSpeed = 5.0f;
@@ -65,6 +76,8 @@ public class PlayerMovement : MonoBehaviour
     private HighlightableObject currentlyTargetedPlayerObject;
     private bool jumpHeld = false;
     private float lastJumpTime = -Mathf.Infinity;
+    private bool isPushing = false;
+    private bool isOverEncumbered = false;
 
     public enum CapsuleOrientation { YAxis, XAxis, ZAxis }
     public bool IsGrounded { get; private set; }
@@ -79,6 +92,8 @@ public class PlayerMovement : MonoBehaviour
         animator = GetComponent<Animator>();
 
         playerActions = new InputSystem_Actions();
+        playerActions.Player.Move.performed += ctx => moveInput = ctx.ReadValue<Vector2>();
+        playerActions.Player.Move.canceled += ctx => moveInput = Vector2.zero;
         teamManager = FindAnyObjectByType<TeamManager>();
         if (teamManager == null) Debug.LogError("PlayerMovement cannot find TeamManager!");
 
@@ -170,12 +185,48 @@ public class PlayerMovement : MonoBehaviour
         if (playerActions == null) return;
         moveInput = playerActions.Player.Move.ReadValue<Vector2>();
         HandlePossessedHighlight();
+
+        // 1. 檢查是否超重
+        isOverEncumbered = (currentWeight > weightThreshold);
+        animator.SetBool("isOverEncumbered", isOverEncumbered); // 通知 Animator
+
+        // 2. 獲取移動方向 (相對於攝影機)
+        Vector3 camForward = Camera.main.transform.forward;
+        Vector3 camRight = Camera.main.transform.right;
+        camForward.y = 0;
+        camRight.y = 0;
+        Vector3 moveDirection = (camForward.normalized * moveInput.y + camRight.normalized * moveInput.x).normalized;
+        bool isTryingToMove = moveDirection.magnitude > 0.1f;
+
+        // 3. 根據狀態決定行為
+        if (isOverEncumbered)
+        {
+            // --- 超重狀態：處理「一段一段」的推 ---
+            if (isTryingToMove && !isPushing)
+            {
+                // 如果玩家按著方向鍵，並且目前沒有在推
+                StartCoroutine(HeavyPushCoroutine(moveDirection));
+            }
+            // 在重推模式下，關閉一般移動的動畫參數
+            animator.SetFloat("Speed", 0f);
+        }
+        else
+        {
+            // --- 正常狀態：處理「連續」的滑行 ---
+            // (FixedUpdate 裡會處理物理移動)
+            // 這裡的 Speed 應該反映連續移動的速度
+            float currentHorizontalSpeed = new Vector3(rb.linearVelocity.x, 0, rb.linearVelocity.z).magnitude;
+            animator.SetFloat("Speed", currentHorizontalSpeed);
+        }
     }
 
     void FixedUpdate()
     {
         GroundCheck();
-        HandleMovement();
+        if (!isOverEncumbered && moveInput.magnitude > 0.1f)
+        {
+            HandleMovement();
+        }
         HandleJump();
         ApplyExtraGravity();
         UpdateAnimationParameters();
@@ -404,5 +455,22 @@ public class PlayerMovement : MonoBehaviour
             Gizmos.DrawWireSphere(worldCoM, 0.1f);
             Gizmos.DrawLine(transform.position, worldCoM); // 從物件中心拉一條線過去
         }
+    }
+
+    private IEnumerator HeavyPushCoroutine(Vector3 pushDirection)
+    {
+        isPushing = true; // 鎖定
+
+        // 1. 觸發「發力」動畫
+        animator.SetTrigger("DoPush"); // (你需要一個叫 "DoPush" 的 Trigger)
+
+        // 2. 施加物理力 (等待物理幀)
+        yield return new WaitForFixedUpdate();
+        rb.AddForce(pushDirection * heavyPushForce, ForceMode.Impulse); // 用 Impulse 模式
+
+        // 3. 等待動畫/間隔結束
+        yield return new WaitForSeconds(pushInterval);
+
+        isPushing = false; // 解鎖
     }
 }
