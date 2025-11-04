@@ -32,6 +32,10 @@ public class PlayerMovement : MonoBehaviour
     [Tooltip("角色轉向的速度")]
     [SerializeField] private float rotationSpeed = 10f;
 
+    [Header("Animation Settings")]
+    [Tooltip("動畫在 1x 速度播放時，對應的玩家移動速度 (m/s)")]
+    [SerializeField] private float animationBaseSpeed = 5.0f;
+
     [Header("物理設定")]
     [Tooltip("未操控時的物理角阻力 (預設 0.05)")]
     [SerializeField] private float uncontrolledAngularDrag = 0.05f;
@@ -191,6 +195,31 @@ public class PlayerMovement : MonoBehaviour
         // 2. 傳遞參數
         animator.SetFloat("Speed", horizontalSpeed);
         animator.SetBool("IsGrounded", IsGrounded);
+
+        if (animator == null || rb == null) return; // 防呆
+
+        // 告訴 Animator 播放頻率 (要播多快)
+        // (這是新的邏輯)
+        
+        // 檢查是否正在移動 (避免除以零或在 Idle 時設錯)
+        if (horizontalSpeed > 0.1f && animationBaseSpeed > 0f)
+        {
+            // 計算播放速度 = 當前速度 / 動畫基準速度
+            // 例: 當前 6 m/s, 基準 3 m/s -> 播放速度 = 2x
+            float playbackSpeed = horizontalSpeed / animationBaseSpeed;
+
+            // (可選) 限制播放速度，避免太鬼畜
+            // anim.speed = Mathf.Clamp(playbackSpeed, 0.5f, 2.0f); 
+
+            // 直接設定
+            animator.speed = playbackSpeed;
+        }
+        else
+        {
+            // 關鍵：待機時，必須把速度重置回 1
+            // 不然它會卡在 0，永遠播不了 Idle
+            animator.speed = 1.0f; 
+        }
     }
 
     private void HandleMovement()
