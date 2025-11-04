@@ -41,7 +41,7 @@ ModelImporter:
     extraUserProperties: []
     clipAnimations:
     - serializedVersion: 16
-      name: Trainer Jump
+      name: Trainer Move
       takeName: Take 001
       internalID: 1827226128182048838
       firstFrame: 0
