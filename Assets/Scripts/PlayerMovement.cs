@@ -180,8 +180,8 @@ public class PlayerMovement : MonoBehaviour
         HandlePossessedHighlight();
 
         // 2. 獲取移動方向 (相對於攝影機)
-        Vector3 camForward = Camera.main.transform.forward;
-        Vector3 camRight = Camera.main.transform.right;
+        Vector3 camForward = cameraTransform.forward;
+        Vector3 camRight = cameraTransform.right;
         camForward.y = 0;
         camRight.y = 0;
         Vector3 moveDirection = (camForward.normalized * moveInput.y + camRight.normalized * moveInput.x).normalized;
