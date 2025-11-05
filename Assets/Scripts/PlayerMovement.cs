@@ -459,14 +459,6 @@ public class PlayerMovement : MonoBehaviour
         currentPushInterval = pushInterval;
     }
 
-    /// <summary>
-    /// (Public Getter) 允許其他腳本讀取當前的重量
-    /// </summary>
-    public float GetCurrentWeight()
-    {
-        return currentWeight;
-    }
-
     private IEnumerator HeavyPushCoroutine(Vector3 pushDirection)
     {
         isPushing = true; // 鎖定
