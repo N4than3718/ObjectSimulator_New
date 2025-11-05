@@ -167,7 +167,10 @@ public class Cardboard : MonoBehaviour
             // 2. 通知 TeamManager 移除
             teamManager.RemoveCharacterFromTeam(obj);
 
-            // 3. 重新計算總重量
+            // 3. 真正讓物件從場景消失
+            obj.SetActive(false);
+
+            // 4. 重新計算總重量
             UpdateTotalWeight();
         }
     }
