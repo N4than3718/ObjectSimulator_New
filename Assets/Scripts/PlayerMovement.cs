@@ -211,6 +211,8 @@ public class PlayerMovement : MonoBehaviour
             rb.linearVelocity = new Vector3(0, rb.linearVelocity.y, 0);
         }
 
+        CurrentHorizontalSpeed = new Vector3(rb.linearVelocity.x, 0, rb.linearVelocity.z).magnitude;
+
         HandleJump();
         ApplyExtraGravity();
         UpdateAnimationParameters();
@@ -268,7 +270,6 @@ public class PlayerMovement : MonoBehaviour
         Vector3 targetVelocity = moveDirection * CurrentSpeed;
         // 我們只設定 XZ 軸速度，保留 Y 軸讓物理引擎處理 (重力/跳躍)
         rb.linearVelocity = new Vector3(targetVelocity.x, rb.linearVelocity.y, targetVelocity.z);
-        CurrentHorizontalSpeed = new Vector3(rb.linearVelocity.x, 0, rb.linearVelocity.z).magnitude;
 
         // --- 3. 處理旋轉 ---
         // 只有在實際移動時才進行旋轉
