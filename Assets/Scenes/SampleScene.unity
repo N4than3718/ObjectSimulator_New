@@ -1818,8 +1818,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Cardboard
   weightThreshold: 5
-  heavyPushForce: 50
-  pushInterval: 0.8
+  heavyPushForce: 8
+  pushInterval: 1
   maxStorage: 3
   detectionRadius: 2.5
   possessableLayer:
