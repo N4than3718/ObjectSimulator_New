@@ -179,8 +179,6 @@ public class PlayerMovement : MonoBehaviour
         moveInput = playerActions.Player.Move.ReadValue<Vector2>();
         HandlePossessedHighlight();
 
-        animator.SetBool("isOverEncumbered", isOverEncumbered); // 通知 Animator
-
         // 2. 獲取移動方向 (相對於攝影機)
         Vector3 camForward = Camera.main.transform.forward;
         Vector3 camRight = Camera.main.transform.right;
@@ -198,8 +196,6 @@ public class PlayerMovement : MonoBehaviour
                 // 如果玩家按著方向鍵，並且目前沒有在推
                 StartCoroutine(HeavyPushCoroutine(moveDirection));
             }
-            // 在重推模式下，關閉一般移動的動畫參數
-            animator.SetFloat("Speed", 0f);
         }
         else
         {
@@ -207,7 +203,6 @@ public class PlayerMovement : MonoBehaviour
             // (FixedUpdate 裡會處理物理移動)
             // 這裡的 Speed 應該反映連續移動的速度
             float currentHorizontalSpeed = new Vector3(rb.linearVelocity.x, 0, rb.linearVelocity.z).magnitude;
-            animator.SetFloat("Speed", currentHorizontalSpeed);
         }
     }
 
@@ -218,6 +213,11 @@ public class PlayerMovement : MonoBehaviour
         {
             HandleMovement();
         }
+        else if (!isOverEncumbered) // [新增] 如果沒超重，也沒按鍵，就停下
+        {
+            rb.linearVelocity = new Vector3(0, rb.linearVelocity.y, 0);
+        }
+
         HandleJump();
         ApplyExtraGravity();
         UpdateAnimationParameters();
@@ -228,38 +228,32 @@ public class PlayerMovement : MonoBehaviour
     /// </summary>
     private void UpdateAnimationParameters()
     {
-        if (animator == null) return; // 如果沒掛 Animator 就跳過
-
-        // 1. 取得當前水平速度 (我們不關心 Y 軸)
-        float horizontalSpeed = new Vector3(rb.linearVelocity.x, 0, rb.linearVelocity.z).magnitude;
-
-        // 2. 傳遞參數
-        animator.SetFloat("Speed", horizontalSpeed);
-        animator.SetBool("IsGrounded", IsGrounded);
-
         if (animator == null || rb == null) return; // 防呆
 
-        // 告訴 Animator 播放頻率 (要播多快)
-        // (這是新的邏輯)
-        
-        // 檢查是否正在移動 (避免除以零或在 Idle 時設錯)
-        if (horizontalSpeed > 0.1f && animationBaseSpeed > 0f)
+        // 傳遞參數
+        animator.SetBool("IsGrounded", IsGrounded);
+        animator.SetBool("isOverEncumbered", isOverEncumbered);
+
+        if (!isPushing)
         {
-            // 計算播放速度 = 當前速度 / 動畫基準速度
-            // 例: 當前 6 m/s, 基準 3 m/s -> 播放速度 = 2x
-            float playbackSpeed = horizontalSpeed / animationBaseSpeed;
-
-            // (可選) 限制播放速度，避免太鬼畜
-            // anim.speed = Mathf.Clamp(playbackSpeed, 0.5f, 2.0f); 
-
-            // 直接設定
-            animator.speed = playbackSpeed;
+            animator.SetFloat("Speed", 0f);
+            animator.speed = 1.0f;
         }
         else
         {
-            // 關鍵：待機時，必須把速度重置回 1
-            // 不然它會卡在 0，永遠播不了 Idle
-            animator.speed = 1.0f; 
+            // --- 正常狀態 ---
+            float horizontalSpeed = new Vector3(rb.linearVelocity.x, 0, rb.linearVelocity.z).magnitude;
+            animator.SetFloat("Speed", horizontalSpeed);
+
+            if (horizontalSpeed > 0.1f && animationBaseSpeed > 0f)
+            {
+                float playbackSpeed = horizontalSpeed / animationBaseSpeed;
+                animator.speed = playbackSpeed;
+            }
+            else
+            {
+                animator.speed = 1.0f;
+            }
         }
     }
 
@@ -464,7 +458,7 @@ public class PlayerMovement : MonoBehaviour
         isPushing = true; // 鎖定
 
         // 1. 觸發「發力」動畫
-        animator.SetTrigger("DoPush"); // (你需要一個叫 "DoPush" 的 Trigger)
+        animator.SetTrigger("Do Push"); // (你需要一個叫 "Do Push" 的 Trigger)
 
         // 2. 施加物理力 (等待物理幀)
         yield return new WaitForFixedUpdate();
