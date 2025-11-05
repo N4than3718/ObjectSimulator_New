@@ -197,13 +197,6 @@ public class PlayerMovement : MonoBehaviour
                 StartCoroutine(HeavyPushCoroutine(moveDirection));
             }
         }
-        else
-        {
-            // --- 正常狀態：處理「連續」的滑行 ---
-            // (FixedUpdate 裡會處理物理移動)
-            // 這裡的 Speed 應該反映連續移動的速度
-            float currentHorizontalSpeed = new Vector3(rb.linearVelocity.x, 0, rb.linearVelocity.z).magnitude;
-        }
     }
 
     void FixedUpdate()
@@ -234,10 +227,13 @@ public class PlayerMovement : MonoBehaviour
         animator.SetBool("IsGrounded", IsGrounded);
         animator.SetBool("isOverEncumbered", isOverEncumbered);
 
-        if (!isPushing)
+        if (isOverEncumbered)
         {
-            animator.SetFloat("Speed", 0f);
-            animator.speed = 1.0f;
+            if (!isPushing)
+            {
+                animator.SetFloat("Speed", 0f);
+                animator.speed = 1.0f;
+            }
         }
         else
         {
@@ -458,7 +454,7 @@ public class PlayerMovement : MonoBehaviour
         isPushing = true; // 鎖定
 
         // 1. 觸發「發力」動畫
-        animator.SetTrigger("Do Push"); // (你需要一個叫 "Do Push" 的 Trigger)
+        animator.SetTrigger("DoPush"); // (你需要一個叫 "Do Push" 的 Trigger)
 
         // 2. 施加物理力 (等待物理幀)
         yield return new WaitForFixedUpdate();
