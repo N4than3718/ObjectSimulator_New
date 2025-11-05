@@ -1,4 +1,3 @@
-using NUnit.Framework.Interfaces;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq; // 這是 C# 的好東西，用來加總 (Sum)
@@ -39,7 +38,7 @@ public class Cardboard : MonoBehaviour
 
     private ObjectStats selfObjectStats;
     private Collider[] detectedObjectsBuffer = new Collider[10];
-    private float fKeyHoldTimer = 0f;
+    private float fKeyStartTime = 0f;
 
     void Awake()
     {
@@ -69,47 +68,57 @@ public class Cardboard : MonoBehaviour
         // 確保 OnEnable/OnDisable 與 PlayerMovement (line 150) 一致
         if (playerActions == null) playerActions = new InputSystem_Actions();
         playerActions.Player.Enable();
+
+        playerActions.Player.Interact.started += OnSkillPress; // 監聽按下
+        playerActions.Player.Interact.canceled += OnSkillRelease; // 監聽放開
     }
 
     // 當 PlayerMovement 被 TeamManager 禁用時...
     void OnDisable()
     {
         if (playerActions != null) playerActions.Player.Disable();
+
+        playerActions.Player.Interact.started -= OnSkillPress;
+        playerActions.Player.Interact.canceled -= OnSkillRelease;
     }
 
     void Update()
+    {   }
+
+    /// <summary>
+    /// 當 F 鍵 (Interact) 按下時呼叫
+    /// </summary>
+    private void OnSkillPress(InputAction.CallbackContext context)
     {
-        // 關鍵檢查：只有在被玩家操控時 (PlayerMovement 啟用中) 才執行
-        if (!playerMovement.enabled || teamManager == null)
-        {
-            fKeyHoldTimer = 0f; // 確保不在操控時重置計時器
-            return;
-        }
+        // 只在被操控時才記錄
+        if (!playerMovement.enabled) return;
 
-        // --- 處理 F 鍵輸入 (輪詢) ---
-        bool fKeyIsPressed = playerActions.Player.Interact.IsPressed();
-        bool fKeyWasReleasedThisFrame = playerActions.Player.Interact.WasReleasedThisFrame();
+        // 記錄按下的精確時間
+        fKeyStartTime = Time.time;
+    }
 
-        if (fKeyIsPressed)
-        {
-            fKeyHoldTimer += Time.deltaTime;
-        }
+    /// <summary>
+    /// 當 F 鍵 (Interact) 放開時呼叫
+    /// </summary>
+    private void OnSkillRelease(InputAction.CallbackContext context)
+    {
+        // 只在被操控時才處理
+        if (!playerMovement.enabled) return;
 
-        // --- 處理「點擊 F 鍵」 (在放開的瞬間) ---
-        if (fKeyWasReleasedThisFrame)
+        // 計算按了多久
+        float pressDuration = Time.time - fKeyStartTime;
+
+        if (pressDuration < holdDuration)
         {
-            if (fKeyHoldTimer < holdDuration)
-            {
-                // 這是一次「點擊」
-                HandleSkillTap();
-            }
-            else
-            {
-                // 這是一次「長按」結束
-                HandleSkillHold();
-            }
-            fKeyHoldTimer = 0f; // 重置計時器
+            // 這是一次「點擊」
+            HandleSkillTap();
         }
+        else
+        {
+            // 這是一次「長按」結束
+            HandleSkillHold();
+        }
+        // (fKeyStartTime 不需要重置，下次按下時會自動覆蓋)
     }
 
     /// <summary>
