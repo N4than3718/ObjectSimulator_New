@@ -454,7 +454,7 @@ public class PlayerMovement : MonoBehaviour
         isPushing = true; // 鎖定
 
         // 1. 觸發「發力」動畫
-        animator.SetTrigger("DoPush"); // (你需要一個叫 "Do Push" 的 Trigger)
+        animator.SetTrigger("Do Push"); // (你需要一個叫 "Do Push" 的 Trigger)
 
         // 2. 施加物理力 (等待物理幀)
         yield return new WaitForFixedUpdate();
