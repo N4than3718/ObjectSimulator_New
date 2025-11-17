@@ -642,6 +642,7 @@ GameObject:
   - component: {fileID: 340754707}
   - component: {fileID: 340754708}
   - component: {fileID: 340754702}
+  - component: {fileID: 340754709}
   - component: {fileID: 340754701}
   - component: {fileID: 340754706}
   m_Layer: 6
@@ -694,6 +695,10 @@ MonoBehaviour:
   playerSpeed: 5
   fastSpeed: 10
   rotationSpeed: 10
+  walkNoiseRange: 5
+  sprintNoiseRange: 10
+  jumpNoiseRange: 8
+  noiseFrequency: 0.3
   animationBaseSpeed: 3
   uncontrolledAngularDrag: 1
   jumpHeight: 1
@@ -906,6 +911,20 @@ MonoBehaviour:
   weight: 1
   noiseMultiplier: 1
   isInsideContainer: 0
+--- !u!114 &340754709
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 340754700}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c664f0f1737f0c9478f72e49885d1739, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ImpactSoundEmitter
+  impactThreshold: 2
+  noiseRangeMultiplier: 2
 --- !u!1001 &353365075
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -1243,6 +1262,8 @@ MonoBehaviour:
   highAlertDecreaseRate: 10
   timeToStartDecreasing: 3
   movementThreshold: 0.1
+  hearingSensitivity: 1
+  investigateWaitTime: 3
   patrolSpeed: 8
   chaseSpeed: 15
   captureDistance: 2.5
@@ -1611,6 +1632,7 @@ GameObject:
   - component: {fileID: 869523644}
   - component: {fileID: 869523643}
   - component: {fileID: 869523639}
+  - component: {fileID: 869523646}
   - component: {fileID: 869523638}
   m_Layer: 6
   m_Name: Cardboard
@@ -1674,6 +1696,10 @@ MonoBehaviour:
   playerSpeed: 5
   fastSpeed: 10
   rotationSpeed: 10
+  walkNoiseRange: 5
+  sprintNoiseRange: 10
+  jumpNoiseRange: 8
+  noiseFrequency: 0.3
   animationBaseSpeed: 3
   uncontrolledAngularDrag: 0.05
   jumpHeight: 0.5
@@ -1897,6 +1923,20 @@ Animator:
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
   m_WriteDefaultValuesOnDisable: 0
+--- !u!114 &869523646
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 869523636}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c664f0f1737f0c9478f72e49885d1739, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ImpactSoundEmitter
+  impactThreshold: 2
+  noiseRangeMultiplier: 2
 --- !u!1 &877677679 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: d6bbf58973501cc408cb712b5396ae38, type: 3}
@@ -2575,6 +2615,7 @@ GameObject:
   - component: {fileID: 1190774504}
   - component: {fileID: 1190774505}
   - component: {fileID: 1190774499}
+  - component: {fileID: 1190774506}
   - component: {fileID: 1190774498}
   - component: {fileID: 1190774503}
   m_Layer: 6
@@ -2627,6 +2668,10 @@ MonoBehaviour:
   playerSpeed: 5
   fastSpeed: 10
   rotationSpeed: 10
+  walkNoiseRange: 5
+  sprintNoiseRange: 10
+  jumpNoiseRange: 8
+  noiseFrequency: 0.3
   animationBaseSpeed: 3
   uncontrolledAngularDrag: 1
   jumpHeight: 1
@@ -2839,6 +2884,20 @@ MonoBehaviour:
   weight: 3
   noiseMultiplier: 1
   isInsideContainer: 0
+--- !u!114 &1190774506
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1190774497}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c664f0f1737f0c9478f72e49885d1739, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ImpactSoundEmitter
+  impactThreshold: 2
+  noiseRangeMultiplier: 2
 --- !u!1 &1363107009
 GameObject:
   m_ObjectHideFlags: 0
@@ -4656,6 +4715,7 @@ GameObject:
   - component: {fileID: 2128674182}
   - component: {fileID: 2128674183}
   - component: {fileID: 2128674178}
+  - component: {fileID: 2128674184}
   - component: {fileID: 2128674177}
   m_Layer: 6
   m_Name: Trainer
@@ -4718,6 +4778,10 @@ MonoBehaviour:
   playerSpeed: 5
   fastSpeed: 11.5
   rotationSpeed: 10
+  walkNoiseRange: 5
+  sprintNoiseRange: 10
+  jumpNoiseRange: 8
+  noiseFrequency: 0.3
   animationBaseSpeed: 5
   uncontrolledAngularDrag: 0.05
   jumpHeight: 1.5
@@ -4919,6 +4983,20 @@ MonoBehaviour:
   weight: 1
   noiseMultiplier: 1
   isInsideContainer: 0
+--- !u!114 &2128674184
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2128674175}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c664f0f1737f0c9478f72e49885d1739, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ImpactSoundEmitter
+  impactThreshold: 2
+  noiseRangeMultiplier: 2
 --- !u!1 &2135395959
 GameObject:
   m_ObjectHideFlags: 0
