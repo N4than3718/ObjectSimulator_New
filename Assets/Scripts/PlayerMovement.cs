@@ -27,6 +27,13 @@ public class PlayerMovement : MonoBehaviour
     [SerializeField] private AudioClip jumpSound;
     [Tooltip("播放跳躍音效前，允許的最大垂直速度")]
     [SerializeField] private float jumpSoundVelocityThreshold = 0.5f;
+    // ▼▼▼ [新增] 腳步聲陣列 ▼▼▼
+    [Tooltip("放入多個相似的音效以增加變化 (例如：Step1, Step2, Step3)")]
+    [SerializeField] private AudioClip[] footstepSounds;
+    // ▼▼▼ [新增] 音調變化範圍 (讓聲音聽起來更自然) ▼▼▼
+    [SerializeField] private float minPitch = 0.9f;
+    [SerializeField] private float maxPitch = 1.1f;
+    // ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
 
     [Header("移動設定")]
     [SerializeField] private float playerSpeed = 5.0f;
@@ -315,6 +322,7 @@ public class PlayerMovement : MonoBehaviour
 
                 // 發出聲音！
                 StealthManager.MakeNoise(transform.position, range, intensity);
+                PlayRandomFootstep();
 
                 if (showDebugGizmos)
                 {
@@ -331,6 +339,26 @@ public class PlayerMovement : MonoBehaviour
             noiseTimer = noiseFrequency; // 停下來時重置，確保下次移動立刻發聲
         }
     }
+
+    // ▼▼▼ [新增] 隨機播放方法 ▼▼▼
+    private void PlayRandomFootstep()
+    {
+        if (audioSource == null || footstepSounds == null || footstepSounds.Length == 0) return;
+
+        // 1. 隨機選一個片段
+        int index = Random.Range(0, footstepSounds.Length);
+        AudioClip clip = footstepSounds[index];
+
+        // 2. 隨機改變音高 (這是讓聲音不機械化的關鍵！)
+        audioSource.pitch = Random.Range(minPitch, maxPitch);
+
+        // 3. 稍微隨機化音量 (可選)
+        // audioSource.volume = Random.Range(0.8f, 1.0f);
+
+        // 4. 播放
+        audioSource.PlayOneShot(clip);
+    }
+    // ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
 
     private void GroundCheck()
     {
