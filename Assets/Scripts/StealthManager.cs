@@ -54,9 +54,10 @@ public static class StealthManager
 
             // 計算距離
             float distance = Vector3.Distance(npc.transform.position, position);
+            float effectiveHearingRange = range * npc.HearingSensitivity;
 
             // 判斷 NPC 是否在噪音半徑內
-            if (distance <= range)
+            if (distance <= effectiveHearingRange)
             {
                 // NPC 聽到了！呼叫 NPC 自己的處理方法
                 // 這裡可以加入更複雜的邏輯，例如根據距離衰減強度
