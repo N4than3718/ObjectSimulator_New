@@ -34,11 +34,16 @@ public class PlayerMovement : MonoBehaviour
     [Tooltip("角色轉向的速度")]
     [SerializeField] private float rotationSpeed = 10f;
 
-    [Header("聲音發出設定")] // <--- [新增]
+    [Header("潛行與噪音設定")] // <--- [新增]
     [SerializeField] private float walkNoiseRange = 5f;  // 走路聲音範圍
     [SerializeField] private float sprintNoiseRange = 10f; // 衝刺聲音範圍
     [SerializeField] private float jumpNoiseRange = 8f;   // 跳躍著地聲音範圍
     [SerializeField] private float noiseFrequency = 0.3f; // 發出聲音的頻率 (秒)
+
+    [Header("Debug 可視化")]
+    [SerializeField] private bool showDebugGizmos = true;
+    [SerializeField] private Color gizmoColor = new Color(1, 1, 0, 0.5f); // 黃色半透明
+    [SerializeField] private float gizmoDuration = 1.0f;
 
     [Header("Animation Settings")]
     [Tooltip("動畫在 1x 速度播放時，對應的玩家移動速度 (m/s)")]
@@ -78,7 +83,9 @@ public class PlayerMovement : MonoBehaviour
     private float currentHeavyPushForce = 50f; // (保留預設值)
     private float currentPushInterval = 0.8f;  // (保留預設值)
     private float noiseTimer = 0f; // 計時器
-
+    private float _lastNoiseTime = -10f;
+    private float _lastNoiseRadius;
+    private Vector3 _lastNoisePos;
     public enum CapsuleOrientation { YAxis, XAxis, ZAxis }
     public bool IsGrounded { get; private set; }
     public float CurrentHorizontalSpeed { get; private set; }
@@ -309,8 +316,12 @@ public class PlayerMovement : MonoBehaviour
                 // 發出聲音！
                 NoiseManager.MakeNoise(transform.position, range, intensity);
 
-                // (可選) 在 Scene 視窗畫圈圈 Debug
-                // Debug.DrawRay(transform.position, Vector3.up * 2, isSprinting ? Color.red : Color.yellow, 0.5f);
+                if (showDebugGizmos)
+                {
+                    _lastNoiseTime = Time.time;
+                    _lastNoiseRadius = range;
+                    _lastNoisePos = transform.position;
+                }
 
                 noiseTimer = 0f; // 重置計時
             }
@@ -460,12 +471,21 @@ public class PlayerMovement : MonoBehaviour
             }
             float jumpForce = Mathf.Sqrt(jumpHeight * -2f * Physics.gravity.y);
             rb.linearVelocity = new Vector3(rb.linearVelocity.x, jumpForce, rb.linearVelocity.z);
-            // ▼▼▼ [新增] 跳躍發出聲音 ▼▼▼
-            NoiseManager.MakeNoise(transform.position, jumpNoiseRange, 10f);
-            // ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
+
             if (canPlaySound)
             {
                 PlayJumpSound(); // 呼叫獨立的播放方法
+
+                // ▼▼▼ [新增] 跳躍發出聲音 ▼▼▼
+                NoiseManager.MakeNoise(transform.position, jumpNoiseRange, 10f);
+                // ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
+
+                if (showDebugGizmos)
+                {
+                    _lastNoiseTime = Time.time;
+                    _lastNoiseRadius = jumpNoiseRange;
+                    _lastNoisePos = transform.position;
+                }
             }
 
             lastJumpTime = Time.fixedTime;
@@ -479,6 +499,24 @@ public class PlayerMovement : MonoBehaviour
             rb.AddForce(Physics.gravity * (gravityMultiplier - 1f), ForceMode.Acceleration);
         }
     }
+
+    // ▼▼▼ [新增] 繪製 Gizmos (複製過來的邏輯) ▼▼▼
+    private void OnDrawGizmos()
+    {
+        if (showDebugGizmos && Application.isPlaying)
+        {
+            float timeSinceLastNoise = Time.time - _lastNoiseTime;
+            if (timeSinceLastNoise < gizmoDuration)
+            {
+                float alpha = 1.0f - (timeSinceLastNoise / gizmoDuration);
+                Gizmos.color = new Color(gizmoColor.r, gizmoColor.g, gizmoColor.b, gizmoColor.a * alpha);
+                Gizmos.DrawWireSphere(_lastNoisePos, _lastNoiseRadius);
+                Gizmos.DrawSphere(_lastNoisePos, 0.1f);
+            }
+        }
+    }
+    // ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
+
     private void OnDrawGizmosSelected()
     {
         if (coll == null) coll = GetComponent<Collider>();
