@@ -37,7 +37,7 @@ public class ImpactSoundEmitter : MonoBehaviour
             float intensity = impactForce * 2f; // 撞越大力越警戒
 
             // 發出聲音
-            NoiseManager.MakeNoise(transform.position, range, intensity);
+            StealthManager.MakeNoise(transform.position, range, intensity);
             Debug.Log($"{name} 撞擊發出噪音! 範圍: {range}");
 
             // ▼▼▼ [新增] 紀錄 Debug 資訊 ▼▼▼
