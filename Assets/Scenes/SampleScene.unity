@@ -3728,8 +3728,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CamControl
   FollowTarget: {fileID: 378211013}
-  offsetZ: 4
-  offsetY: 0.5
+  offsetZ: 6
+  offsetY: 2
   rotateSpeed: 0.1
   rotateLerp: 15
   pitchMin: -85
