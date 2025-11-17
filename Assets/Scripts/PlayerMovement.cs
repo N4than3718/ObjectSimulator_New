@@ -34,6 +34,12 @@ public class PlayerMovement : MonoBehaviour
     [Tooltip("角色轉向的速度")]
     [SerializeField] private float rotationSpeed = 10f;
 
+    [Header("聲音發出設定")] // <--- [新增]
+    [SerializeField] private float walkNoiseRange = 5f;  // 走路聲音範圍
+    [SerializeField] private float sprintNoiseRange = 10f; // 衝刺聲音範圍
+    [SerializeField] private float jumpNoiseRange = 8f;   // 跳躍著地聲音範圍
+    [SerializeField] private float noiseFrequency = 0.3f; // 發出聲音的頻率 (秒)
+
     [Header("Animation Settings")]
     [Tooltip("動畫在 1x 速度播放時，對應的玩家移動速度 (m/s)")]
     [SerializeField] private float animationBaseSpeed = 5.0f;
@@ -71,6 +77,7 @@ public class PlayerMovement : MonoBehaviour
     private float currentWeight = 0f;
     private float currentHeavyPushForce = 50f; // (保留預設值)
     private float currentPushInterval = 0.8f;  // (保留預設值)
+    private float noiseTimer = 0f; // 計時器
 
     public enum CapsuleOrientation { YAxis, XAxis, ZAxis }
     public bool IsGrounded { get; private set; }
@@ -216,6 +223,9 @@ public class PlayerMovement : MonoBehaviour
         HandleJump();
         ApplyExtraGravity();
         UpdateAnimationParameters();
+        // ▼▼▼ [新增] 處理移動聲音 ▼▼▼
+        HandleMovementNoise();
+        // ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
     }
 
     /// <summary>
@@ -281,6 +291,33 @@ public class PlayerMovement : MonoBehaviour
             // 注意：直接修改 Rigidbody 的 rotation 比修改 transform.rotation 更好
             Quaternion newRotation = Quaternion.Slerp(rb.rotation, targetRotation, Time.fixedDeltaTime * rotationSpeed);
             rb.MoveRotation(newRotation); // 使用 MoveRotation 更符合物理更新
+        }
+    }
+
+    private void HandleMovementNoise()
+    {
+        // 只有在地面上且有移動時才發出聲音
+        if (IsGrounded && moveInput.sqrMagnitude > 0.01f)
+        {
+            noiseTimer += Time.fixedDeltaTime;
+            if (noiseTimer >= noiseFrequency)
+            {
+                bool isSprinting = playerActions != null && playerActions.Player.Sprint.IsPressed();
+                float range = isSprinting ? sprintNoiseRange : walkNoiseRange;
+                float intensity = isSprinting ? 15f : 5f; // 衝刺加比較多警戒值
+
+                // 發出聲音！
+                NoiseManager.MakeNoise(transform.position, range, intensity);
+
+                // (可選) 在 Scene 視窗畫圈圈 Debug
+                // Debug.DrawRay(transform.position, Vector3.up * 2, isSprinting ? Color.red : Color.yellow, 0.5f);
+
+                noiseTimer = 0f; // 重置計時
+            }
+        }
+        else
+        {
+            noiseTimer = noiseFrequency; // 停下來時重置，確保下次移動立刻發聲
         }
     }
 
@@ -388,6 +425,7 @@ public class PlayerMovement : MonoBehaviour
             currentlyTargetedPlayerObject.SetOutlineWidth(newWidth);
         }
     }
+
     private void OnAddToTeam(InputAction.CallbackContext context)
     {
         if (teamManager == null) return;
@@ -400,6 +438,7 @@ public class PlayerMovement : MonoBehaviour
             }
         }
     }
+
     private void HandleJump()
     {
         if (playerActions == null || rb == null) return;
@@ -421,7 +460,9 @@ public class PlayerMovement : MonoBehaviour
             }
             float jumpForce = Mathf.Sqrt(jumpHeight * -2f * Physics.gravity.y);
             rb.linearVelocity = new Vector3(rb.linearVelocity.x, jumpForce, rb.linearVelocity.z);
-
+            // ▼▼▼ [新增] 跳躍發出聲音 ▼▼▼
+            NoiseManager.MakeNoise(transform.position, jumpNoiseRange, 10f);
+            // ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
             if (canPlaySound)
             {
                 PlayJumpSound(); // 呼叫獨立的播放方法

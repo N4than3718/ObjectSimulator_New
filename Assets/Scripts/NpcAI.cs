@@ -39,6 +39,10 @@ public class NpcAI : MonoBehaviour
     [SerializeField] private float timeToStartDecreasing = 3f;
     [SerializeField] private float movementThreshold = 0.1f; // 物體移動速度閾值
 
+    [Header("聽覺設定")] // <--- [新增]
+    [SerializeField] private float hearingSensitivity = 1.0f; // 聽覺靈敏度 (越高越容易受驚)
+    [SerializeField] private float investigateWaitTime = 3.0f; // 到達聲音點後發呆多久
+
     [Header("速度設定")]
     [SerializeField] private float patrolSpeed = 2f;
     [SerializeField] private float chaseSpeed = 5f;
@@ -59,8 +63,8 @@ public class NpcAI : MonoBehaviour
     private float timeSinceLastSighting = 0f;
     private Vector3 lastSightingPosition;
     private Transform threatTarget = null;
-    private float currentAlertness = 0;
-    private Vector3 lastHeardNoisePosition;
+    private Vector3? noiseInvestigationTarget = null; // 聲音調查點 (Nullable)
+    private float investigationTimer = 0f;
 
     // IK & Grab 相關
     private Transform ikTargetPoint = null;     // IK 伸手瞄準的目標點 (GrabPoint 或物件 Root)
@@ -373,6 +377,7 @@ public class NpcAI : MonoBehaviour
             currentAlertLevel += increaseRate * aiUpdateInterval;
             timeSinceLastSighting = 0f;
             lastSightingPosition = movingTarget.position;
+            noiseInvestigationTarget = null;
         }
         else
         {
@@ -388,6 +393,17 @@ public class NpcAI : MonoBehaviour
                 {
                     currentAlertLevel -= mediumAlertDecreaseRate * aiUpdateInterval;
                 }
+            }
+
+            // 優先順序 2: 如果沒看到人，但有聲音調查點，就去調查
+            if (noiseInvestigationTarget.HasValue)
+            {
+                InvestigateNoise();
+            }
+            else
+            {
+                // 優先順序 3: 沒事做，繼續巡邏
+                Patrol();
             }
         }
 
@@ -517,22 +533,66 @@ public class NpcAI : MonoBehaviour
         return detectedMovingTarget;
     }
 
-    public void HearNoise(float alertnessAmount, Vector3 noiseSource)
+    private void InvestigateNoise()
     {
-        // 增加警戒值，並限制在 0-200 之間 [cite: 94]
-        currentAlertness += alertnessAmount;
-        currentAlertness = Mathf.Clamp(currentAlertness, 0, 200);
+        if (!noiseInvestigationTarget.HasValue) return;
 
-        // 記錄最後聽到的位置
-        lastHeardNoisePosition = noiseSource;
+        agent.SetDestination(noiseInvestigationTarget.Value);
 
-        // 判斷是否要切換狀態
-        // 根據你的企劃書，警戒值 100-199 會進入巡邏 
-        if (currentAlertness >= 100 && currentState == NpcState.Searching) // (假設你的基礎狀態是 Searching )
+        // 檢查是否到達聲音來源附近
+        if (!agent.pathPending && agent.remainingDistance < 0.5f)
         {
-            // 觸發 AI 狀態機，切換到「前往調查」
-            // (例如：SetDestination(noiseSource); [cite: 93])
+            // 到達了，開始計時發呆
+            investigationTimer += Time.deltaTime;
+            if (investigationTimer >= investigateWaitTime)
+            {
+                Debug.Log("NPC: 這裡沒東西啊... (回去巡邏)");
+                noiseInvestigationTarget = null; // 清除目標，回歸 Patrol
+                investigationTimer = 0f;
+            }
         }
+    }
+
+    public void HearNoise(Vector3 position, float range, float intensity)
+    {
+        // 1. 計算距離衰減 (可選，這裡先簡化)
+        float distance = Vector3.Distance(transform.position, position);
+
+        // 簡單遮擋判斷：從 NPC 頭部射向聲音來源
+        // (這裡假設 NPC pivot 在腳底，所以 + Vector3.up * 1.5f)
+        Vector3 earPos = transform.position + Vector3.up * 1.5f;
+        if (Physics.Linecast(earPos, position, out RaycastHit hit))
+        {
+            // 如果中間有牆壁 (不是玩家)，聲音減弱
+            if (!hit.collider.CompareTag("Player"))
+            {
+                intensity *= 0.5f; // 隔牆有耳，但聽不清楚
+            }
+        }
+
+        // 2. 增加警戒值
+        float effectiveIntensity = intensity * hearingSensitivity;
+        currentAlertLevel += effectiveIntensity;
+
+        Debug.Log($"NPC 聽到聲音! 來源: {position}, 增加警戒: {effectiveIntensity}");
+
+        // 3. 設定調查點 (只有在 Searching 狀態才需要去調查，Alerted 會直接追殺)
+        // ▼▼▼ [核心修改] 加入警戒值門檻判斷 ▼▼▼
+        if (currentState == NpcState.Searching && currentAlertLevel >= 100f) // <--- 只有高於 100 (中警戒以上) 才去調查
+        {
+            // 只有當新的聲音來源跟目前去的地方不一樣，或是更近/更緊急時才切換？
+            // 這裡簡單處理：有新聲音符合條件就去
+            noiseInvestigationTarget = position;
+            agent.SetDestination(position); // 立刻走過去
+            investigationTimer = 0f; // 重置發呆計時
+
+            Debug.Log("NPC: 聲音太可疑了，過去看看！");
+        }
+        else if (currentState == NpcState.Searching)
+        {
+            Debug.Log("NPC: 好像有聲音... 應該是錯覺 (警戒值 < 100，無視)");
+        }
+        // ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
     }
 
     // 巡邏
