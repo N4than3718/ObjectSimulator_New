@@ -40,8 +40,10 @@ public class NpcAI : MonoBehaviour
     [SerializeField] private float movementThreshold = 0.1f; // 物體移動速度閾值
 
     [Header("聽覺設定")] // <--- [新增]
+    [Tooltip("聽覺靈敏度：1=正常，>1=敏感，<1=重聽")]
     [SerializeField] private float hearingSensitivity = 1.0f; // 聽覺靈敏度 (越高越容易受驚)
     [SerializeField] private float investigateWaitTime = 3.0f; // 到達聲音點後發呆多久
+    public float HearingSensitivity => hearingSensitivity;
 
     [Header("速度設定")]
     [SerializeField] private float patrolSpeed = 2f;
