@@ -335,12 +335,46 @@ public class PlayerMovement : MonoBehaviour
         Ray ray = new Ray(cameraTransform.position, cameraTransform.forward);
         HighlightableObject hitHighlightable = null;
         float hitDistance = interactionDistance;
-        if (Physics.Raycast(ray, out RaycastHit hit, interactionDistance)) {
-            if(hit.collider.transform.root != transform.root) {
-                 hitHighlightable = hit.collider.GetComponentInParent<HighlightableObject>();
-                 if (hitHighlightable != null) hitDistance = hit.distance;
+
+        // ▼▼▼ [核心修改] 改用 RaycastAll ▼▼▼
+        // 取得射線路徑上所有的碰撞 (不只是一個)
+        RaycastHit[] hits = Physics.RaycastAll(ray, interactionDistance);
+
+        // 我們需要找到 "最近的" 且 "不是自己" 的那個
+        float closestDistance = float.MaxValue;
+        RaycastHit closestHit = new RaycastHit();
+        bool foundValidTarget = false;
+
+        foreach (var hit in hits)
+        {
+            // 1. 排除自己 (檢查根物件是否相同)
+            if (hit.collider.transform.root == transform.root) continue;
+
+            // 2. 排除 Trigger (視需求，通常 Highlight 不選 Trigger)
+            if (hit.collider.isTrigger) continue;
+
+            // 3. 檢查是否有 HighlightableObject 元件
+            // 注意：這裡優化一下，先看距離，如果比當前最近的還遠，就不用 GetComponent 了，省效能
+            if (hit.distance < closestDistance)
+            {
+                var highlightable = hit.collider.GetComponentInParent<HighlightableObject>();
+                if (highlightable != null)
+                {
+                    closestDistance = hit.distance;
+                    closestHit = hit;
+                    hitHighlightable = highlightable;
+                    foundValidTarget = true;
+                }
             }
         }
+
+        // 更新距離 (如果找到了)
+        if (foundValidTarget)
+        {
+            hitDistance = closestDistance;
+        }
+        // ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
+
         if (hitHighlightable != currentlyTargetedPlayerObject) {
             if (currentlyTargetedPlayerObject != null) currentlyTargetedPlayerObject.SetTargetedHighlight(false);
             if (hitHighlightable != null && hitHighlightable.CompareTag("Player")) {
