@@ -314,7 +314,7 @@ public class PlayerMovement : MonoBehaviour
                 float intensity = isSprinting ? 15f : 5f; // 衝刺加比較多警戒值
 
                 // 發出聲音！
-                NoiseManager.MakeNoise(transform.position, range, intensity);
+                StealthManager.MakeNoise(transform.position, range, intensity);
 
                 if (showDebugGizmos)
                 {
@@ -477,7 +477,7 @@ public class PlayerMovement : MonoBehaviour
                 PlayJumpSound(); // 呼叫獨立的播放方法
 
                 // ▼▼▼ [新增] 跳躍發出聲音 ▼▼▼
-                NoiseManager.MakeNoise(transform.position, jumpNoiseRange, 10f);
+                StealthManager.MakeNoise(transform.position, jumpNoiseRange, 10f);
                 // ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
 
                 if (showDebugGizmos)
