@@ -3,24 +3,21 @@ using UnityEngine.InputSystem;
 
 public class SkillManager : MonoBehaviour
 {
-    [Header("技能插槽")]
-    [SerializeField] private BaseSkill currentSkill; // 拖曳該物件身上的技能腳本
+    [Header("核心引用")]
+    [SerializeField] private TeamManager teamManager;
 
     private InputSystem_Actions playerActions;
 
     private void Awake()
     {
-        // 自動抓取同一物件上的技能 (如果沒拖的話)
-        if (currentSkill == null) currentSkill = GetComponent<BaseSkill>();
-
+        if (teamManager == null) teamManager = FindAnyObjectByType<TeamManager>();
         playerActions = new InputSystem_Actions();
     }
 
     private void OnEnable()
     {
         playerActions.Player.Enable();
-        // 假設你在 Input System 裡設定了一個叫 "Interact" 或 "Skill" 的動作 (綁定 F 鍵)
-        // 如果還沒設，請去 InputSystem_Actions.inputactions 新增一個 Action
+        // 綁定 F 鍵 (假設你的 Action 叫 Interact 或 Skill)
         playerActions.Player.Interact.performed += OnSkillInput;
     }
 
@@ -32,17 +29,30 @@ public class SkillManager : MonoBehaviour
 
     private void OnSkillInput(InputAction.CallbackContext context)
     {
-        // 只有當這個物件被附身 (Active) 時才反應
-        // 簡單判斷：如果這個腳本啟用了，通常代表被附身了 (由 TeamManager 控制)
-        if (currentSkill != null && this.enabled)
+        // 1. 確認目前是否在附身狀態
+        if (teamManager == null || teamManager.CurrentGameState != TeamManager.GameState.Possessing)
         {
-            currentSkill.TryActivate();
+            return;
         }
-    }
 
-    // (可選) 如果你想動態切換技能
-    public void SetSkill(BaseSkill newSkill)
-    {
-        currentSkill = newSkill;
+        // 2. 取得當前操控的物件 (ActiveCharacter)
+        GameObject activeObj = teamManager.ActiveCharacterGameObject;
+
+        if (activeObj != null)
+        {
+            // 3. 自動搜尋該物件身上是否有任何 "BaseSkill" 的子類別 (FlashlightSkill, NoiseSkill...)
+            BaseSkill skill = activeObj.GetComponent<BaseSkill>();
+
+            if (skill != null)
+            {
+                // 4. 觸發技能
+                Debug.Log($"[SkillManager] 觸發了 {activeObj.name} 的 {skill.GetType().Name}");
+                skill.TryActivate();
+            }
+            else
+            {
+                Debug.LogWarning($"[lSkillManager] 當前物件 {activeObj.name} 身上沒有掛載任何技能腳本！");
+            }
+        }
     }
 }
