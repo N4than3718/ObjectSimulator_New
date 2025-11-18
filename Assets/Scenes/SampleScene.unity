@@ -3940,7 +3940,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::FlashlightSkill
   skillName: "\u672A\u547D\u540D\u6280\u80FD"
-  cooldownTime: 2
+  cooldownTime: 0.3
   skillIcon: {fileID: 0}
   spotlight: {fileID: 773731391}
   clickSound: {fileID: 0}
