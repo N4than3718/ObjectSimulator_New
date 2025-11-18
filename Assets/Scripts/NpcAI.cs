@@ -582,13 +582,35 @@ public class NpcAI : MonoBehaviour
         // ▼▼▼ [核心修改] 加入警戒值門檻判斷 ▼▼▼
         if (currentState == NpcState.Searching && currentAlertLevel >= 100f) // <--- 只有高於 100 (中警戒以上) 才去調查
         {
-            // 只有當新的聲音來源跟目前去的地方不一樣，或是更近/更緊急時才切換？
-            // 這裡簡單處理：有新聲音符合條件就去
-            noiseInvestigationTarget = position;
-            agent.SetDestination(position); // 立刻走過去
-            investigationTimer = 0f; // 重置發呆計時
+            // ▼▼▼ [核心修改] 使用 SamplePosition 修正導航點 ▼▼▼
+            NavMeshHit navHit;
 
-            Debug.Log("NPC: 聲音太可疑了，過去看看！");
+            // 參數說明:
+            // sourcePosition: 聲音來源
+            // out hit: 輸出的導航點資訊
+            // maxDistance: 5.0f (在聲音周圍 5 公尺內找路，你可以根據場景高度調整)
+            // areaMask: NavMesh.AllAreas (所有可行走區域)
+            if (NavMesh.SamplePosition(position, out navHit, 5.0f, NavMesh.AllAreas))
+            {
+                // 找到了！將調查目標設為導航網格上的這個有效點
+                noiseInvestigationTarget = navHit.position;
+                agent.SetDestination(navHit.position);
+                investigationTimer = 0f;
+
+                Debug.Log($"NPC: 聽到聲音，修正導航目標至: {navHit.position}");
+            }
+            else
+            {
+                // 找不到可行走點 (例如聲音在半空中或地圖外)
+                // 選擇 A: 就不移動了，只原地警戒
+                Debug.LogWarning($"NPC: 聽到聲音 {position} 但無法到達 (NavMesh 找不到點)。");
+
+                // 選擇 B: 或是嘗試直接設定原始座標 (雖然可能會卡住，但至少會試著靠近)
+                // noiseInvestigationTarget = position;
+                // agent.SetDestination(position);
+            }
+            // ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
+
         }
         else if (currentState == NpcState.Searching)
         {
