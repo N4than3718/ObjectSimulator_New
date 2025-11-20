@@ -278,6 +278,16 @@ public class TeamManager : MonoBehaviour
             TeamUnit unitToRemove = team[foundIndex];
 
             SetUnitControl(unitToRemove, false, true);
+            if (unitToRemove.character != null)
+            {
+                BaseSkill skill = unitToRemove.character.GetComponent<BaseSkill>();
+                if (skill != null)
+                {
+                    skill.enabled = false;
+                    Debug.Log($"[TeamManager] {characterObject.name} 被移除，技能已強制關閉。");
+                }
+            }
+
             // !! [修復] 用 new TeamUnit() 清空 struct
             team[foundIndex] = new TeamUnit();
 
