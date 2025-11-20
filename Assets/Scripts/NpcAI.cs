@@ -311,6 +311,8 @@ public class NpcAI : MonoBehaviour
         // 檢查從 TriggerPickup 傳來的 objectToGrab
         if (objectToGrab != null)
         {
+            if (teamManager != null) teamManager.RemoveCharacterFromTeam(threatTarget.gameObject);
+
             _heldObjectRef = objectToGrab; // 正式持有物件
 
             // 確定要對齊哪個點 (GrabPoint 或 Root)
@@ -452,7 +454,7 @@ public class NpcAI : MonoBehaviour
             if (Vector3.Distance(transform.position, threatTarget.position) < captureDistance)
             {
                 Debug.Log($"Capturing target: {threatTarget.name}!");
-                if (teamManager != null) teamManager.RemoveCharacterFromTeam(threatTarget.gameObject);
+                // if (teamManager != null) teamManager.RemoveCharacterFromTeam(threatTarget.gameObject);
                 TriggerPickup(threatTarget); // -> isStopped = true
                 currentAlertLevel = 0;
                 threatTarget = null;
