@@ -250,7 +250,6 @@ public class PlayerMovement : MonoBehaviour
         if (animator == null || rb == null) return; // 防呆
 
         // 傳遞參數
-        animator.SetBool("IsGrounded", IsGrounded);
         animator.SetBool("isOverEncumbered", isOverEncumbered);
 
         if (isOverEncumbered)

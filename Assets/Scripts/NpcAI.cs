@@ -452,9 +452,9 @@ public class NpcAI : MonoBehaviour
                 Debug.Log($"Capturing target: {threatTarget.name}!");
                 if (teamManager != null) teamManager.RemoveCharacterFromTeam(threatTarget.gameObject);
                 TriggerPickup(threatTarget); // -> isStopped = true
+                currentAlertLevel = 0;
                 threatTarget = null;
                 currentState = NpcState.Searching;
-                currentAlertLevel = 0;
                 return; // µ²§ô
             }
         }

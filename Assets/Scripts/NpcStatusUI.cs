@@ -4,7 +4,8 @@ using UnityEngine.UI;
 public class NpcStatusUI : MonoBehaviour
 {
     [Header("UI 參考")]
-    [SerializeField] private Image alertBarFill; // 拖曳警戒條的填充 Image
+    [SerializeField] private Image questionBar;    // 拖曳「問號」Bar
+    [SerializeField] private Image exclamationBar; // 拖曳「驚嘆號」Bar
     [SerializeField] private Image statusIcon;   // 拖曳顯示圖示的 Image
     [SerializeField] private Canvas canvasGroup; // 控制整體顯示/隱藏
 
@@ -47,35 +48,52 @@ public class NpcStatusUI : MonoBehaviour
 
     private void UpdateUI(float alertLevel, NpcAI.NpcState state)
     {
-        // 根據警戒值更新進度條 (假設最大值 200)
-        float fillAmount = alertLevel / 200f;
-        alertBarFill.fillAmount = fillAmount;
-
         // 狀態邏輯
         if (state == NpcAI.NpcState.Alerted)
         {
-            // 高度警戒：顯示 "!"，隱藏條 (或全滿)
-            statusIcon.gameObject.SetActive(true);
-            statusIcon.sprite = exclamationMarkIcon;
-            alertBarFill.transform.parent.gameObject.SetActive(false); // 追擊時可能不需要條
+            // --- 狀態：警戒 (追擊中) ---
+            // 顯示：驚嘆號
+            // 隱藏：問號
+
+            if (questionBar != null) questionBar.gameObject.SetActive(false);
+
+            if (exclamationBar != null)
+            {
+                exclamationBar.gameObject.SetActive(true);
+                exclamationBar.color = Color.red; // 紅色 (危險)
+                exclamationBar.fillAmount = 1.0f; // 追擊時通常是全滿，或者你可以顯示剩餘耐力?
+            }
+            return; // 追擊狀態下直接結束，不跑下面的邏輯
         }
         else if (alertLevel > 0) // Searching 但有警戒值
         {
-            // 懷疑中：顯示"?"
-            alertBarFill.transform.parent.gameObject.SetActive(true);
+            if (exclamationBar != null) exclamationBar.gameObject.SetActive(false);
             statusIcon.gameObject.SetActive(true);
-            statusIcon.sprite = questionMarkIcon;
+
+            if (questionBar != null)
+            {
+                statusIcon.sprite = questionMarkIcon;
+                questionBar.gameObject.SetActive(true);
+                questionBar.fillAmount = alertLevel / 100f;
+            }
 
             if (alertLevel >= 100) // 高於 100 顯示 "!"
             {
+                questionBar.gameObject.SetActive(false);
                 statusIcon.sprite = exclamationMarkIcon;
+                exclamationBar.gameObject.SetActive(true);
+                exclamationBar.color = new Color(1f, 0.5f, 0f); // 橘色 (高度警戒)
+                exclamationBar.fillAmount = (alertLevel -100f) / 100f;
+
             }
         }
         else
         {
-            // 完全沒事：全部隱藏
+            // --- 狀態：沒事 ---
+            // 全部隱藏
             statusIcon.gameObject.SetActive(false);
-            alertBarFill.transform.parent.gameObject.SetActive(false);
+            if (questionBar != null) questionBar.gameObject.SetActive(false);
+            if (exclamationBar != null) exclamationBar.gameObject.SetActive(false);
         }
     }
 }

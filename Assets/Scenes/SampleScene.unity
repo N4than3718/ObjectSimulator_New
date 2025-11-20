@@ -3691,12 +3691,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a910d8b86a383a1459ab0efc1bcbaff6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::NpcStatusUI
-  alertBarFill: {fileID: 1755917926}
+  questionBar: {fileID: 1755917926}
+  exclamationBar: {fileID: 1757462146}
   statusIcon: {fileID: 1522485981}
   canvasGroup: {fileID: 1286714444}
   questionMarkIcon: {fileID: 21300000, guid: c656cd6f60c361c409f9a60fec4cb4ac, type: 3}
   exclamationMarkIcon: {fileID: 21300000, guid: e3d9c6655b724034fa1a20965748736c, type: 3}
-  offset: {x: 0, y: 2.2, z: 0}
+  offset: {x: 0, y: 9.2, z: 0}
 --- !u!223 &1286714444 stripped
 Canvas:
   m_CorrespondingSourceObject: {fileID: 8784266869502869341, guid: eca99061b16608644ae0745a4a68a3d2, type: 3}
@@ -5625,6 +5626,17 @@ AudioListener:
 --- !u!114 &1755917926 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 3083148206587646087, guid: eca99061b16608644ae0745a4a68a3d2, type: 3}
+  m_PrefabInstance: {fileID: 7915308419812952566}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
+--- !u!114 &1757462146 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 6952308104636374008, guid: eca99061b16608644ae0745a4a68a3d2, type: 3}
   m_PrefabInstance: {fileID: 7915308419812952566}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 0}
