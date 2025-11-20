@@ -1151,7 +1151,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::PlayerMovement
   cameraTransform: {fileID: 449396938}
   centerOfMassHelper: {fileID: 0}
-  radialMenuIcon: {fileID: 0}
+  radialMenuIcon: {fileID: 21300000, guid: 4c0026f6c19e0b144bb44c49e2840958, type: 3}
   myCharacterCamera: {fileID: 449396934}
   myFollowTarget: {fileID: 2094097422}
   jumpSound: {fileID: 8300000, guid: 6c6851817749c6f4389fe031b749df24, type: 3}
@@ -4304,7 +4304,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!114 &1451776243
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4318,7 +4318,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ThumbnailCreator
   Entities:
-  - {fileID: 1795775345}
+  - {fileID: 1373741155}
   TargetPath: Icons
 --- !u!4 &1451776244
 Transform:
@@ -4775,7 +4775,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::PlayerMovement
   cameraTransform: {fileID: 1816948872}
   centerOfMassHelper: {fileID: 0}
-  radialMenuIcon: {fileID: 0}
+  radialMenuIcon: {fileID: 21300000, guid: 2116512939e06f04fbcb68e66fbf73d5, type: 3}
   myCharacterCamera: {fileID: 1816948868}
   myFollowTarget: {fileID: 189545398}
   jumpSound: {fileID: 8300000, guid: 6c6851817749c6f4389fe031b749df24, type: 3}
