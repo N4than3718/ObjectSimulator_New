@@ -1380,9 +1380,9 @@ MonoBehaviour:
   skillName: "\u97FF\u9234\u8A98\u990C"
   cooldownTime: 1
   skillIcon: {fileID: 0}
-  noiseRadius: 15
-  noiseIntensity: 20
-  noiseInterval: 1
+  noiseRadius: 45
+  noiseIntensity: 30
+  noiseInterval: 0.8
   ringingPart: {fileID: 755088639}
   shakeAmount: 0.05
 --- !u!1 &410087039
