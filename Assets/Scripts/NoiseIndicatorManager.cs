@@ -35,6 +35,6 @@ public class NoiseIndicatorManager : MonoBehaviour
         NoiseIndicatorUI newIndicator = Instantiate(indicatorPrefab, indicatorContainer);
 
         // 4. ªì©l¤Æ
-        newIndicator.Initialize(npc.transform, camTransform, intensity);
+        newIndicator.Initialize(npc, camTransform);
     }
 }
