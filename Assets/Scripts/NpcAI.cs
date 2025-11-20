@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -64,6 +65,7 @@ public class NpcAI : MonoBehaviour
 
     public float CurrentAlertLevel => currentAlertLevel;
     public NpcState CurrentState => currentState;
+    public static event Action<NpcAI, float> OnNoiseHeard;
 
     // --- 私有變數 ---
     private FieldOfView fov;
@@ -590,6 +592,11 @@ public class NpcAI : MonoBehaviour
         currentAlertLevel += effectiveIntensity;
 
         Debug.Log($"NPC 聽到聲音! 來源: {position}, 增加警戒: {effectiveIntensity}");
+
+        if (effectiveIntensity > 1f) // 過濾掉太小的聲音
+        {
+            OnNoiseHeard?.Invoke(this, effectiveIntensity);
+        }
 
         // 3. 設定調查點 (只有在 Searching 狀態才需要去調查，Alerted 會直接追殺)
         // ▼▼▼ [核心修改] 加入警戒值門檻判斷 ▼▼▼
