@@ -23,6 +23,9 @@ public class NpcAI : MonoBehaviour
     [Tooltip("Optional: 右手肘提示點，避免手臂穿插")]
     public Transform rightElbowHint; // 改為 public 指定，比 FindRecursive 穩定
 
+    [Header("UI 設定")] // <--- [新增]
+    [SerializeField] private NpcStatusUI statusUiPrefab; // 拖曳剛剛做的 UI Prefab
+
     [Header("AI 狀態")]
     [SerializeField] private NpcState currentState = NpcState.Searching;
 
@@ -58,6 +61,9 @@ public class NpcAI : MonoBehaviour
 
     [Header("Debug")]
     [SerializeField][Range(0, 200)] private float currentAlertLevel = 0f;
+
+    public float CurrentAlertLevel => currentAlertLevel;
+    public NpcState CurrentState => currentState;
 
     // --- 私有變數 ---
     private FieldOfView fov;
@@ -125,6 +131,13 @@ public class NpcAI : MonoBehaviour
                 Debug.LogWarning("First patrol point is null. Please assign patrol points.", this.gameObject);
             }
             StartCoroutine(AIUpdateLoop());
+        }
+
+        if (statusUiPrefab != null)
+        {
+            NpcStatusUI uiInstance = Instantiate(statusUiPrefab, transform.position, Quaternion.identity);
+            // 注意：這裡不設 parent，避免 UI 跟著 NPC 旋轉變形，而是由 UI 腳本自己跟隨位置
+            uiInstance.Initialize(this);
         }
     }
 
