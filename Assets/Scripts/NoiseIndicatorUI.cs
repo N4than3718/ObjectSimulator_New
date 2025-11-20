@@ -12,20 +12,21 @@ public class NoiseIndicatorUI : MonoBehaviour
     [SerializeField] private float displayDuration = 1.0f; // 顯示多久
     [SerializeField] private float fadeSpeed = 2.0f;
 
-    private Transform targetNPC; // 指向誰
+    private Transform targetTransform; // 用來算方向
+    private NpcAI targetNPC;           // ▼ [新增] 用來讀取警戒值
     private Transform playerCamera;
     private float timer = 0f;
 
-    public void Initialize(Transform npc, Transform camera, float intensity)
+    public void Initialize(NpcAI npc, Transform camera)
     {
         targetNPC = npc;
+        targetTransform = npc.transform;
         playerCamera = camera;
         timer = displayDuration;
 
-        // 根據強度改變顏色或大小 (可選)
-        iconImage.color = Color.Lerp(Color.yellow, Color.red, intensity / 100f);
-
         canvasGroup.alpha = 1f; // 顯示
+        // 初始化時先更新一次顏色
+        UpdateColor();
     }
 
     void Update()
@@ -42,17 +43,51 @@ public class NoiseIndicatorUI : MonoBehaviour
             }
         }
 
-        // 2. 更新方向 (核心邏輯)
+        // 2. 檢查目標是否存在
+        if (targetTransform == null || playerCamera == null) return;
+
+        // 3. 更新方向 (核心邏輯)
         if (targetNPC != null && playerCamera != null)
         {
             UpdateDirection();
+        }
+
+        // 4. ▼ [新增] 持續更新顏色 (如果想要即時反應)
+        if (targetNPC != null)
+        {
+            UpdateColor();
+        }
+    }
+
+    // ▼ [新增] 顏色變換邏輯
+    private void UpdateColor()
+    {
+        // 如果已經是追擊狀態 -> 直接紅色
+        if (targetNPC.CurrentState == NpcAI.NpcState.Alerted)
+        {
+            iconImage.color = Color.red;
+            return;
+        }
+
+        float alert = targetNPC.CurrentAlertLevel;
+
+        if (alert < 100f)
+        {
+            // 0~100: 黃色 -> 橘色
+            // Color.Lerp(顏色A, 顏色B, 百分比 0~1)
+            iconImage.color = Color.Lerp(Color.yellow, new Color(1f, 0.5f, 0f), alert / 100f);
+        }
+        else
+        {
+            // 100~200: 橘色 -> 紅色
+            iconImage.color = Color.Lerp(new Color(1f, 0.5f, 0f), Color.red, (alert - 100f) / 100f);
         }
     }
 
     private void UpdateDirection()
     {
         // 取得從 攝影機 到 NPC 的方向向量
-        Vector3 directionToNPC = targetNPC.position - playerCamera.position;
+        Vector3 directionToNPC = targetTransform.position - playerCamera.position;
 
         // 只要水平方向 (忽略高度差)
         directionToNPC.y = 0;
