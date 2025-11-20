@@ -243,9 +243,23 @@ public class NpcAI : MonoBehaviour
     }
 
     // 啟動撿拾流程
-    public void TriggerPickup(Transform targetRoot)
+    public void TriggerPickup(Transform targetInput)
     {
-        if (targetRoot == null) { Debug.LogError("TriggerPickup called with null targetRoot!"); return; }
+        if (targetInput == null) { Debug.LogError("TriggerPickup called with null targetRoot!"); return; }
+
+        Transform targetRoot = targetInput;
+        PlayerMovement pm = targetInput.GetComponentInParent<PlayerMovement>();
+
+        if (pm != null)
+        {
+            targetRoot = pm.transform; // 找到了！這才是真正的鬧鐘
+        }
+        else
+        {
+            targetRoot = targetInput.root; // 如果沒找到 PM，就用最上層的 root 保底
+        }
+
+        Debug.Log($"NPC 修正抓取目標: {targetInput.name} -> {targetRoot.name}");
 
         // 停止 Agent 移動
         if (agent != null && agent.enabled) agent.isStopped = true;
@@ -311,7 +325,7 @@ public class NpcAI : MonoBehaviour
         // 檢查從 TriggerPickup 傳來的 objectToGrab
         if (objectToGrab != null)
         {
-            if (teamManager != null) teamManager.RemoveCharacterFromTeam(threatTarget.gameObject);
+            if (teamManager != null) teamManager.RemoveCharacterFromTeam(objectToGrab.gameObject);
 
             _heldObjectRef = objectToGrab; // 正式持有物件
 
