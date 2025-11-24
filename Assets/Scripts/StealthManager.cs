@@ -6,7 +6,7 @@ public static class StealthManager
 {
     // 儲存所有場景中的 NPC，避免每次都要 FindObject 或 OverlapSphere
     private static List<NpcAI> allNpcs = new List<NpcAI>();
-    public static event System.Action<Vector3, float> OnNoiseEmitted;
+    public static event System.Action<GameObject, Vector3, float> OnNoiseEmitted;
 
     // --- NPC 註冊系統 ---
     // NpcAI.cs 在 Start() 時呼叫
@@ -35,10 +35,9 @@ public static class StealthManager
     /// <param name="position">聲音來源位置</param>
     /// <param name="range">聲音傳播半徑 (聽覺範圍)</param>
     /// <param name="intensity">聲音強度 (影響警戒值增加量)</param>
-    public static void MakeNoise(Vector3 position, float range, float intensity)
+    public static void MakeNoise(GameObject source, Vector3 position, float range, float intensity)
     {
-        // (可選) 在 Editor 裡畫個圈圈 Debug 用
-        // Debug.DrawRay(position, Vector3.up * 2, Color.cyan, 1f);
+        OnNoiseEmitted?.Invoke(source, position, range);
 
         // 遍歷所有已註冊的 NPC
         // 這種方法比 Physics.OverlapSphere 更快，因為我們只檢查相關的 NPC，而不是場景裡所有的 Collider
@@ -67,14 +66,15 @@ public static class StealthManager
                 npc.HearNoise(position, range, intensity);
             }
         }
-        OnNoiseEmitted?.Invoke(position, range);
     }
 
-    // 為了相容性，保留舊的 ReportNoise 方法，但導向 MakeNoise
-    // 這樣你還沒改到的 ImpactSoundEmitter 也不會報錯
+    public static void MakeNoise(Vector3 position, float range, float intensity)
+    {
+        MakeNoise(null, position, range, intensity);
+    }
+
     public static void ReportNoise(Vector3 sourcePosition, float radius)
     {
-        // 預設給一個強度，例如 radius * 2
-        MakeNoise(sourcePosition, radius, radius * 2f);
+        MakeNoise(null, sourcePosition, radius, radius * 2f);
     }
 }
