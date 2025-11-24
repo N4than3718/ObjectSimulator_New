@@ -12,7 +12,7 @@ public class NoiseRippleManager : MonoBehaviour
 
     [Header("效能與視覺優化")]
     [Tooltip("單一物件產生聲紋的最小間隔時間 (秒)")]
-    [SerializeField] private float objectSpawnCooldown = 0.5f; // 這裡設定 0.5 秒
+    [SerializeField] private float objectSpawnCooldown = 0.3f;
 
     private Dictionary<GameObject, float> _cooldownDict = new Dictionary<GameObject, float>();
     private float _globalFallbackTime = -10f; // 給沒有 source 的聲音用的後備冷卻
