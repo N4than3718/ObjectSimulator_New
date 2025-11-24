@@ -45,7 +45,10 @@ public class NpcAI : MonoBehaviour
 
     [Header("聽覺與調查設定")] // <--- [修改] 分類標題
     [SerializeField] private float hearingSensitivity = 1.0f;
-    [SerializeField] private float investigateWaitTime = 4.0f; // [修改]稍微久一點，讓他有時間轉頭
+    [Tooltip("將你的 LookAround 動畫檔拖進來，系統會自動設定調查時間")]
+    [SerializeField] private AnimationClip lookAroundAnimClip;
+    [Tooltip("如果沒有指定動畫檔，將使用此預設時間")]
+    [SerializeField] private float investigateWaitTime = 4.0f;
     [Tooltip("Animator Controller 裡的 Bool 參數名稱")]
     [SerializeField] private string lookAroundAnimParam = "IsLookingAround";
     public float HearingSensitivity => hearingSensitivity;
@@ -115,6 +118,12 @@ public class NpcAI : MonoBehaviour
 
     void Start()
     {
+        if (lookAroundAnimClip != null)
+        {
+            investigateWaitTime = lookAroundAnimClip.length;
+            Debug.Log($"NPC ({name}): 自動依據動畫 '{lookAroundAnimClip.name}' 設定調查時間為 {investigateWaitTime} 秒");
+        }
+
         // Debug 模式或正常啟動 AI
         if (forcePickupDebug && debugPickupTarget != null)
         {
