@@ -1904,7 +1904,7 @@ MonoBehaviour:
   movementThreshold: 0.1
   hearingSensitivity: 1
   investigateWaitTime: 3
-  lookAroundSpeed: 2
+  lookAroundAnimParam: IsLookingAround
   patrolSpeed: 8
   investigateSpeed: 10
   chaseSpeed: 15
