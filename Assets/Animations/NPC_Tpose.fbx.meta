@@ -347,425 +347,425 @@ ModelImporter:
       position: {x: -0, y: 0, z: 0}
       rotation: {x: -0.7071068, y: 0, z: -0, w: 0.7071067}
       scale: {x: 100, y: 100, z: 100}
+    - name: mixamorig:Hips
+      parentName: NPC_Tpose(Clone)
+      position: {x: -0.000009416098, y: 5.063588, z: 0.015495163}
+      rotation: {x: 1.2848649e-11, y: -0.00000062737297, z: 0.000020480082, w: 1}
+      scale: {x: 1, y: 1, z: 1}
+    - name: mixamorig:LeftUpLeg
+      parentName: mixamorig:Hips
+      position: {x: -0.39065278, y: -0.27293435, z: -0.016699957}
+      rotation: {x: 0.0021836478, y: -0.0055559007, z: 0.9999544, w: 0.00745486}
+      scale: {x: 1, y: 1, z: 1}
+    - name: mixamorig:LeftLeg
+      parentName: mixamorig:LeftUpLeg
+      position: {x: 0.0000016170833, y: 2.239598, z: 0.0004205772}
+      rotation: {x: -0.020013234, y: -0.000025007883, z: 0.015431173, w: 0.99968064}
+      scale: {x: 1, y: 1, z: 1}
+    - name: mixamorig:LeftFoot
+      parentName: mixamorig:LeftLeg
+      position: {x: -0.0000029448222, y: 2.110196, z: -0.000014070411}
+      rotation: {x: 0.49992973, y: -0.036353525, z: -0.030463208, w: 0.86476624}
+      scale: {x: 1, y: 1, z: 1}
+    - name: mixamorig:LeftToeBase
+      parentName: mixamorig:LeftFoot
+      position: {x: -0.0000000087868735, y: 0.80049175, z: 0.0000003065285}
+      rotation: {x: 0.28080878, y: 0.09078, z: -0.02669054, w: 0.955088}
+      scale: {x: 1, y: 1, z: 1}
+    - name: mixamorig:LeftToe_End
+      parentName: mixamorig:LeftToeBase
+      position: {x: 6.803113e-10, y: 0.32223502, z: 5.823477e-11}
+      rotation: {x: 0, y: -0, z: -0, w: 1}
+      scale: {x: 1, y: 1, z: 1}
+    - name: mixamorig:RightUpLeg
+      parentName: mixamorig:Hips
+      position: {x: 0.39065278, y: -0.27293444, z: -0.01637011}
+      rotation: {x: -0.0021250055, y: -0.0038977696, z: 0.9999626, w: -0.0074193976}
+      scale: {x: 1, y: 1, z: 1}
+    - name: mixamorig:RightLeg
+      parentName: mixamorig:RightUpLeg
+      position: {x: 0.000002099689, y: 2.2395022, z: 0.0014437722}
+      rotation: {x: -0.023748301, y: 0.00006763907, z: -0.015444869, w: 0.9995987}
+      scale: {x: 1, y: 1, z: 1}
+    - name: mixamorig:RightFoot
+      parentName: mixamorig:RightLeg
+      position: {x: 0.0000028551563, y: 2.1107106, z: -0.000014156421}
+      rotation: {x: 0.50394326, y: 0.03616058, z: 0.030516695, w: 0.86243975}
+      scale: {x: 1, y: 1, z: 1}
+    - name: mixamorig:RightToeBase
+      parentName: mixamorig:RightFoot
+      position: {x: -0.000000059212823, y: 0.80694044, z: 0.0000003793066}
+      rotation: {x: 0.27835965, y: -0.09104471, z: 0.026515577, w: 0.9557844}
+      scale: {x: 1, y: 1, z: 1}
+    - name: mixamorig:RightToe_End
+      parentName: mixamorig:RightToeBase
+      position: {x: 6.3182404e-11, y: 0.32273638, z: -3.0285446e-12}
+      rotation: {x: 0, y: -0, z: -0, w: 1}
+      scale: {x: 1, y: 1, z: 1}
+    - name: mixamorig:Spine
+      parentName: mixamorig:Hips
+      position: {x: -1.7578747e-11, y: 0.49131715, z: -0.009066642}
+      rotation: {x: -0.0092256935, y: 0.0000008162892, z: -0.000020473415, w: 0.99995744}
+      scale: {x: 1, y: 1, z: 1}
+    - name: mixamorig:Spine1
+      parentName: mixamorig:Spine
+      position: {x: 1.4164109e-12, y: 0.57330066, z: -0.000000016506837}
+      rotation: {x: 0, y: -0, z: -0, w: 1}
+      scale: {x: 1, y: 1, z: 1}
+    - name: mixamorig:Spine2
+      parentName: mixamorig:Spine1
+      position: {x: -6.5133787e-13, y: 0.65520155, z: 0.0000000108819656}
+      rotation: {x: 0, y: -0, z: -0, w: 1}
+      scale: {x: 1, y: 1, z: 1}
+    - name: mixamorig:LeftShoulder
+      parentName: mixamorig:Spine2
+      position: {x: -0.2851698, y: 0.6108042, z: -0.0022255818}
+      rotation: {x: 0.5451909, y: -0.44922316, z: 0.5477059, w: 0.44831213}
+      scale: {x: 1, y: 1, z: 1}
+    - name: mixamorig:LeftArm
+      parentName: mixamorig:LeftShoulder
+      position: {x: 0.000000091916206, y: 0.6276147, z: -0.000000020047688}
+      rotation: {x: -0.097671404, y: -0.045125633, z: 0.0026581096, w: 0.9941916}
+      scale: {x: 1, y: 1, z: 1}
+    - name: mixamorig:LeftForeArm
+      parentName: mixamorig:LeftArm
+      position: {x: 0.000048633276, y: 1.2365276, z: 0.00003481242}
+      rotation: {x: 0.000010226415, y: -0.0055289753, z: -0.00002076744, w: 0.99998474}
+      scale: {x: 1, y: 1, z: 1}
+    - name: mixamorig:LeftHand
+      parentName: mixamorig:LeftForeArm
+      position: {x: -0.0000026897437, y: 1.3992689, z: 0.000012069212}
+      rotation: {x: 0.0000001415839, y: -0.0013819855, z: 0.000001013308, w: 0.99999905}
+      scale: {x: 1, y: 1, z: 1}
+    - name: mixamorig:LeftHandIndex1
+      parentName: mixamorig:LeftHand
+      position: {x: 0.0000000994902, y: 0.41732308, z: 0.0000041276585}
+      rotation: {x: 0.0000028450104, y: -0.7609752, z: -0.0000032204512, w: 0.648781}
+      scale: {x: 1, y: 1, z: 1}
+    - name: mixamorig:LeftHandIndex2
+      parentName: mixamorig:LeftHandIndex1
+      position: {x: -0.00000012698118, y: 0.17569356, z: 0.000000042187402}
+      rotation: {x: 0.20999919, y: 0.000000025095243, z: 0.08109334, w: 0.97433275}
+      scale: {x: 1, y: 1, z: 1}
+    - name: mixamorig:LeftHandIndex3
+      parentName: mixamorig:LeftHandIndex2
+      position: {x: 0.046111222, y: 0.26221573, z: -0.11940594}
+      rotation: {x: 0.05313148, y: -0.03778296, z: -0.062454738, w: 0.9959161}
+      scale: {x: 1, y: 1, z: 1}
+    - name: mixamorig:LeftHandIndex4
+      parentName: mixamorig:LeftHandIndex3
+      position: {x: 0.0024891386, y: 0.16651319, z: -0.09861533}
+      rotation: {x: 0, y: -0, z: -0, w: 1}
+      scale: {x: 1, y: 1, z: 1}
+    - name: mixamorig:Neck
+      parentName: mixamorig:Spine2
+      position: {x: 7.874692e-12, y: 0.73710036, z: 0.000000083645304}
+      rotation: {x: 0.0092256805, y: -0, z: -0, w: 0.99995744}
+      scale: {x: 1, y: 1, z: 1}
+    - name: mixamorig:Head
+      parentName: mixamorig:Neck
+      position: {x: 1.1026129e-11, y: 0.43567276, z: 0.066481695}
+      rotation: {x: 0, y: -0, z: -0, w: 1}
+      scale: {x: 1, y: 1, z: 1}
+    - name: mixamorig:HeadTop_End
+      parentName: mixamorig:Head
+      position: {x: -0, y: 1.1200786, z: 0.17091945}
+      rotation: {x: -3.469447e-18, y: 0, z: -0, w: 1}
+      scale: {x: 1, y: 1, z: 1}
+    - name: mixamorig:RightShoulder
+      parentName: mixamorig:Spine2
+      position: {x: 0.2851698, y: 0.61080813, z: -0.0024356835}
+      rotation: {x: -0.5449558, y: -0.44934204, z: 0.54793465, w: -0.4481992}
+      scale: {x: 1, y: 1, z: 1}
+    - name: mixamorig:RightArm
+      parentName: mixamorig:RightShoulder
+      position: {x: -0.00000015782416, y: 0.6276146, z: -0.000000654856}
+      rotation: {x: -0.0976878, y: 0.041743692, z: -0.0019665603, w: 0.99433935}
+      scale: {x: 1, y: 1, z: 1}
+    - name: mixamorig:RightForeArm
+      parentName: mixamorig:RightArm
+      position: {x: -0.000047936457, y: 1.2362626, z: 0.000034856806}
+      rotation: {x: 0.000010095571, y: 0.005247508, z: 0.000020229993, w: 0.99998623}
+      scale: {x: 1, y: 1, z: 1}
+    - name: mixamorig:RightHand
+      parentName: mixamorig:RightForeArm
+      position: {x: 0.0000017407114, y: 1.3982694, z: 0.000009617952}
+      rotation: {x: 0.000008364522, y: 0.00027807217, z: -0.00000050908886, w: 1}
+      scale: {x: 1, y: 1, z: 1}
+    - name: mixamorig:RightHandIndex1
+      parentName: mixamorig:RightHand
+      position: {x: -0.00000009984735, y: 0.43154356, z: -0.000004488121}
+      rotation: {x: -0.0000051655034, y: 0.39580277, z: -0.0000017681892, w: 0.91833556}
+      scale: {x: 1, y: 1, z: 1}
+    - name: mixamorig:RightHandIndex2
+      parentName: mixamorig:RightHandIndex1
+      position: {x: 0.00000024991118, y: 0.1722194, z: -0.00000022989754}
+      rotation: {x: 0.19397846, y: 0.0000000010408097, z: -0.04654619, w: 0.9799009}
+      scale: {x: 1, y: 1, z: 1}
+    - name: mixamorig:RightHandIndex3
+      parentName: mixamorig:RightHandIndex2
+      position: {x: -0.026168134, y: 0.26402286, z: -0.10904827}
+      rotation: {x: 0.037538994, y: -0.018772334, z: -0.054457642, w: 0.99763364}
+      scale: {x: 1, y: 1, z: 1}
+    - name: mixamorig:RightHandIndex4
+      parentName: mixamorig:RightHandIndex3
+      position: {x: -0.038007572, y: 0.16221945, z: -0.08212048}
+      rotation: {x: 0, y: -0, z: -0, w: 1}
+      scale: {x: 1, y: 1, z: 1}
     - name: NPC_Ctrl_Reference
       parentName: NPC_Tpose(Clone)
       position: {x: -0, y: 0, z: 0}
       rotation: {x: 0, y: -0, z: -0, w: 1}
       scale: {x: 1, y: 1, z: 1}
-    - name: NPC_Ctrl_HipsEffector
+    - name: NPC_Ctrl_ChestEndEffector
       parentName: NPC_Ctrl_Reference
-      position: {x: 0.000000017790795, y: 0.047906566, z: -0.000010398692}
-      rotation: {x: 3.061617e-17, y: -0, z: -0, w: 1}
-      scale: {x: 1, y: 1, z: 1}
-    - name: NPC_Ctrl_LeftAnkleEffector
-      parentName: NPC_Ctrl_Reference
-      position: {x: -0.003906529, y: 0.00444261, z: -0.0013368115}
-      rotation: {x: 6.0426653e-15, y: 1.9472271e-16, z: -4.590512e-16, w: 1}
-      scale: {x: 1, y: 1, z: 1}
-    - name: NPC_Ctrl_RightAnkleEffector
-      parentName: NPC_Ctrl_Reference
-      position: {x: 0.003906544, y: 0.004442636, z: -0.0013368498}
-      rotation: {x: -1.8115917e-16, y: 1.9472271e-16, z: -2.9034934e-16, w: 1}
-      scale: {x: 1, y: 1, z: 1}
-    - name: NPC_Ctrl_LeftWristEffector
-      parentName: NPC_Ctrl_Reference
-      position: {x: -0.03536633, y: 0.072717965, z: -0.00029523633}
-      rotation: {x: 0, y: -0, z: -0, w: 1}
-      scale: {x: 1, y: 1, z: 1}
-    - name: NPC_Ctrl_RightWristEffector
-      parentName: NPC_Ctrl_Reference
-      position: {x: 0.03535308, y: 0.07271797, z: -0.00030152797}
-      rotation: {x: -1.2325952e-32, y: 6.123234e-17, z: 0, w: 1}
-      scale: {x: 1, y: 1, z: 1}
-    - name: NPC_Ctrl_LeftKneeEffector
-      parentName: NPC_Ctrl_Reference
-      position: {x: -0.0042400365, y: 0.025514204, z: -0.00025534423}
-      rotation: {x: 1.7823818e-15, y: 2.7863996e-17, z: 1.1449175e-16, w: 1}
-      scale: {x: 1, y: 1, z: 1}
-    - name: NPC_Ctrl_RightKneeEffector
-      parentName: NPC_Ctrl_Reference
-      position: {x: 0.0042400556, y: 0.02551472, z: -0.00016782529}
-      rotation: {x: 5.5146766e-15, y: -1.2403273e-16, z: 1.6132928e-16, w: 1}
-      scale: {x: 1, y: 1, z: 1}
-    - name: NPC_Ctrl_LeftElbowEffector
-      parentName: NPC_Ctrl_Reference
-      position: {x: -0.021373631, y: 0.07271809, z: -0.00029522568}
-      rotation: {x: -1.110223e-16, y: 9.788379e-23, z: 2.5410988e-21, w: 1}
-      scale: {x: 1, y: 1, z: 1}
-    - name: NPC_Ctrl_RightElbowEffector
-      parentName: NPC_Ctrl_Reference
-      position: {x: 0.021370385, y: 0.072718084, z: -0.0003015317}
-      rotation: {x: -2.220446e-16, y: 1.8041898e-21, z: 4.2351647e-22, w: 1}
+      position: {x: -0.000029528379, y: 7.393861, z: -0.029838018}
+      rotation: {x: -1.5785984e-16, y: -1.6899023e-16, z: -2.1780784e-16, w: 1}
       scale: {x: 1, y: 1, z: 1}
     - name: NPC_Ctrl_ChestOriginEffector
       parentName: NPC_Ctrl_Reference
-      position: {x: -0.0000002953349, y: 0.05554908, z: 0.000064285436}
+      position: {x: -0.00002953349, y: 5.5549083, z: 0.0064285435}
       rotation: {x: -1.474515e-16, y: 1.485251e-17, z: 3.687027e-17, w: 1}
-      scale: {x: 1, y: 1, z: 1}
-    - name: NPC_Ctrl_ChestEndEffector
-      parentName: NPC_Ctrl_Reference
-      position: {x: -0.0000002952838, y: 0.07393861, z: -0.00029838018}
-      rotation: {x: -1.5785984e-16, y: -1.6899023e-16, z: -2.1780784e-16, w: 1}
-      scale: {x: 1, y: 1, z: 1}
-    - name: NPC_Ctrl_LeftFootEffector
-      parentName: NPC_Ctrl_Reference
-      position: {x: -0.003944069, y: 0.000102578095, z: 0.005389372}
-      rotation: {x: 2.2365468e-32, y: -0, z: -1.2246469e-16, w: 1}
-      scale: {x: 1, y: 1, z: 1}
-    - name: NPC_Ctrl_RightFootEffector
-      parentName: NPC_Ctrl_Reference
-      position: {x: 0.003944098, y: 0.0001024457, z: 0.0054658554}
-      rotation: {x: 2.2365468e-32, y: -0, z: -1.2246469e-16, w: 1}
-      scale: {x: 1, y: 1, z: 1}
-    - name: NPC_Ctrl_LeftShoulderEffector
-      parentName: NPC_Ctrl_Reference
-      position: {x: -0.00900834, y: 0.07271817, z: -0.00029522658}
-      rotation: {x: -1.110223e-16, y: -6.446432e-22, z: 2.5410988e-21, w: 1}
-      scale: {x: 1, y: 1, z: 1}
-    - name: NPC_Ctrl_RightShoulderEffector
-      parentName: NPC_Ctrl_Reference
-      position: {x: 0.009007749, y: 0.07271817, z: -0.00030153108}
-      rotation: {x: 4.922492e-27, y: 6.254084e-22, z: -0, w: 1}
       scale: {x: 1, y: 1, z: 1}
     - name: NPC_Ctrl_HeadEffector
       parentName: NPC_Ctrl_Reference
-      position: {x: -0.00000029533484, y: 0.07955851, z: 0.0003664401}
+      position: {x: -0.000029533483, y: 7.9558506, z: 0.036644004}
       rotation: {x: 3.061617e-17, y: -0, z: -0, w: 1}
-      scale: {x: 1, y: 1, z: 1}
-    - name: NPC_Ctrl_LeftHipEffector
-      parentName: NPC_Ctrl_Reference
-      position: {x: -0.0039065145, y: 0.047906406, z: -0.000012052822}
-      rotation: {x: -9.2754775e-15, y: 8.021741e-17, z: 1.1188966e-16, w: 1}
-      scale: {x: 1, y: 1, z: 1}
-    - name: NPC_Ctrl_RightHipEffector
-      parentName: NPC_Ctrl_Reference
-      position: {x: 0.00390655, y: 0.047906727, z: -0.000008744562}
-      rotation: {x: -1.7335389e-15, y: 2.9713916e-17, z: -3.3393427e-16, w: 1}
-      scale: {x: 1, y: 1, z: 1}
-    - name: NPC_Ctrl_LeftHandIndexEffector
-      parentName: NPC_Ctrl_Reference
-      position: {x: -0.046149794, y: 0.07271785, z: -0.00029526502}
-      rotation: {x: -1.9387046e-26, y: 2.5410988e-21, z: 1.1530005e-22, w: 1}
-      scale: {x: 1, y: 1, z: 1}
-    - name: NPC_Ctrl_RightHandIndexEffector
-      parentName: NPC_Ctrl_Reference
-      position: {x: 0.046116747, y: 0.0727179, z: -0.00030149033}
-      rotation: {x: 4.5739857e-22, y: 1.2237593e-16, z: -5.7365703e-16, w: 1}
       scale: {x: 1, y: 1, z: 1}
     - name: NPC_Ctrl_Hips
       parentName: NPC_Ctrl_Reference
-      position: {x: -0.00000009420439, y: 0.050635908, z: 0.00015495176}
+      position: {x: -0.000009420439, y: 5.063591, z: 0.015495176}
       rotation: {x: 3.061617e-17, y: -0, z: -0, w: 1}
       scale: {x: 1, y: 1, z: 1}
     - name: NPC_Ctrl_LeftUpLeg
       parentName: NPC_Ctrl_Hips
-      position: {x: -0.0039064214, y: -0.0027295041, z: -0.0001670046}
+      position: {x: -0.3906421, y: -0.2729504, z: -0.016700462}
       rotation: {x: -9.2754775e-15, y: 8.021741e-17, z: 1.1188966e-16, w: 1}
       scale: {x: 1, y: 1, z: 1}
     - name: NPC_Ctrl_LeftLeg
       parentName: NPC_Ctrl_LeftUpLeg
-      position: {x: -0.0003335224, y: -0.02239221, z: -0.00024329146}
+      position: {x: -0.033352237, y: -2.239221, z: -0.024329146}
       rotation: {x: 1.7823818e-15, y: 2.7863996e-17, z: 1.1449175e-16, w: 1}
       scale: {x: 1, y: 1, z: 1}
     - name: NPC_Ctrl_LeftFoot
       parentName: NPC_Ctrl_LeftLeg
-      position: {x: 0.0003335076, y: -0.021071598, z: -0.0010814674}
+      position: {x: 0.033350762, y: -2.1071599, z: -0.10814674}
       rotation: {x: 6.0426653e-15, y: 1.9472271e-16, z: -4.590512e-16, w: 1}
       scale: {x: 1, y: 1, z: 1}
     - name: NPC_Ctrl_LeftToeBase
       parentName: NPC_Ctrl_LeftFoot
-      position: {x: -0.000037540318, y: -0.0043400335, z: 0.0067261853}
+      position: {x: -0.003754032, y: -0.4340033, z: 0.67261845}
       rotation: {x: 2.2365468e-32, y: -0, z: -1.2246469e-16, w: 1}
       scale: {x: 1, y: 1, z: 1}
     - name: NPC_Ctrl_RightUpLeg
       parentName: NPC_Ctrl_Hips
-      position: {x: 0.003906645, y: -0.0027291847, z: -0.00016369636}
+      position: {x: 0.3906645, y: -0.2729185, z: -0.016369637}
       rotation: {x: -1.7335389e-15, y: 2.9713916e-17, z: -3.3393427e-16, w: 1}
       scale: {x: 1, y: 1, z: 1}
     - name: NPC_Ctrl_RightLeg
       parentName: NPC_Ctrl_RightUpLeg
-      position: {x: 0.00033350586, y: -0.022392014, z: -0.00015908078}
+      position: {x: 0.033350587, y: -2.2392013, z: -0.015908077}
       rotation: {x: 5.5146766e-15, y: -1.2403273e-16, z: 1.6132928e-16, w: 1}
       scale: {x: 1, y: 1, z: 1}
     - name: NPC_Ctrl_RightFoot
       parentName: NPC_Ctrl_RightLeg
-      position: {x: -0.00033351197, y: -0.021072088, z: -0.0011690249}
+      position: {x: -0.033351194, y: -2.1072087, z: -0.116902485}
       rotation: {x: -1.8115917e-16, y: 1.9472271e-16, z: -2.9034934e-16, w: 1}
       scale: {x: 1, y: 1, z: 1}
     - name: NPC_Ctrl_RightToeBase
       parentName: NPC_Ctrl_RightFoot
-      position: {x: 0.000037554208, y: -0.004340191, z: 0.006802707}
+      position: {x: 0.0037554207, y: -0.4340191, z: 0.6802707}
       rotation: {x: 2.2365468e-32, y: -0, z: -1.2246469e-16, w: 1}
       scale: {x: 1, y: 1, z: 1}
     - name: NPC_Ctrl_Spine
       parentName: NPC_Ctrl_Hips
-      position: {x: -0.00000020113056, y: 0.004913173, z: -0.00009066635}
+      position: {x: -0.000020113057, y: 0.4913173, z: -0.009066636}
       rotation: {x: -1.474515e-16, y: 1.485251e-17, z: 3.687027e-17, w: 1}
       scale: {x: 1, y: 1, z: 1}
     - name: NPC_Ctrl_Spine1
       parentName: NPC_Ctrl_Spine
-      position: {x: 2.6484493e-14, y: 0.0057320353, z: -0.00010577757}
+      position: {x: 2.6484492e-12, y: 0.57320356, z: -0.010577758}
       rotation: {x: -1.474515e-16, y: -6.162976e-33, z: 6.162976e-33, w: 1}
       scale: {x: 1, y: 1, z: 1}
     - name: NPC_Ctrl_Spine2
       parentName: NPC_Ctrl_Spine1
-      position: {x: -0, y: 0.006550902, z: -0.000120888486}
+      position: {x: -0, y: 0.6550902, z: -0.012088847}
       rotation: {x: -1.5785984e-16, y: -1.6899023e-16, z: -2.1780784e-16, w: 1}
       scale: {x: 1, y: 1, z: 1}
     - name: NPC_Ctrl_LeftShoulder
       parentName: NPC_Ctrl_Spine2
-      position: {x: -0.0028516988, y: 0.006106593, z: -0.00013494895}
+      position: {x: -0.2851699, y: 0.6106593, z: -0.013494895}
       rotation: {x: -6.7762636e-21, y: -2.7105054e-20, z: -2.993582e-17, w: 1}
       scale: {x: 1, y: 1, z: 1}
     - name: NPC_Ctrl_LeftArm
       parentName: NPC_Ctrl_LeftShoulder
-      position: {x: -0.0061563477, y: -0.0012204383, z: 0.0000021029211}
+      position: {x: -0.61563474, y: -0.12204384, z: 0.00021029211}
       rotation: {x: -1.110223e-16, y: -6.446432e-22, z: 2.5410988e-21, w: 1}
       scale: {x: 1, y: 1, z: 1}
     - name: NPC_Ctrl_LeftForeArm
       parentName: NPC_Ctrl_LeftArm
-      position: {x: -0.012365295, y: -0.00000009025576, z: 8.9496394e-10}
+      position: {x: -1.2365294, y: -0.000009025575, z: 0.000000089496396}
       rotation: {x: -1.110223e-16, y: 9.788379e-23, z: 2.5410988e-21, w: 1}
       scale: {x: 1, y: 1, z: 1}
     - name: NPC_Ctrl_LeftHand
       parentName: NPC_Ctrl_LeftForeArm
-      position: {x: -0.013992704, y: -0.000000118026755, z: -0.000000010685327}
+      position: {x: -1.3992704, y: -0.0000118026755, z: -0.0000010685327}
       rotation: {x: 0, y: -0, z: -0, w: 1}
       scale: {x: 1, y: 1, z: 1}
     - name: NPC_Ctrl_LeftHandIndex1
       parentName: NPC_Ctrl_LeftHand
-      position: {x: -0.004173228, y: -0.000000041656502, z: -0.0000000032815346}
+      position: {x: -0.4173228, y: -0.0000041656504, z: -0.00000032815345}
       rotation: {x: 2.220446e-16, y: 1.1465352e-37, z: 5.1635356e-22, w: 1}
       scale: {x: 1, y: 1, z: 1}
     - name: NPC_Ctrl_LeftHandIndex2
       parentName: NPC_Ctrl_LeftHandIndex1
-      position: {x: -0.001756936, y: -0.000000013885502, z: -0.0000000019797686}
+      position: {x: -0.17569359, y: -0.0000013885501, z: -0.00000019797686}
       rotation: {x: 4.038968e-27, y: -3.7057691e-22, z: 3.2160166e-21, w: 1}
       scale: {x: 1, y: 1, z: 1}
     - name: NPC_Ctrl_LeftHandIndex3
       parentName: NPC_Ctrl_LeftHandIndex2
-      position: {x: -0.0029178958, y: -0.000000041656502, z: -0.00000000230521}
+      position: {x: -0.29178956, y: -0.0000041656504, z: -0.00000023052102}
       rotation: {x: 0, y: -0, z: -3.082245e-22, w: 1}
       scale: {x: 1, y: 1, z: 1}
     - name: NPC_Ctrl_LeftHandIndex4
       parentName: NPC_Ctrl_LeftHandIndex3
-      position: {x: -0.0019354062, y: -0.000000013885502, z: -0.000000021126572}
+      position: {x: -0.19354062, y: -0.0000013885501, z: -0.0000021126573}
       rotation: {x: -1.9387046e-26, y: 2.5410988e-21, z: 1.1530005e-22, w: 1}
-      scale: {x: 1, y: 1, z: 1}
-    - name: NPC_Ctrl_RightShoulder
-      parentName: NPC_Ctrl_Spine2
-      position: {x: 0.0028516988, y: 0.006106593, z: -0.00013705033}
-      rotation: {x: 1.3552527e-20, y: 3.935383e-37, z: 2.9038e-17, w: 1}
-      scale: {x: 1, y: 1, z: 1}
-    - name: NPC_Ctrl_RightArm
-      parentName: NPC_Ctrl_RightShoulder
-      position: {x: 0.0061563463, y: -0.0012204383, z: -0.0000021002093}
-      rotation: {x: 4.922492e-27, y: 6.254084e-22, z: -0, w: 1}
-      scale: {x: 1, y: 1, z: 1}
-    - name: NPC_Ctrl_RightForeArm
-      parentName: NPC_Ctrl_RightArm
-      position: {x: 0.01236264, y: -0.00000009719851, z: -6.2376276e-10}
-      rotation: {x: -2.220446e-16, y: 1.8041898e-21, z: 4.2351647e-22, w: 1}
-      scale: {x: 1, y: 1, z: 1}
-    - name: NPC_Ctrl_RightHand
-      parentName: NPC_Ctrl_RightForeArm
-      position: {x: 0.013982699, y: -0.00000009719851, z: 0.000000003742576}
-      rotation: {x: -1.2325952e-32, y: 6.123234e-17, z: 0, w: 1}
-      scale: {x: 1, y: 1, z: 1}
-    - name: NPC_Ctrl_RightHandIndex1
-      parentName: NPC_Ctrl_RightHand
-      position: {x: 0.004315433, y: -0.000000027771003, z: 0.0000000033086547}
-      rotation: {x: 9.855162e-23, y: 1.2412103e-17, z: 7.757543e-23, w: 1}
-      scale: {x: 1, y: 1, z: 1}
-    - name: NPC_Ctrl_RightHandIndex2
-      parentName: NPC_Ctrl_RightHandIndex1
-      position: {x: 0.0017221946, y: -0.000000006942751, z: 0.0000000026306517}
-      rotation: {x: -2.3321869e-22, y: -2.1460877e-17, z: 3.213117e-22, w: 1}
-      scale: {x: 1, y: 1, z: 1}
-    - name: NPC_Ctrl_RightHandIndex3
-      parentName: NPC_Ctrl_RightHandIndex2
-      position: {x: 0.0028685294, y: -0.00000003471375, z: -8.4072366e-10}
-      rotation: {x: 4.4929155e-21, y: 1.2238271e-16, z: -4.4408892e-16, w: 1}
-      scale: {x: 1, y: 1, z: 1}
-    - name: NPC_Ctrl_RightHandIndex4
-      parentName: NPC_Ctrl_RightHandIndex3
-      position: {x: 0.0018575119, y: -0.000000006942751, z: 0.000000032544143}
-      rotation: {x: 4.5739857e-22, y: 1.2237593e-16, z: -5.7365703e-16, w: 1}
       scale: {x: 1, y: 1, z: 1}
     - name: NPC_Ctrl_Neck
       parentName: NPC_Ctrl_Spine2
-      position: {x: 2.6484493e-14, y: 0.007369757, z: -0.0001359996}
+      position: {x: 2.6484492e-12, y: 0.7369757, z: -0.013599958}
       rotation: {x: -1.3877788e-16, y: -4.5287357e-18, z: 8.067194e-18, w: 1}
       scale: {x: 1, y: 1, z: 1}
     - name: NPC_Ctrl_Head
       parentName: NPC_Ctrl_Neck
-      position: {x: 2.6484493e-14, y: 0.0043567354, z: 0.00066482037}
+      position: {x: 2.6484492e-12, y: 0.43567353, z: 0.06648203}
       rotation: {x: 3.061617e-17, y: -0, z: -0, w: 1}
       scale: {x: 1, y: 1, z: 1}
-    - name: mixamorig:Hips
-      parentName: NPC_Tpose(Clone)
-      position: {x: -0.000000094160974, y: 0.050635885, z: 0.00015495163}
-      rotation: {x: 1.2848649e-11, y: -0.00000062737297, z: 0.000020480082, w: 1}
+    - name: NPC_Ctrl_RightShoulder
+      parentName: NPC_Ctrl_Spine2
+      position: {x: 0.2851699, y: 0.6106593, z: -0.013705032}
+      rotation: {x: 1.3552527e-20, y: 3.935383e-37, z: 2.9038e-17, w: 1}
       scale: {x: 1, y: 1, z: 1}
-    - name: mixamorig:LeftUpLeg
-      parentName: mixamorig:Hips
-      position: {x: -0.0039065275, y: -0.0027293433, z: -0.00016699957}
-      rotation: {x: 0.0021836478, y: -0.0055559007, z: 0.9999544, w: 0.00745486}
+    - name: NPC_Ctrl_RightArm
+      parentName: NPC_Ctrl_RightShoulder
+      position: {x: 0.6156346, y: -0.12204384, z: -0.00021002091}
+      rotation: {x: 4.922492e-27, y: 6.254084e-22, z: -0, w: 1}
       scale: {x: 1, y: 1, z: 1}
-    - name: mixamorig:LeftLeg
-      parentName: mixamorig:LeftUpLeg
-      position: {x: 0.000000016170832, y: 0.022395978, z: 0.0000042057723}
-      rotation: {x: -0.020013234, y: -0.000025007883, z: 0.015431173, w: 0.99968064}
+    - name: NPC_Ctrl_RightForeArm
+      parentName: NPC_Ctrl_RightArm
+      position: {x: 1.236264, y: -0.000009719851, z: -0.00000006237627}
+      rotation: {x: -2.220446e-16, y: 1.8041898e-21, z: 4.2351647e-22, w: 1}
       scale: {x: 1, y: 1, z: 1}
-    - name: mixamorig:LeftFoot
-      parentName: mixamorig:LeftLeg
-      position: {x: -0.000000029448222, y: 0.02110196, z: -0.0000001407041}
-      rotation: {x: 0.49992973, y: -0.036353525, z: -0.030463208, w: 0.86476624}
+    - name: NPC_Ctrl_RightHand
+      parentName: NPC_Ctrl_RightForeArm
+      position: {x: 1.39827, y: -0.000009719851, z: 0.00000037425764}
+      rotation: {x: -1.2325952e-32, y: 6.123234e-17, z: 0, w: 1}
       scale: {x: 1, y: 1, z: 1}
-    - name: mixamorig:LeftToeBase
-      parentName: mixamorig:LeftFoot
-      position: {x: -8.786873e-11, y: 0.008004917, z: 0.0000000030652851}
-      rotation: {x: 0.28080878, y: 0.09078, z: -0.02669054, w: 0.955088}
+    - name: NPC_Ctrl_RightHandIndex1
+      parentName: NPC_Ctrl_RightHand
+      position: {x: 0.43154332, y: -0.0000027771002, z: 0.00000033086545}
+      rotation: {x: 9.855162e-23, y: 1.2412103e-17, z: 7.757543e-23, w: 1}
       scale: {x: 1, y: 1, z: 1}
-    - name: mixamorig:LeftToe_End
-      parentName: mixamorig:LeftToeBase
-      position: {x: 6.8031128e-12, y: 0.0032223503, z: 5.8234776e-13}
+    - name: NPC_Ctrl_RightHandIndex2
+      parentName: NPC_Ctrl_RightHandIndex1
+      position: {x: 0.17221944, y: -0.00000069427506, z: 0.00000026306515}
+      rotation: {x: -2.3321869e-22, y: -2.1460877e-17, z: 3.213117e-22, w: 1}
+      scale: {x: 1, y: 1, z: 1}
+    - name: NPC_Ctrl_RightHandIndex3
+      parentName: NPC_Ctrl_RightHandIndex2
+      position: {x: 0.28685293, y: -0.0000034713755, z: -0.00000008407237}
+      rotation: {x: 4.4929155e-21, y: 1.2238271e-16, z: -4.4408892e-16, w: 1}
+      scale: {x: 1, y: 1, z: 1}
+    - name: NPC_Ctrl_RightHandIndex4
+      parentName: NPC_Ctrl_RightHandIndex3
+      position: {x: 0.1857512, y: -0.00000069427506, z: 0.0000032544142}
+      rotation: {x: 4.5739857e-22, y: 1.2237593e-16, z: -5.7365703e-16, w: 1}
+      scale: {x: 1, y: 1, z: 1}
+    - name: NPC_Ctrl_HipsEffector
+      parentName: NPC_Ctrl_Reference
+      position: {x: 0.0000017790794, y: 4.7906566, z: -0.0010398692}
+      rotation: {x: 3.061617e-17, y: -0, z: -0, w: 1}
+      scale: {x: 1, y: 1, z: 1}
+    - name: NPC_Ctrl_LeftAnkleEffector
+      parentName: NPC_Ctrl_Reference
+      position: {x: -0.3906529, y: 0.44426098, z: -0.13368115}
+      rotation: {x: 6.0426653e-15, y: 1.9472271e-16, z: -4.590512e-16, w: 1}
+      scale: {x: 1, y: 1, z: 1}
+    - name: NPC_Ctrl_LeftElbowEffector
+      parentName: NPC_Ctrl_Reference
+      position: {x: -2.1373632, y: 7.271808, z: -0.029522566}
+      rotation: {x: -1.110223e-16, y: 9.788379e-23, z: 2.5410988e-21, w: 1}
+      scale: {x: 1, y: 1, z: 1}
+    - name: NPC_Ctrl_LeftFootEffector
+      parentName: NPC_Ctrl_Reference
+      position: {x: -0.39440694, y: 0.010257809, z: 0.53893715}
+      rotation: {x: 2.2365468e-32, y: -0, z: -1.2246469e-16, w: 1}
+      scale: {x: 1, y: 1, z: 1}
+    - name: NPC_Ctrl_LeftHandIndexEffector
+      parentName: NPC_Ctrl_Reference
+      position: {x: -4.6149797, y: 7.2717853, z: -0.029526506}
+      rotation: {x: -1.9387046e-26, y: 2.5410988e-21, z: 1.1530005e-22, w: 1}
+      scale: {x: 1, y: 1, z: 1}
+    - name: NPC_Ctrl_LeftHipEffector
+      parentName: NPC_Ctrl_Reference
+      position: {x: -0.39065143, y: 4.790641, z: -0.0012052822}
+      rotation: {x: -9.2754775e-15, y: 8.021741e-17, z: 1.1188966e-16, w: 1}
+      scale: {x: 1, y: 1, z: 1}
+    - name: NPC_Ctrl_LeftKneeEffector
+      parentName: NPC_Ctrl_Reference
+      position: {x: -0.42400366, y: 2.5514202, z: -0.025534425}
+      rotation: {x: 1.7823818e-15, y: 2.7863996e-17, z: 1.1449175e-16, w: 1}
+      scale: {x: 1, y: 1, z: 1}
+    - name: NPC_Ctrl_LeftShoulderEffector
+      parentName: NPC_Ctrl_Reference
+      position: {x: -0.90083396, y: 7.271817, z: -0.029522657}
+      rotation: {x: -1.110223e-16, y: -6.446432e-22, z: 2.5410988e-21, w: 1}
+      scale: {x: 1, y: 1, z: 1}
+    - name: NPC_Ctrl_LeftWristEffector
+      parentName: NPC_Ctrl_Reference
+      position: {x: -3.5366333, y: 7.271796, z: -0.029523635}
       rotation: {x: 0, y: -0, z: -0, w: 1}
       scale: {x: 1, y: 1, z: 1}
-    - name: mixamorig:RightUpLeg
-      parentName: mixamorig:Hips
-      position: {x: 0.0039065275, y: -0.0027293444, z: -0.0001637011}
-      rotation: {x: -0.0021250055, y: -0.0038977696, z: 0.9999626, w: -0.0074193976}
+    - name: NPC_Ctrl_RightAnkleEffector
+      parentName: NPC_Ctrl_Reference
+      position: {x: 0.39065439, y: 0.44426355, z: -0.13368498}
+      rotation: {x: -1.8115917e-16, y: 1.9472271e-16, z: -2.9034934e-16, w: 1}
       scale: {x: 1, y: 1, z: 1}
-    - name: mixamorig:RightLeg
-      parentName: mixamorig:RightUpLeg
-      position: {x: 0.000000020996891, y: 0.022395024, z: 0.000014437722}
-      rotation: {x: -0.023748301, y: 0.00006763907, z: -0.015444869, w: 0.9995987}
+    - name: NPC_Ctrl_RightElbowEffector
+      parentName: NPC_Ctrl_Reference
+      position: {x: 2.1370385, y: 7.271807, z: -0.030153168}
+      rotation: {x: -2.220446e-16, y: 1.8041898e-21, z: 4.2351647e-22, w: 1}
       scale: {x: 1, y: 1, z: 1}
-    - name: mixamorig:RightFoot
-      parentName: mixamorig:RightLeg
-      position: {x: 0.000000028551565, y: 0.021107107, z: -0.00000014156421}
-      rotation: {x: 0.50394326, y: 0.03616058, z: 0.030516695, w: 0.86243975}
+    - name: NPC_Ctrl_RightFootEffector
+      parentName: NPC_Ctrl_Reference
+      position: {x: 0.3944098, y: 0.01024457, z: 0.5465855}
+      rotation: {x: 2.2365468e-32, y: -0, z: -1.2246469e-16, w: 1}
       scale: {x: 1, y: 1, z: 1}
-    - name: mixamorig:RightToeBase
-      parentName: mixamorig:RightFoot
-      position: {x: -5.9212824e-10, y: 0.008069404, z: 0.0000000037930663}
-      rotation: {x: 0.27835965, y: -0.09104471, z: 0.026515577, w: 0.9557844}
+    - name: NPC_Ctrl_RightHandIndexEffector
+      parentName: NPC_Ctrl_Reference
+      position: {x: 4.611675, y: 7.27179, z: -0.030149031}
+      rotation: {x: 4.5739857e-22, y: 1.2237593e-16, z: -5.7365703e-16, w: 1}
       scale: {x: 1, y: 1, z: 1}
-    - name: mixamorig:RightToe_End
-      parentName: mixamorig:RightToeBase
-      position: {x: 6.31824e-13, y: 0.0032273638, z: -3.028545e-14}
-      rotation: {x: 0, y: -0, z: -0, w: 1}
+    - name: NPC_Ctrl_RightHipEffector
+      parentName: NPC_Ctrl_Reference
+      position: {x: 0.39065498, y: 4.790673, z: -0.0008744562}
+      rotation: {x: -1.7335389e-15, y: 2.9713916e-17, z: -3.3393427e-16, w: 1}
       scale: {x: 1, y: 1, z: 1}
-    - name: mixamorig:Spine
-      parentName: mixamorig:Hips
-      position: {x: -1.7578746e-13, y: 0.0049131718, z: -0.000090666435}
-      rotation: {x: -0.0092256935, y: 0.0000008162892, z: -0.000020473415, w: 0.99995744}
+    - name: NPC_Ctrl_RightKneeEffector
+      parentName: NPC_Ctrl_Reference
+      position: {x: 0.42400557, y: 2.551472, z: -0.01678253}
+      rotation: {x: 5.5146766e-15, y: -1.2403273e-16, z: 1.6132928e-16, w: 1}
       scale: {x: 1, y: 1, z: 1}
-    - name: mixamorig:Spine1
-      parentName: mixamorig:Spine
-      position: {x: 1.41641095e-14, y: 0.0057330066, z: -1.6506836e-10}
-      rotation: {x: 0, y: -0, z: -0, w: 1}
+    - name: NPC_Ctrl_RightShoulderEffector
+      parentName: NPC_Ctrl_Reference
+      position: {x: 0.9007748, y: 7.271817, z: -0.030153107}
+      rotation: {x: 4.922492e-27, y: 6.254084e-22, z: -0, w: 1}
       scale: {x: 1, y: 1, z: 1}
-    - name: mixamorig:Spine2
-      parentName: mixamorig:Spine1
-      position: {x: -6.5133793e-15, y: 0.0065520154, z: 1.0881965e-10}
-      rotation: {x: 0, y: -0, z: -0, w: 1}
-      scale: {x: 1, y: 1, z: 1}
-    - name: mixamorig:Neck
-      parentName: mixamorig:Spine2
-      position: {x: 7.8746925e-14, y: 0.0073710033, z: 8.36453e-10}
-      rotation: {x: 0.0092256805, y: -0, z: -0, w: 0.99995744}
-      scale: {x: 1, y: 1, z: 1}
-    - name: mixamorig:Head
-      parentName: mixamorig:Neck
-      position: {x: 1.1026129e-13, y: 0.0043567275, z: 0.0006648169}
-      rotation: {x: 0, y: -0, z: -0, w: 1}
-      scale: {x: 1, y: 1, z: 1}
-    - name: mixamorig:HeadTop_End
-      parentName: mixamorig:Head
-      position: {x: -0, y: 0.011200785, z: 0.0017091945}
-      rotation: {x: -3.469447e-18, y: 0, z: -0, w: 1}
-      scale: {x: 1, y: 1, z: 1}
-    - name: mixamorig:LeftShoulder
-      parentName: mixamorig:Spine2
-      position: {x: -0.0028516983, y: 0.006108042, z: -0.000022255816}
-      rotation: {x: 0.5451909, y: -0.44922316, z: 0.5477059, w: 0.44831213}
-      scale: {x: 1, y: 1, z: 1}
-    - name: mixamorig:LeftArm
-      parentName: mixamorig:LeftShoulder
-      position: {x: 9.191621e-10, y: 0.0062761465, z: -2.0047689e-10}
-      rotation: {x: -0.097671404, y: -0.045125633, z: 0.0026581096, w: 0.9941916}
-      scale: {x: 1, y: 1, z: 1}
-    - name: mixamorig:LeftForeArm
-      parentName: mixamorig:LeftArm
-      position: {x: 0.00000048633274, y: 0.012365277, z: 0.00000034812422}
-      rotation: {x: 0.000010226415, y: -0.0055289753, z: -0.00002076744, w: 0.99998474}
-      scale: {x: 1, y: 1, z: 1}
-    - name: mixamorig:LeftHand
-      parentName: mixamorig:LeftForeArm
-      position: {x: -0.000000026897437, y: 0.013992689, z: 0.00000012069212}
-      rotation: {x: 0.0000001415839, y: -0.0013819855, z: 0.000001013308, w: 0.99999905}
-      scale: {x: 1, y: 1, z: 1}
-    - name: mixamorig:LeftHandIndex1
-      parentName: mixamorig:LeftHand
-      position: {x: 9.94902e-10, y: 0.004173231, z: 0.000000041276586}
-      rotation: {x: 0.0000028450104, y: -0.7609752, z: -0.0000032204512, w: 0.648781}
-      scale: {x: 1, y: 1, z: 1}
-    - name: mixamorig:LeftHandIndex2
-      parentName: mixamorig:LeftHandIndex1
-      position: {x: -0.0000000012698118, y: 0.0017569355, z: 4.21874e-10}
-      rotation: {x: 0.20999919, y: 0.000000025095243, z: 0.08109334, w: 0.97433275}
-      scale: {x: 1, y: 1, z: 1}
-    - name: mixamorig:LeftHandIndex3
-      parentName: mixamorig:LeftHandIndex2
-      position: {x: 0.0004611122, y: 0.002622157, z: -0.0011940594}
-      rotation: {x: 0.05313148, y: -0.03778296, z: -0.062454738, w: 0.9959161}
-      scale: {x: 1, y: 1, z: 1}
-    - name: mixamorig:LeftHandIndex4
-      parentName: mixamorig:LeftHandIndex3
-      position: {x: 0.000024891386, y: 0.0016651319, z: -0.0009861534}
-      rotation: {x: 0, y: -0, z: -0, w: 1}
-      scale: {x: 1, y: 1, z: 1}
-    - name: mixamorig:RightShoulder
-      parentName: mixamorig:Spine2
-      position: {x: 0.0028516983, y: 0.0061080814, z: -0.000024356834}
-      rotation: {x: -0.5449558, y: -0.44934204, z: 0.54793465, w: -0.4481992}
-      scale: {x: 1, y: 1, z: 1}
-    - name: mixamorig:RightArm
-      parentName: mixamorig:RightShoulder
-      position: {x: -0.0000000015782416, y: 0.006276146, z: -0.0000000065485604}
-      rotation: {x: -0.0976878, y: 0.041743692, z: -0.0019665603, w: 0.99433935}
-      scale: {x: 1, y: 1, z: 1}
-    - name: mixamorig:RightForeArm
-      parentName: mixamorig:RightArm
-      position: {x: -0.00000047936453, y: 0.012362626, z: 0.00000034856808}
-      rotation: {x: 0.000010095571, y: 0.005247508, z: 0.000020229993, w: 0.99998623}
-      scale: {x: 1, y: 1, z: 1}
-    - name: mixamorig:RightHand
-      parentName: mixamorig:RightForeArm
-      position: {x: 0.000000017407114, y: 0.013982694, z: 0.00000009617952}
-      rotation: {x: 0.000008364522, y: 0.00027807217, z: -0.00000050908886, w: 1}
-      scale: {x: 1, y: 1, z: 1}
-    - name: mixamorig:RightHandIndex1
-      parentName: mixamorig:RightHand
-      position: {x: -9.984734e-10, y: 0.0043154354, z: -0.00000004488121}
-      rotation: {x: -0.0000051655034, y: 0.39580277, z: -0.0000017681892, w: 0.91833556}
-      scale: {x: 1, y: 1, z: 1}
-    - name: mixamorig:RightHandIndex2
-      parentName: mixamorig:RightHandIndex1
-      position: {x: 0.0000000024991118, y: 0.001722194, z: -0.0000000022989755}
-      rotation: {x: 0.19397846, y: 0.0000000010408097, z: -0.04654619, w: 0.9799009}
-      scale: {x: 1, y: 1, z: 1}
-    - name: mixamorig:RightHandIndex3
-      parentName: mixamorig:RightHandIndex2
-      position: {x: -0.00026168136, y: 0.0026402283, z: -0.0010904827}
-      rotation: {x: 0.037538994, y: -0.018772334, z: -0.054457642, w: 0.99763364}
-      scale: {x: 1, y: 1, z: 1}
-    - name: mixamorig:RightHandIndex4
-      parentName: mixamorig:RightHandIndex3
-      position: {x: -0.0003800757, y: 0.0016221945, z: -0.0008212047}
-      rotation: {x: 0, y: -0, z: -0, w: 1}
+    - name: NPC_Ctrl_RightWristEffector
+      parentName: NPC_Ctrl_Reference
+      position: {x: 3.5353081, y: 7.2717977, z: -0.030152796}
+      rotation: {x: -1.2325952e-32, y: 6.123234e-17, z: 0, w: 1}
       scale: {x: 1, y: 1, z: 1}
     armTwist: 0.5
     foreArmTwist: 0.5
@@ -774,9 +774,9 @@ ModelImporter:
     armStretch: 0.05
     legStretch: 0.05
     feetSpacing: 0
-    globalScale: 0.0455
+    globalScale: 4.55
     rootMotionBoneName: 
-    hasTranslationDoF: 0
+    hasTranslationDoF: 1
     hasExtraRoot: 1
     skeletonHasParents: 1
   lastHumanDescriptionAvatarSource: {instanceID: 0}
