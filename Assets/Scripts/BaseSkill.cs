@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.Events;
+using UnityEngine.InputSystem;
 
 // 繼承 MonoBehaviour，這樣我們可以把技能直接掛在物件上設定參數
 public abstract class BaseSkill : MonoBehaviour
@@ -34,11 +35,25 @@ public abstract class BaseSkill : MonoBehaviour
         }
     }
 
+    public virtual void OnInput(InputAction.CallbackContext context)
+    {
+        if (context.phase == InputActionPhase.Performed)
+        {
+            TryActivate();
+        }
+    }
+
     /// <summary>
     /// 嘗試觸發技能 (由外部呼叫，例如 SkillManager)
     /// </summary>
     public bool TryActivate()
     {
+        if (!this.enabled)
+        {
+            this.enabled = true;
+            // Debug.Log($"{skillName} 已重新啟用 (Re-enabled by TryActivate)");
+        }
+
         if (isReady)
         {
             Activate(); // 執行實際技能邏輯

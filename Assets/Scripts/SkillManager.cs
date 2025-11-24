@@ -18,12 +18,16 @@ public class SkillManager : MonoBehaviour
     {
         playerActions.Player.Enable();
         // 綁定 F 鍵 (假設你的 Action 叫 Interact 或 Skill)
+        playerActions.Player.Interact.started += OnSkillInput;
         playerActions.Player.Interact.performed += OnSkillInput;
+        playerActions.Player.Interact.canceled += OnSkillInput;
     }
 
     private void OnDisable()
     {
+        playerActions.Player.Interact.started -= OnSkillInput;
         playerActions.Player.Interact.performed -= OnSkillInput;
+        playerActions.Player.Interact.canceled -= OnSkillInput;
         playerActions.Player.Disable();
     }
 
@@ -47,7 +51,7 @@ public class SkillManager : MonoBehaviour
             {
                 // 4. 觸發技能
                 Debug.Log($"[SkillManager] 觸發了 {activeObj.name} 的 {skill.GetType().Name}");
-                skill.TryActivate();
+                skill.OnInput(context);
             }
             else
             {

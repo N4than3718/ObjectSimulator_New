@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 public class AlarmSkill : BaseSkill
 {
@@ -6,6 +7,8 @@ public class AlarmSkill : BaseSkill
     [SerializeField] private float noiseRadius = 15f;    // 聲音傳多遠
     [SerializeField] private float noiseIntensity = 20f; // 聲音多強 (增加多少警戒值)
     [SerializeField] private float noiseInterval = 1.0f; // 每隔幾秒發出一次
+    [SerializeField] private AudioClip ringSound; // [新增] 鬧鐘音效
+    [SerializeField] private AudioSource audioSource;
 
     [Header("視覺回饋 (可選)")]
     [SerializeField] private Transform ringingPart; // 例如鬧鐘頂部的鈴鐺，讓它震動
@@ -18,6 +21,15 @@ public class AlarmSkill : BaseSkill
     private void Start()
     {
         if (ringingPart != null) originalLocalPos = ringingPart.localPosition;
+    }
+
+    public override void OnInput(InputAction.CallbackContext context)
+    {
+        // 處理按下瞬間
+        if (context.started)
+        {
+            TryActivate();
+        }
     }
 
     // 覆寫 Activate：處理開關邏輯

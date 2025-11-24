@@ -7,7 +7,7 @@ using UnityEngine.AI;
 [RequireComponent(typeof(FieldOfView), typeof(NavMeshAgent), typeof(Animator))]
 public class NpcAI : MonoBehaviour
 {
-    public enum NpcState { Searching, Investigating, Alerted }
+    public enum NpcState { Searching, Investigating, Alerted, Blinded }
 
     [Header("Debug 強制撿拾")]
     public bool forcePickupDebug = false;
@@ -64,6 +64,10 @@ public class NpcAI : MonoBehaviour
     [Header("效能設定")]
     [Tooltip("AI 決策邏輯的更新間隔 (秒)")]
     [SerializeField] private float aiUpdateInterval = 0.2f;
+
+    [Header("致盲設定")] // ▼▼▼ [新增]
+    [SerializeField] private float blindRecoveryTime = 3.0f; // 致盲後多久恢復
+    private float blindTimer = 0f;
 
     [Header("Debug")]
     [SerializeField][Range(0, 200)] private float currentAlertLevel = 0f;
@@ -224,6 +228,9 @@ public class NpcAI : MonoBehaviour
                     break;
                 case NpcState.Alerted:
                     AlertedState();
+                    break;
+                case NpcState.Blinded:
+                    BlindedState();
                     break;
             }
 
@@ -602,6 +609,60 @@ public class NpcAI : MonoBehaviour
             threatTarget = null;
             currentState = NpcState.Searching;
         }
+    }
+
+    private void BlindedState()
+    {
+        // 在這個狀態下，NPC 應該完全無法行動
+        if (agent.enabled) agent.isStopped = true;
+
+        blindTimer -= aiUpdateInterval;
+
+        if (blindTimer <= 0)
+        {
+            Debug.Log("NPC: 視力恢復，進入警戒狀態！");
+
+            // 恢復後，直接進入高警戒狀態，因為他知道有人在搞鬼
+            currentAlertLevel = 200f;
+            currentState = NpcState.Alerted;
+
+            // 這裡可以讓他在原地先搜尋一下，或者直接根據上次記憶的位置追擊
+            if (lastSightingPosition != Vector3.zero)
+            {
+                agent.SetDestination(lastSightingPosition);
+            }
+        }
+    }
+
+    public void GetBlinded(Vector3 lightSourcePos)
+    {
+        // 如果已經瞎了，就重置計時器 (持續照射會持續致盲)
+        if (currentState == NpcState.Blinded)
+        {
+            blindTimer = blindRecoveryTime;
+            return;
+        }
+
+        Debug.LogWarning("NPC: 啊！我的眼睛！(被致盲)");
+
+        // 切換狀態
+        currentState = NpcState.Blinded;
+        blindTimer = blindRecoveryTime;
+
+        // 視覺與行動阻斷
+        if (agent.enabled) agent.isStopped = true;
+        threatTarget = null; // 暫時失去目標鎖定
+        noiseInvestigationTarget = null; // 忘記聲音
+
+        // 播放 "受傷/遮眼" 動畫
+        if (anim != null)
+        {
+            anim.SetTrigger("Blinded"); // 確保你有一個受傷或遮眼的 Trigger
+            // 或者: anim.Play("Blind_Stun");
+        }
+
+        // 轉向光源 (可選：被照到時本能遮擋或轉頭)
+        transform.LookAt(lightSourcePos); 
     }
 
     private void HandleAlertDecrease()
