@@ -1904,7 +1904,9 @@ MonoBehaviour:
   movementThreshold: 0.1
   hearingSensitivity: 1
   investigateWaitTime: 3
+  lookAroundSpeed: 2
   patrolSpeed: 8
+  investigateSpeed: 10
   chaseSpeed: 15
   captureDistance: 2.5
   aiUpdateInterval: 0.2
@@ -4681,6 +4683,7 @@ MonoBehaviour:
   ripplePrefab: {fileID: 442399389418817207, guid: b59e7d3d0116b304ba967c5ab41ceab7, type: 3}
   rippleLifeTime: 0.8
   heightOffset: 0.1
+  objectSpawnCooldown: 0.5
 --- !u!1 &1465795877
 GameObject:
   m_ObjectHideFlags: 0
