@@ -4424,6 +4424,7 @@ GameObject:
   - component: {fileID: 1464291467}
   - component: {fileID: 1464291466}
   - component: {fileID: 1464291470}
+  - component: {fileID: 1464291471}
   m_Layer: 0
   m_Name: _GameManagers
   m_TagString: Untagged
@@ -4665,6 +4666,21 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::NoiseIndicatorManager
   indicatorPrefab: {fileID: 7885283700658218271, guid: e592ded6f98db864b9d8022343f00968, type: 3}
   indicatorContainer: {fileID: 411922699}
+--- !u!114 &1464291471
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1464291463}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: dab5ec833a2d7fd49ba39aa4b63ef6bf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::NoiseRippleManager
+  ripplePrefab: {fileID: 442399389418817207, guid: b59e7d3d0116b304ba967c5ab41ceab7, type: 3}
+  rippleLifeTime: 0.8
+  heightOffset: 0.1
 --- !u!1 &1465795877
 GameObject:
   m_ObjectHideFlags: 0
