@@ -67,7 +67,7 @@ public class AlarmSkill : BaseSkill
     private void EmitNoise()
     {
         // 呼叫我們之前做好的 StealthManager
-        StealthManager.MakeNoise(transform.position, noiseRadius, noiseIntensity);
+        StealthManager.MakeNoise(gameObject, transform.position, noiseRadius, noiseIntensity);
 
         // (如果之後有音效，這裡加 audioSource.Play())
     }
