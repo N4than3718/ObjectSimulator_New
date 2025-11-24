@@ -499,7 +499,7 @@ public class NpcAI : MonoBehaviour
 
         // 簡單的搖頭邏輯：用 Sin 波模擬左右看
         // 0~1秒: 左轉, 1~2秒: 右轉...
-        float angle = Mathf.Sin(investigationTimer * 2f) * 45f; // 左右 45 度
+        float angle = Mathf.Sin(investigationTimer * 2f) * 90f; // 左右 90 度
         Quaternion targetRot = investigationStartRotation * Quaternion.Euler(0, angle, 0);
 
         // 平滑旋轉 (這行通常要在 Update 呼叫才滑順，但在 AI Loop 裡會是一頓一頓的)
