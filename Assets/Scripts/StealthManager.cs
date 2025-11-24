@@ -6,6 +6,7 @@ public static class StealthManager
 {
     // 儲存所有場景中的 NPC，避免每次都要 FindObject 或 OverlapSphere
     private static List<NpcAI> allNpcs = new List<NpcAI>();
+    public static event System.Action<Vector3, float> OnNoiseEmitted;
 
     // --- NPC 註冊系統 ---
     // NpcAI.cs 在 Start() 時呼叫
@@ -66,6 +67,7 @@ public static class StealthManager
                 npc.HearNoise(position, range, intensity);
             }
         }
+        OnNoiseEmitted?.Invoke(position, range);
     }
 
     // 為了相容性，保留舊的 ReportNoise 方法，但導向 MakeNoise
