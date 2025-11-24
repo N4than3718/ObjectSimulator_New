@@ -673,26 +673,6 @@ public class NpcAI : MonoBehaviour
         return detectedMovingTarget;
     }
 
-    private void InvestigateNoise()
-    {
-        if (!noiseInvestigationTarget.HasValue) return;
-
-        agent.SetDestination(noiseInvestigationTarget.Value);
-
-        // 檢查是否到達聲音來源附近
-        if (!agent.pathPending && agent.remainingDistance < 0.5f)
-        {
-            // 到達了，開始計時發呆
-            investigationTimer += Time.deltaTime;
-            if (investigationTimer >= investigateWaitTime)
-            {
-                Debug.Log("NPC: 這裡沒東西啊... (回去巡邏)");
-                noiseInvestigationTarget = null; // 清除目標，回歸 Patrol
-                investigationTimer = 0f;
-            }
-        }
-    }
-
     public void HearNoise(Vector3 position, float range, float intensity)
     {
         // 1. 計算距離衰減 (可選，這裡先簡化)
