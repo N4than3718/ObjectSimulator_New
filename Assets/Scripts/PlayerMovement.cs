@@ -487,7 +487,7 @@ public class PlayerMovement : MonoBehaviour
 
         bool canJump = Time.fixedTime > lastJumpTime + jumpCooldown; // 使用 fixedTime
 
-        if (freshJumpPressed || heldJumpActive && IsGrounded && canJump)
+        if ((freshJumpPressed || heldJumpActive) && IsGrounded && canJump)
         {
             float currentVerticalVelocity = rb.linearVelocity.y;
             bool canPlaySound = Mathf.Abs(currentVerticalVelocity) < jumpSoundVelocityThreshold;
