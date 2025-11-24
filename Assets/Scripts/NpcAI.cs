@@ -1,4 +1,4 @@
-using System;
+ï»¿using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -7,57 +7,58 @@ using UnityEngine.AI;
 [RequireComponent(typeof(FieldOfView), typeof(NavMeshAgent), typeof(Animator))]
 public class NpcAI : MonoBehaviour
 {
-    public enum NpcState { Searching, Alerted }
+    public enum NpcState { Searching, Investigating, Alerted }
 
-    [Header("Debug ±j¨î¾ß¬B")]
+    [Header("Debug å¼·åˆ¶æ’¿æ‹¾")]
     public bool forcePickupDebug = false;
     public Transform debugPickupTarget;
 
     [Header("Component References")]
     [SerializeField] private Animator anim;
     [SerializeField] private NavMeshAgent agent;
-    // fov ¦b Awake ¤¤Àò¨ú
+    // fov åœ¨ Awake ä¸­ç²å–
 
-    [Header("IK ³]©w")]
-    [Tooltip("«ü©w¥k¤â°©Àf©³¤Uªº 'GrabSocket' ªÅª«¥ó")]
+    [Header("IK è¨­å®š")]
+    [Tooltip("æŒ‡å®šå³æ‰‹éª¨éª¼åº•ä¸‹çš„ 'GrabSocket' ç©ºç‰©ä»¶")]
     public Transform grabSocket;
-    [Tooltip("Optional: ¥k¤â¨y´£¥ÜÂI¡AÁ×§K¤âÁu¬ï´¡")]
-    public Transform rightElbowHint; // §ï¬° public «ü©w¡A¤ñ FindRecursive Ã­©w
+    [Tooltip("Optional: å³æ‰‹è‚˜æç¤ºé»ï¼Œé¿å…æ‰‹è‡‚ç©¿æ’")]
+    public Transform rightElbowHint; // æ”¹ç‚º public æŒ‡å®šï¼Œæ¯” FindRecursive ç©©å®š
 
-    [Header("UI ³]©w")] // <--- [·s¼W]
-    [SerializeField] private NpcStatusUI statusUiPrefab; // ©ì¦²­è­è°µªº UI Prefab
+    [Header("UI è¨­å®š")] // <--- [æ–°å¢]
+    [SerializeField] private NpcStatusUI statusUiPrefab; // æ‹–æ›³å‰›å‰›åšçš„ UI Prefab
 
-    [Header("AI ª¬ºA")]
+    [Header("AI ç‹€æ…‹")]
     [SerializeField] private NpcState currentState = NpcState.Searching;
 
-    [Header("¨µÅŞ³]©w")]
+    [Header("å·¡é‚è¨­å®š")]
     public List<Transform> patrolPoints;
     private int currentPatrolIndex = 0;
 
-    [Header("Äµ§Ù­È³]©w")]
+    [Header("è­¦æˆ’å€¼è¨­å®š")]
     [SerializeField] private float lowAlertIncreaseRate = 20f;
     [SerializeField] private float lowAlertDecreaseRate = 10f;
     [SerializeField] private float mediumAlertIncreaseRate = 40f;
     [SerializeField] private float mediumAlertDecreaseRate = 15f;
     [SerializeField] private float highAlertDecreaseRate = 10f;
     [SerializeField] private float timeToStartDecreasing = 3f;
-    [SerializeField] private float movementThreshold = 0.1f; // ª«Åé²¾°Ê³t«×ìH­È
+    [SerializeField] private float movementThreshold = 0.1f; // ç‰©é«”ç§»å‹•é€Ÿåº¦é–¾å€¼
 
-    [Header("Å¥Ä±³]©w")] // <--- [·s¼W]
-    [Tooltip("Å¥Ä±ÆF±Ó«×¡G1=¥¿±`¡A>1=±Ó·P¡A<1=­«Å¥")]
-    [SerializeField] private float hearingSensitivity = 1.0f; // Å¥Ä±ÆF±Ó«× (¶V°ª¶V®e©ö¨üÅå)
-    [SerializeField] private float investigateWaitTime = 3.0f; // ¨ì¹FÁn­µÂI«áµo§b¦h¤[
+    [Header("è½è¦ºèˆ‡èª¿æŸ¥è¨­å®š")] // <--- [ä¿®æ”¹] åˆ†é¡æ¨™é¡Œ
+    [SerializeField] private float hearingSensitivity = 1.0f;
+    [SerializeField] private float investigateWaitTime = 4.0f; // [ä¿®æ”¹]ç¨å¾®ä¹…ä¸€é»ï¼Œè®“ä»–æœ‰æ™‚é–“è½‰é ­
+    [SerializeField] private float lookAroundSpeed = 2.0f; // [æ–°å¢] è½‰é ­é€Ÿåº¦
     public float HearingSensitivity => hearingSensitivity;
 
-    [Header("³t«×³]©w")]
+    [Header("é€Ÿåº¦è¨­å®š")]
     [SerializeField] private float patrolSpeed = 2f;
+    [SerializeField] private float investigateSpeed = 3.5f; // [æ–°å¢] èª¿æŸ¥æ™‚èµ°å¿«ä¸€é»ï¼Œæ¯”è¼ƒç·Šå¼µ
     [SerializeField] private float chaseSpeed = 5f;
 
-    [Header("®·®»³]©w")]
+    [Header("æ•æ‰è¨­å®š")]
     [SerializeField] private float captureDistance = 1.5f;
 
-    [Header("®Ä¯à³]©w")]
-    [Tooltip("AI ¨Mµ¦ÅŞ¿èªº§ó·s¶¡¹j (¬í)")]
+    [Header("æ•ˆèƒ½è¨­å®š")]
+    [Tooltip("AI æ±ºç­–é‚è¼¯çš„æ›´æ–°é–“éš” (ç§’)")]
     [SerializeField] private float aiUpdateInterval = 0.2f;
 
     [Header("Debug")]
@@ -67,38 +68,42 @@ public class NpcAI : MonoBehaviour
     public NpcState CurrentState => currentState;
     public static event Action<NpcAI, float> OnNoiseHeard;
 
-    // --- ¨p¦³ÅÜ¼Æ ---
+    // --- ç§æœ‰è®Šæ•¸ ---
     private FieldOfView fov;
     private Dictionary<Transform, Vector3> lastKnownPositions = new Dictionary<Transform, Vector3>();
     private float timeSinceLastSighting = 0f;
     private Vector3 lastSightingPosition;
     private Transform threatTarget = null;
-    private Vector3? noiseInvestigationTarget = null; // Án­µ½Õ¬dÂI (Nullable)
-    private float investigationTimer = 0f;
 
-    // IK & Grab ¬ÛÃö
-    private Transform ikTargetPoint = null;     // IK ¦ù¤âºË·Çªº¥Ø¼ĞÂI (GrabPoint ©Îª«¥ó Root)
-    private Transform objectToGrab = null;      // ±q TriggerPickup ¶Ç»¼¨ì AnimationEvent ªºÁ{®É«ü¼Ğ
+    // èª¿æŸ¥ç›¸é—œ
+    private Vector3? noiseInvestigationTarget = null;
+    private float investigationTimer = 0f;
+    private Quaternion investigationStartRotation; // ç”¨æ–¼ç´€éŒ„åˆ°é”æ™‚çš„æœå‘
+    private float lookAroundTimer = 0f; // ç”¨æ–¼æ§åˆ¶è½‰é ­ç¯€å¥
+
+    // IK & Grab ç›¸é—œ
+    private Transform ikTargetPoint = null;     // IK ä¼¸æ‰‹ç„æº–çš„ç›®æ¨™é» (GrabPoint æˆ–ç‰©ä»¶ Root)
+    private Transform objectToGrab = null;      // å¾ TriggerPickup å‚³éåˆ° AnimationEvent çš„è‡¨æ™‚æŒ‡æ¨™
     private float handIKWeight = 0f;
     private float hintIKWeight = 0f;
 
-    // ª«¥ó¸òÀH (Follow) ¬ÛÃö
+    // ç‰©ä»¶è·Ÿéš¨ (Follow) ç›¸é—œ
     private bool _isHoldingObject = false;
-    private Transform _heldObjectRef = null;    // ·í«e¹ê»Ú§ìµÛªºª«¥ó¤Ş¥Î
-    // private Vector3 _holdOffsetPosition = Vector3.zero; // ¤£¦A»İ­n¹w¦s Offset
+    private Transform _heldObjectRef = null;    // ç•¶å‰å¯¦éš›æŠ“è‘—çš„ç‰©ä»¶å¼•ç”¨
+    // private Vector3 _holdOffsetPosition = Vector3.zero; // ä¸å†éœ€è¦é å­˜ Offset
     // private Quaternion _holdOffsetRotation = Quaternion.identity;
-    private Transform _pointToAlignWithSocket = null; // ­n¹ï»ôªºÂI (GrabPoint ©Îª«¥ó Root)
+    private Transform _pointToAlignWithSocket = null; // è¦å°é½Šçš„é» (GrabPoint æˆ–ç‰©ä»¶ Root)
 
     private TeamManager teamManager;
 
     void Awake()
     {
-        // Àò¨ú¥²­nªº²Õ¥ó
+        // ç²å–å¿…è¦çš„çµ„ä»¶
         agent = GetComponent<NavMeshAgent>();
         anim = GetComponent<Animator>();
         fov = GetComponent<FieldOfView>();
 
-        // ¿ù»~ÀË¬d
+        // éŒ¯èª¤æª¢æŸ¥
         if (anim == null) Debug.LogError("Animator not found!", this);
         if (agent == null) Debug.LogError("NavMeshAgent not found!", this);
         if (fov == null) Debug.LogError("FieldOfView not found!", this);
@@ -109,7 +114,7 @@ public class NpcAI : MonoBehaviour
 
     void Start()
     {
-        // Debug ¼Ò¦¡©Î¥¿±`±Ò°Ê AI
+        // Debug æ¨¡å¼æˆ–æ­£å¸¸å•Ÿå‹• AI
         if (forcePickupDebug && debugPickupTarget != null)
         {
             Debug.LogWarning($"--- DEBUG MODE: Forcing pickup of {debugPickupTarget.name} ---", this.gameObject);
@@ -120,7 +125,7 @@ public class NpcAI : MonoBehaviour
             StealthManager.RegisterNpc(this);
             currentState = NpcState.Searching;
             agent.speed = patrolSpeed;
-            if (patrolPoints != null && patrolPoints.Count > 0 && patrolPoints[0] != null) // ½T«O¦Cªí©M²Ä¤@­ÓÂI¦s¦b
+            if (patrolPoints != null && patrolPoints.Count > 0 && patrolPoints[0] != null) // ç¢ºä¿åˆ—è¡¨å’Œç¬¬ä¸€å€‹é»å­˜åœ¨
             {
                 agent.SetDestination(patrolPoints[0].position);
             }
@@ -138,20 +143,20 @@ public class NpcAI : MonoBehaviour
         if (statusUiPrefab != null)
         {
             NpcStatusUI uiInstance = Instantiate(statusUiPrefab, transform.position, Quaternion.identity);
-            // ª`·N¡G³o¸Ì¤£³] parent¡AÁ×§K UI ¸òµÛ NPC ±ÛÂàÅÜ§Î¡A¦Ó¬O¥Ñ UI ¸}¥»¦Û¤v¸òÀH¦ì¸m
+            // æ³¨æ„ï¼šé€™è£¡ä¸è¨­ parentï¼Œé¿å… UI è·Ÿè‘— NPC æ—‹è½‰è®Šå½¢ï¼Œè€Œæ˜¯ç”± UI è…³æœ¬è‡ªå·±è·Ÿéš¨ä½ç½®
             uiInstance.Initialize(this);
         }
     }
 
     void Update()
     {
-        // §ó·s Animator ³t«×°Ñ¼Æ
+        // æ›´æ–° Animator é€Ÿåº¦åƒæ•¸
         UpdateAnimator();
 
-        // ¥­·Æ§ó·s IK Åv­« (¥u¦b¦ù¤â¶¥¬q»İ­n)
+        // å¹³æ»‘æ›´æ–° IK æ¬Šé‡ (åªåœ¨ä¼¸æ‰‹éšæ®µéœ€è¦)
         bool isPickingUp = anim.GetCurrentAnimatorStateInfo(0).IsName("Pick up");
 
-        // ¥u¦³¦b·Ç³Æ¦ù¤â (ikTargetPoint ¦s¦b) ¥B¥¼§ì¨ú®É¤~¼W¥[Åv­«
+        // åªæœ‰åœ¨æº–å‚™ä¼¸æ‰‹ (ikTargetPoint å­˜åœ¨) ä¸”æœªæŠ“å–æ™‚æ‰å¢åŠ æ¬Šé‡
         if (isPickingUp && ikTargetPoint != null && !_isHoldingObject)
         {
             handIKWeight = Mathf.Lerp(handIKWeight, 1.0f, Time.deltaTime * 5f);
@@ -159,7 +164,7 @@ public class NpcAI : MonoBehaviour
         }
         else
         {
-            // ¨ä¥L±¡ªp³£ÅıÅv­«Âk¹s
+            // å…¶ä»–æƒ…æ³éƒ½è®“æ¬Šé‡æ­¸é›¶
             handIKWeight = Mathf.Lerp(handIKWeight, 0f, Time.deltaTime * 5f);
             hintIKWeight = Mathf.Lerp(hintIKWeight, 0f, Time.deltaTime * 5f);
         }
@@ -167,14 +172,14 @@ public class NpcAI : MonoBehaviour
 
     void LateUpdate()
     {
-        // ¦pªG¥¿¦b§ìµÛª«¥ó¡A§ó·sª«¥ó Transform ¨Ï¨ä _pointToAlignWithSocket ¹ï»ô grabSocket
+        // å¦‚æœæ­£åœ¨æŠ“è‘—ç‰©ä»¶ï¼Œæ›´æ–°ç‰©ä»¶ Transform ä½¿å…¶ _pointToAlignWithSocket å°é½Š grabSocket
         if (_isHoldingObject && _heldObjectRef != null && grabSocket != null && _pointToAlignWithSocket != null)
         {
-            // 1. ­pºâ±ÛÂà®t¨ÃÀ³¥Î
+            // 1. è¨ˆç®—æ—‹è½‰å·®ä¸¦æ‡‰ç”¨
             Quaternion rotationDifference = grabSocket.rotation * Quaternion.Inverse(_pointToAlignWithSocket.rotation);
             _heldObjectRef.rotation = rotationDifference * _heldObjectRef.rotation;
 
-            // 2. ­pºâ¦ì¸m®t¨ÃÀ³¥Î
+            // 2. è¨ˆç®—ä½ç½®å·®ä¸¦æ‡‰ç”¨
             Vector3 positionDifference = grabSocket.position - _pointToAlignWithSocket.position;
             _heldObjectRef.position += positionDifference;
         }
@@ -182,11 +187,11 @@ public class NpcAI : MonoBehaviour
 
     private IEnumerator AIUpdateLoop()
     {
-        yield return new WaitForSeconds(aiUpdateInterval); // ªì©l©µ¿ğ
+        yield return new WaitForSeconds(aiUpdateInterval); // åˆå§‹å»¶é²
 
         while (true)
         {
-            // «ùÄòÀË¬d TeamManager (¦pªG¹CÀ¸¤¤¥i¯à­«·s¥[¸ü©Î¥Í¦¨)
+            // æŒçºŒæª¢æŸ¥ TeamManager (å¦‚æœéŠæˆ²ä¸­å¯èƒ½é‡æ–°åŠ è¼‰æˆ–ç”Ÿæˆ)
             if (teamManager == null)
             {
                 teamManager = FindAnyObjectByType<TeamManager>();
@@ -198,23 +203,26 @@ public class NpcAI : MonoBehaviour
                 }
             }
 
-            // °õ¦æª¬ºAÅŞ¿è
+            // åŸ·è¡Œç‹€æ…‹é‚è¼¯
             switch (currentState)
             {
                 case NpcState.Searching:
                     SearchingState();
+                    break;
+                case NpcState.Investigating:
+                    InvestigatingState();
                     break;
                 case NpcState.Alerted:
                     AlertedState();
                     break;
             }
 
-            currentAlertLevel = Mathf.Clamp(currentAlertLevel, 0f, 200f); // ­­¨îÄµ§Ù­È
-            yield return new WaitForSeconds(aiUpdateInterval); // µ¥«İ¤U¤@¦¸§ó·s
+            currentAlertLevel = Mathf.Clamp(currentAlertLevel, 0f, 200f); // é™åˆ¶è­¦æˆ’å€¼
+            yield return new WaitForSeconds(aiUpdateInterval); // ç­‰å¾…ä¸‹ä¸€æ¬¡æ›´æ–°
         }
     }
 
-    // Debug ¼Ò¦¡¤Uª½±µÄ²µo¾ß¬B (¤£²¾°Ê)
+    // Debug æ¨¡å¼ä¸‹ç›´æ¥è§¸ç™¼æ’¿æ‹¾ (ä¸ç§»å‹•)
     private IEnumerator DebugPickupRoutine()
     {
         if (debugPickupTarget == null)
@@ -223,16 +231,16 @@ public class NpcAI : MonoBehaviour
             yield break;
         }
 
-        // ¥i¿ï¡Gµ¥«İ¤@¤p¬q®É¶¡½T«O³õ´ºªì©l¤Æ§¹¦¨
+        // å¯é¸ï¼šç­‰å¾…ä¸€å°æ®µæ™‚é–“ç¢ºä¿å ´æ™¯åˆå§‹åŒ–å®Œæˆ
         yield return new WaitForSeconds(0.5f);
 
-        // ¥i¿ï¡GÂà¦V¥Ø¼Ğ
-        if (ikTargetPoint != null) // ¨Ï¥Î TriggerPickup §ä¨ìªº ikTargetPoint ¨ÓÂà¦V
+        // å¯é¸ï¼šè½‰å‘ç›®æ¨™
+        if (ikTargetPoint != null) // ä½¿ç”¨ TriggerPickup æ‰¾åˆ°çš„ ikTargetPoint ä¾†è½‰å‘
         {
             transform.LookAt(ikTargetPoint.position);
-            yield return null; // µ¥«İ¤@´VÅı±ÛÂàÀ³¥Î
+            yield return null; // ç­‰å¾…ä¸€å¹€è®“æ—‹è½‰æ‡‰ç”¨
         }
-        else // ¦pªG TriggerPickup ©|¥¼°õ¦æ©Î¥¢±Ñ¡A¦Ü¤ÖÂà¦V®Úª«¥ó
+        else // å¦‚æœ TriggerPickup å°šæœªåŸ·è¡Œæˆ–å¤±æ•—ï¼Œè‡³å°‘è½‰å‘æ ¹ç‰©ä»¶
         {
             transform.LookAt(debugPickupTarget.position);
             yield return null;
@@ -242,7 +250,7 @@ public class NpcAI : MonoBehaviour
         TriggerPickup(debugPickupTarget);
     }
 
-    // ±Ò°Ê¾ß¬B¬yµ{
+    // å•Ÿå‹•æ’¿æ‹¾æµç¨‹
     public void TriggerPickup(Transform targetInput)
     {
         if (targetInput == null) { Debug.LogError("TriggerPickup called with null targetRoot!"); return; }
@@ -252,101 +260,101 @@ public class NpcAI : MonoBehaviour
 
         if (pm != null)
         {
-            targetRoot = pm.transform; // §ä¨ì¤F¡I³o¤~¬O¯u¥¿ªº¾xÄÁ
+            targetRoot = pm.transform; // æ‰¾åˆ°äº†ï¼é€™æ‰æ˜¯çœŸæ­£çš„é¬§é˜
         }
         else
         {
-            targetRoot = targetInput.root; // ¦pªG¨S§ä¨ì PM¡A´N¥Î³Ì¤W¼hªº root «O©³
+            targetRoot = targetInput.root; // å¦‚æœæ²’æ‰¾åˆ° PMï¼Œå°±ç”¨æœ€ä¸Šå±¤çš„ root ä¿åº•
         }
 
-        Debug.Log($"NPC ­×¥¿§ì¨ú¥Ø¼Ğ: {targetInput.name} -> {targetRoot.name}");
+        Debug.Log($"NPC ä¿®æ­£æŠ“å–ç›®æ¨™: {targetInput.name} -> {targetRoot.name}");
 
-        // °±¤î Agent ²¾°Ê
+        // åœæ­¢ Agent ç§»å‹•
         if (agent != null && agent.enabled) agent.isStopped = true;
 
-        objectToGrab = targetRoot; // ³]©w­n§ì¨úªºª«¥ó®Ú¸`ÂI
+        objectToGrab = targetRoot; // è¨­å®šè¦æŠ“å–çš„ç‰©ä»¶æ ¹ç¯€é»
 
-        // ´M§ä§ì´¤ÂI (GrabPoint) ©Î¨Ï¥Î®Ú¸`ÂI
+        // å°‹æ‰¾æŠ“æ¡é» (GrabPoint) æˆ–ä½¿ç”¨æ ¹ç¯€é»
         Transform grabPoint = targetRoot.Find("GrabPoint");
-        ikTargetPoint = (grabPoint != null) ? grabPoint : targetRoot; // ³]©w IK ºË·ÇÂI
+        ikTargetPoint = (grabPoint != null) ? grabPoint : targetRoot; // è¨­å®š IK ç„æº–é»
 
         if (grabPoint == null)
         {
             Debug.LogWarning($"Object {targetRoot.name} lacks a 'GrabPoint' child. IK targeting object root.", targetRoot);
         }
 
-        // Ä²µo¾ß¬B°Êµe
+        // è§¸ç™¼æ’¿æ‹¾å‹•ç•«
         if (anim != null) anim.SetTrigger("Pick up");
         else { Debug.LogError("Animator is null, cannot trigger pickup."); return; }
 
-        // Åı NPC ´Â¦V IK ¥Ø¼ĞÂI
+        // è®“ NPC æœå‘ IK ç›®æ¨™é»
         if (ikTargetPoint != null) transform.LookAt(ikTargetPoint.position);
     }
 
-    // IK ­pºâ (¨C´V¥Ñ Animator ½Õ¥Î)
+    // IK è¨ˆç®— (æ¯å¹€ç”± Animator èª¿ç”¨)
     void OnAnimatorIK(int layerIndex)
     {
         if (anim == null) return;
 
-        // IK ±ø¥óÀË¬d¡G¥Ø¼Ğ¦s¦b¥BÅv­«¤j©ó 0
+        // IK æ¢ä»¶æª¢æŸ¥ï¼šç›®æ¨™å­˜åœ¨ä¸”æ¬Šé‡å¤§æ–¼ 0
         if (ikTargetPoint == null || handIKWeight <= 0)
         {
-            // ¤£º¡¨¬±ø¥ó¡A­«¸m IK Åv­«
+            // ä¸æ»¿è¶³æ¢ä»¶ï¼Œé‡ç½® IK æ¬Šé‡
             anim.SetIKPositionWeight(AvatarIKGoal.RightHand, 0);
             anim.SetIKRotationWeight(AvatarIKGoal.RightHand, 0);
-            if (rightElbowHint != null) anim.SetIKHintPositionWeight(AvatarIKHint.RightElbow, 0); // ÀË¬d Hint ¬O§_¦s¦b
+            if (rightElbowHint != null) anim.SetIKHintPositionWeight(AvatarIKHint.RightElbow, 0); // æª¢æŸ¥ Hint æ˜¯å¦å­˜åœ¨
             return;
         }
 
-        // --- °õ¦æ IK ---
-        // ³]©wÅv­«
+        // --- åŸ·è¡Œ IK ---
+        // è¨­å®šæ¬Šé‡
         anim.SetIKPositionWeight(AvatarIKGoal.RightHand, handIKWeight);
         anim.SetIKRotationWeight(AvatarIKGoal.RightHand, handIKWeight);
-        // ³]©w¥Ø¼Ğ
+        // è¨­å®šç›®æ¨™
         anim.SetIKPosition(AvatarIKGoal.RightHand, ikTargetPoint.position);
         anim.SetIKRotation(AvatarIKGoal.RightHand, ikTargetPoint.rotation);
 
-        // --- ¤â¨y´£¥Ü ---
-        if (rightElbowHint != null) // ¨Ï¥Î Inspector «ü©wªº´£¥ÜÂI
+        // --- æ‰‹è‚˜æç¤º ---
+        if (rightElbowHint != null) // ä½¿ç”¨ Inspector æŒ‡å®šçš„æç¤ºé»
         {
             anim.SetIKHintPositionWeight(AvatarIKHint.RightElbow, hintIKWeight);
             anim.SetIKHintPosition(AvatarIKHint.RightElbow, rightElbowHint.position);
         }
     }
 
-    // (FindRecursive ¨ç¼Æ¤w²¾°£¡A§ï¥Î Inspector «ü©w rightElbowHint)
+    // (FindRecursive å‡½æ•¸å·²ç§»é™¤ï¼Œæ”¹ç”¨ Inspector æŒ‡å®š rightElbowHint)
 
-    // °Êµe¨Æ¥ó¡G§ì¨úª«¥óªºÀş¶¡
+    // å‹•ç•«äº‹ä»¶ï¼šæŠ“å–ç‰©ä»¶çš„ç¬é–“
     public void AnimationEvent_GrabObject()
     {
-        // Debug.Log("AnimationEvent_GrabObject CALLED"); // «O¯d°òÂ¦ Log
+        // Debug.Log("AnimationEvent_GrabObject CALLED"); // ä¿ç•™åŸºç¤ Log
         if (grabSocket == null) { Debug.LogError("GrabSocket IS NULL!", this.gameObject); return; }
 
-        // ÀË¬d±q TriggerPickup ¶Ç¨Óªº objectToGrab
+        // æª¢æŸ¥å¾ TriggerPickup å‚³ä¾†çš„ objectToGrab
         if (objectToGrab != null)
         {
             if (teamManager != null) teamManager.RemoveCharacterFromTeam(objectToGrab.gameObject);
 
-            _heldObjectRef = objectToGrab; // ¥¿¦¡«ù¦³ª«¥ó
+            _heldObjectRef = objectToGrab; // æ­£å¼æŒæœ‰ç‰©ä»¶
 
-            // ½T©w­n¹ï»ô­ş­ÓÂI (GrabPoint ©Î Root)
+            // ç¢ºå®šè¦å°é½Šå“ªå€‹é» (GrabPoint æˆ– Root)
             Transform potentialGrabPoint = _heldObjectRef.Find("GrabPoint");
             _pointToAlignWithSocket = (potentialGrabPoint != null) ? potentialGrabPoint : _heldObjectRef;
             // Debug.Log($"Holding '{_heldObjectRef.name}', Aligning '{_pointToAlignWithSocket.name}'");
 
-            // --- Ãö³¬ª«²z ---
+            // --- é—œé–‰ç‰©ç† ---
             Rigidbody rb = _heldObjectRef.GetComponent<Rigidbody>();
             if (rb != null) { rb.isKinematic = true; rb.useGravity = false; }
             Collider col = _heldObjectRef.GetComponent<Collider>();
             if (col != null) { col.enabled = false; }
 
-            // --- ³]©w¸òÀHª¬ºA ---
+            // --- è¨­å®šè·Ÿéš¨ç‹€æ…‹ ---
             _isHoldingObject = true;
 
-            // --- ¥ß§YÃö³¬ IK & ²M°£Á{®ÉÅÜ¼Æ ---
-            handIKWeight = 0f; // ±j¨îÅv­«Âk¹s
-            ikTargetPoint = null; // ²M°£ IK ¥Ø¼Ğ
-            objectToGrab = null;  // ²M°£Á{®É«ü¼Ğ
+            // --- ç«‹å³é—œé–‰ IK & æ¸…é™¤è‡¨æ™‚è®Šæ•¸ ---
+            handIKWeight = 0f; // å¼·åˆ¶æ¬Šé‡æ­¸é›¶
+            ikTargetPoint = null; // æ¸…é™¤ IK ç›®æ¨™
+            objectToGrab = null;  // æ¸…é™¤è‡¨æ™‚æŒ‡æ¨™
         }
         else
         {
@@ -354,37 +362,37 @@ public class NpcAI : MonoBehaviour
         }
     }
 
-    // °Êµe¨Æ¥ó¡G¾ß¬B°Êµeµ²§ô ©Î ¤â°ÊÄ²µo©ñ¶}
+    // å‹•ç•«äº‹ä»¶ï¼šæ’¿æ‹¾å‹•ç•«çµæŸ æˆ– æ‰‹å‹•è§¸ç™¼æ”¾é–‹
     public void AnimationEvent_PickupEnd()
     {
-        // Debug.Log("AnimationEvent_PickupEnd CALLED"); // «O¯d°òÂ¦ Log
-        Transform objectToRelease = _heldObjectRef; // ¼È¦s¤Ş¥Î
+        // Debug.Log("AnimationEvent_PickupEnd CALLED"); // ä¿ç•™åŸºç¤ Log
+        Transform objectToRelease = _heldObjectRef; // æš«å­˜å¼•ç”¨
 
-        // Ãö³¬¸òÀH
+        // é—œé–‰è·Ÿéš¨
         _isHoldingObject = false;
         _heldObjectRef = null;
         _pointToAlignWithSocket = null;
 
-        // --- ­«·s±Ò¥Îª«²z ---
+        // --- é‡æ–°å•Ÿç”¨ç‰©ç† ---
         if (objectToRelease != null)
         {
             Rigidbody rb = objectToRelease.GetComponent<Rigidbody>();
             if (rb != null) { rb.isKinematic = false; rb.useGravity = true; }
             Collider col = objectToRelease.GetComponent<Collider>();
             if (col != null) { col.enabled = true; }
-            // ¥i¿ï¡G¬I¥[¤@ÂI¤O
+            // å¯é¸ï¼šæ–½åŠ ä¸€é»åŠ›
             // if (rb != null) rb.AddForce(transform.forward * 0.1f + Vector3.up * 0.1f, ForceMode.VelocityChange);
         }
 
-        // ²M°£ IK ÅÜ¼Æ («OÀI)
+        // æ¸…é™¤ IK è®Šæ•¸ (ä¿éšª)
         ikTargetPoint = null;
         objectToGrab = null;
 
-        // «ì´_ Agent ²¾°Ê
+        // æ¢å¾© Agent ç§»å‹•
         if (agent != null && agent.enabled) agent.isStopped = false;
     }
 
-    // §ó·s Animator ³t«×°Ñ¼Æ
+    // æ›´æ–° Animator é€Ÿåº¦åƒæ•¸
     private void UpdateAnimator()
     {
         if (agent == null || anim == null) return;
@@ -395,7 +403,7 @@ public class NpcAI : MonoBehaviour
         anim.SetFloat("Speed", normalizedSpeed, 0.1f, Time.deltaTime);
     }
 
-    // Searching ª¬ºAÅŞ¿è
+    // Searching ç‹€æ…‹é‚è¼¯
     private void SearchingState()
     {
         agent.speed = patrolSpeed;
@@ -405,7 +413,7 @@ public class NpcAI : MonoBehaviour
 
         if (movingTarget != null)
         {
-            // ¼W¥[Äµ§Ù
+            // å¢åŠ è­¦æˆ’
             float increaseRate = (currentAlertLevel < 100) ? lowAlertIncreaseRate : mediumAlertIncreaseRate;
             currentAlertLevel += increaseRate * aiUpdateInterval;
             timeSinceLastSighting = 0f;
@@ -414,57 +422,116 @@ public class NpcAI : MonoBehaviour
         }
         else
         {
-            // ­°§CÄµ§Ù
-            if (currentAlertLevel < 100)
-            {
-                currentAlertLevel -= lowAlertDecreaseRate * aiUpdateInterval;
-            }
-            else
-            {
-                timeSinceLastSighting += aiUpdateInterval;
-                if (timeSinceLastSighting >= timeToStartDecreasing)
-                {
-                    currentAlertLevel -= mediumAlertDecreaseRate * aiUpdateInterval;
-                }
-            }
-
-            // Àu¥ı¶¶§Ç 2: ¦pªG¨S¬İ¨ì¤H¡A¦ı¦³Án­µ½Õ¬dÂI¡A´N¥h½Õ¬d
-            if (noiseInvestigationTarget.HasValue)
-            {
-                InvestigateNoise();
-            }
-            else
-            {
-                // Àu¥ı¶¶§Ç 3: ¨S¨Æ°µ¡AÄ~Äò¨µÅŞ
-                Patrol();
-            }
+            // æ²’çœ‹åˆ°äººï¼Œæ…¢æ…¢é™è­¦æˆ’
+            HandleAlertDecrease();
         }
 
-        // ÀË¬d¬O§_¶i¤JÄµ§Ùª¬ºA
+        // ç‹€æ…‹è½‰æ›ï¼šè­¦æˆ’å€¼æ»¿ -> Alerted
         if (currentAlertLevel >= 200 && movingTarget != null)
         {
-            threatTarget = movingTarget;
-            currentState = NpcState.Alerted;
-            Debug.Log($"State Change: Searching -> Alerted! Target: {threatTarget.name}");
+            EnterAlertedState(movingTarget);
         }
     }
 
-    // Alerted ª¬ºAÅŞ¿è
+    private void InvestigatingState()
+    {
+        // 1. è¦–è¦ºå„ªå…ˆï¼šå¦‚æœèª¿æŸ¥é€”ä¸­çœ‹åˆ°æ±è¥¿åœ¨å‹•ï¼Œç›´æ¥é€²å…¥è¿½æ“Šï¼
+        Transform movingTarget = CheckForMovingTargets();
+        if (movingTarget != null)
+        {
+            currentAlertLevel += mediumAlertIncreaseRate * aiUpdateInterval; // å¿«é€Ÿå¢åŠ 
+            if (currentAlertLevel >= 200)
+            {
+                EnterAlertedState(movingTarget);
+                return;
+            }
+        }
+        else
+        {
+            // æ²’çœ‹åˆ°äººï¼Œä½†å› ç‚ºè™•æ–¼ç·Šå¼µç‹€æ…‹ï¼Œè­¦æˆ’å€¼ä¸‹é™å¾—æ¯” Searching æ…¢
+            if (currentAlertLevel > 100)
+                currentAlertLevel -= (mediumAlertDecreaseRate * 0.5f) * aiUpdateInterval;
+        }
+
+        // 2. ç§»å‹•åˆ°è²éŸ³ä¾†æº
+        if (noiseInvestigationTarget.HasValue)
+        {
+            agent.speed = investigateSpeed; // èµ°å¿«ä¸€é»
+            agent.SetDestination(noiseInvestigationTarget.Value);
+
+            // 3. åˆ°é”æª¢æŸ¥
+            if (!agent.pathPending && agent.remainingDistance <= 0.5f)
+            {
+                // åˆ°é”ç›®çš„åœ°ï¼Œé–‹å§‹ã€Œå·¦å³å¼µæœ›ã€è¡Œç‚º
+                PerformLookAroundBehavior();
+            }
+        }
+        else
+        {
+            // é˜²å‘†ï¼šå¦‚æœæ²’æœ‰ç›®æ¨™ï¼Œåˆ‡å›æœç´¢
+            currentState = NpcState.Searching;
+        }
+
+        // 4. çµæŸæ¢ä»¶ï¼šè­¦æˆ’å€¼å¤ªä½ï¼Œæˆ–è€…èª¿æŸ¥å®Œç•¢
+        if (currentAlertLevel < 50f) // è­¦æˆ’å€¼é™å¾ˆä½äº†ï¼Œæ”¾é¬†
+        {
+            Debug.Log("NPC: å±æ©Ÿè§£é™¤ï¼Œå›æ­¸å·¡é‚ã€‚");
+            currentState = NpcState.Searching;
+            noiseInvestigationTarget = null;
+        }
+    }
+
+    /// <summary>
+    /// æ¨¡æ“¬ã€Œå·¦å³å¼µæœ›ã€çš„ç¨‹åºåŒ–å‹•ç•«
+    /// </summary>
+    private void PerformLookAroundBehavior()
+    {
+        if (investigationTimer == 0f)
+        {
+            Debug.Log("NPC: åˆ°é”è²éŸ³é»ï¼Œé–‹å§‹æœç´¢...");
+            investigationStartRotation = transform.rotation; // è¨˜éŒ„åˆ°é”æ™‚çš„é¢å‘
+        }
+
+        investigationTimer += aiUpdateInterval; // é€™è£¡ç”¨ UpdateInterval ç´¯åŠ æœ‰é»ç²—ç•¥ï¼Œä½†åœ¨ Coroutine è£¡ä¹Ÿå¯ä»¥
+        // æ›´å¥½çš„åšæ³•æ˜¯åœ¨ Update è£¡è™•ç†æ—‹è½‰ï¼Œé€™è£¡åªè™•ç†é‚è¼¯ç‹€æ…‹ï¼Œä½†ç‚ºäº†ç°¡åŒ–ä»£ç¢¼ï¼Œæˆ‘å€‘ç”¨ç°¡å–®çš„ Rotate
+
+        lookAroundTimer += Time.deltaTime; // ä½¿ç”¨çœŸå¯¦æ™‚é–“
+
+        // ç°¡å–®çš„æ–é ­é‚è¼¯ï¼šç”¨ Sin æ³¢æ¨¡æ“¬å·¦å³çœ‹
+        // 0~1ç§’: å·¦è½‰, 1~2ç§’: å³è½‰...
+        float angle = Mathf.Sin(investigationTimer * 2f) * 45f; // å·¦å³ 45 åº¦
+        Quaternion targetRot = investigationStartRotation * Quaternion.Euler(0, angle, 0);
+
+        // å¹³æ»‘æ—‹è½‰ (é€™è¡Œé€šå¸¸è¦åœ¨ Update å‘¼å«æ‰æ»‘é †ï¼Œä½†åœ¨ AI Loop è£¡æœƒæ˜¯ä¸€é “ä¸€é “çš„)
+        // ç‚ºäº†æ•ˆæœå¥½ï¼Œæˆ‘å€‘åœ¨ Update è£¡åŠ ä¸€å€‹ flag è™•ç†æ—‹è½‰æœƒæ›´å¥½ï¼Œä½†é€™è£¡å…ˆç”¨ç°¡å–®æ–¹å¼ï¼š
+        transform.rotation = Quaternion.Slerp(transform.rotation, targetRot, Time.deltaTime * lookAroundSpeed);
+
+        // æ™‚é–“åˆ°ï¼Œæ²’ç™¼ç¾æ±è¥¿
+        if (investigationTimer >= investigateWaitTime)
+        {
+            Debug.Log("NPC: ä»€éº¼éƒ½æ²’æœ‰... (åˆ‡å›å·¡é‚)");
+            currentState = NpcState.Searching;
+            noiseInvestigationTarget = null;
+            investigationTimer = 0f;
+        }
+    }
+
+    // Alerted ç‹€æ…‹é‚è¼¯
     private void AlertedState()
     {
         agent.speed = chaseSpeed;
-        currentAlertLevel -= highAlertDecreaseRate * aiUpdateInterval; // ¦ÛµM¤U­°
+        currentAlertLevel -= highAlertDecreaseRate * aiUpdateInterval; // è‡ªç„¶ä¸‹é™
 
         bool threatIsStillVisible = (threatTarget != null && fov.visibleTargets.Contains(threatTarget));
 
         if (threatIsStillVisible)
         {
-            // A: «ùÄò°lÀ»
+            // A: æŒçºŒè¿½æ“Š
             agent.SetDestination(threatTarget.position);
             lastSightingPosition = threatTarget.position;
             timeSinceLastSighting = 0f;
 
-            // ÀË¬d®·®»
+            // æª¢æŸ¥æ•æ‰
             if (Vector3.Distance(transform.position, threatTarget.position) < captureDistance)
             {
                 Debug.Log($"Capturing target: {threatTarget.name}!");
@@ -473,40 +540,43 @@ public class NpcAI : MonoBehaviour
                 currentAlertLevel = 0;
                 threatTarget = null;
                 currentState = NpcState.Searching;
-                return; // µ²§ô
+                return; // çµæŸ
             }
         }
         else
         {
-            // B: ¥Ø¼Ğ¥á¥¢¡A«e©¹³Ì«á¦ì¸m
-            if (threatTarget != null && agent.destination != lastSightingPosition) // ÀË¬d threatTarget ¬O§_¦s¦b
+            // B: ç›®æ¨™ä¸Ÿå¤±ï¼Œå‰å¾€æœ€å¾Œä½ç½®
+            if (threatTarget != null && agent.destination != lastSightingPosition) // æª¢æŸ¥ threatTarget æ˜¯å¦å­˜åœ¨
             {
                 agent.SetDestination(lastSightingPosition);
             }
 
-            // C: µo²{·s¥Ø¼Ğ
+            // C: ç™¼ç¾æ–°ç›®æ¨™
             Transform newMovingTarget = CheckForMovingTargets();
             if (newMovingTarget != null && newMovingTarget != threatTarget)
             {
                 Debug.Log($"Lost target {threatTarget?.name ?? "NULL"}! New target: {newMovingTarget.name}");
                 threatTarget = newMovingTarget;
-                currentAlertLevel = 200f; // ­«¸mÄµ§Ù
+                currentAlertLevel = 200f; // é‡ç½®è­¦æˆ’
                 lastSightingPosition = threatTarget.position;
                 timeSinceLastSighting = 0f;
-                // ¤£ return¡A¤U¤@½ü°lÀ»
+                // ä¸ returnï¼Œä¸‹ä¸€è¼ªè¿½æ“Š
             }
-            // D: ¨ì¹F³Ì«á¦ì¸m¥BµL·sµo²{
-            else if (threatTarget != null && !agent.pathPending && agent.remainingDistance <= agent.stoppingDistance) // ÀË¬d threatTarget
+            // D: åˆ°é”æœ€å¾Œä½ç½®ä¸”ç„¡æ–°ç™¼ç¾
+            else if (threatTarget != null && !agent.pathPending && agent.remainingDistance <= agent.stoppingDistance) // æª¢æŸ¥ threatTarget
             {
                 timeSinceLastSighting += aiUpdateInterval;
-                if (timeSinceLastSighting > timeToStartDecreasing * 2f)
+                if (timeSinceLastSighting > 2f)
                 {
-                    Debug.Log("Target lost at last known position. Returning to search.");
+                    Debug.Log("NPC: è¿½ä¸Ÿäº†ï¼Œåœ¨é™„è¿‘æ‰¾æ‰¾ (Alerted -> Investigating)");
+                    currentState = NpcState.Investigating;
+                    noiseInvestigationTarget = transform.position; // åŸåœ°æœå¯»ä¸€ä¸‹
+                    investigationTimer = 0f; // é‡ç½®æœç´¢è¨ˆæ™‚
+                    currentAlertLevel = 150f; // ç¶­æŒä¸€å®šè­¦æˆ’
                     threatTarget = null;
-                    currentState = NpcState.Searching;
                 }
             }
-            // E: ¦pªG¤@¶}©l´N¨S¦³ threatTarget (¨Ò¦pª½±µ³Q³]¬° Alerted?)¡A©ÎªÌ¥Ø¼Ğ¤w³Q¾P·´
+            // E: å¦‚æœä¸€é–‹å§‹å°±æ²’æœ‰ threatTarget (ä¾‹å¦‚ç›´æ¥è¢«è¨­ç‚º Alerted?)ï¼Œæˆ–è€…ç›®æ¨™å·²è¢«éŠ·æ¯€
             else if (threatTarget == null)
             {
                 Debug.LogWarning("Alerted state entered without a valid threatTarget or target destroyed. Returning to search.");
@@ -514,7 +584,7 @@ public class NpcAI : MonoBehaviour
             }
         }
 
-        // Äµ§Ù­È¹L§C¡Aªğ¦^·j¯Á
+        // è­¦æˆ’å€¼éä½ï¼Œè¿”å›æœç´¢
         if (currentAlertLevel < 100)
         {
             Debug.Log("Alert level dropped. Returning to search.");
@@ -523,7 +593,30 @@ public class NpcAI : MonoBehaviour
         }
     }
 
-    // ÀË¬d²¾°Ê¥Ø¼Ğ
+    private void HandleAlertDecrease()
+    {
+        if (currentAlertLevel < 100)
+        {
+            currentAlertLevel -= lowAlertDecreaseRate * aiUpdateInterval;
+        }
+        else
+        {
+            timeSinceLastSighting += aiUpdateInterval;
+            if (timeSinceLastSighting >= timeToStartDecreasing)
+            {
+                currentAlertLevel -= mediumAlertDecreaseRate * aiUpdateInterval;
+            }
+        }
+    }
+
+    private void EnterAlertedState(Transform target)
+    {
+        threatTarget = target;
+        currentState = NpcState.Alerted;
+        Debug.Log($"State Change: -> Alerted! Target: {threatTarget.name}");
+    }
+
+    // æª¢æŸ¥ç§»å‹•ç›®æ¨™
     private Transform CheckForMovingTargets()
     {
         Transform detectedMovingTarget = null;
@@ -543,14 +636,14 @@ public class NpcAI : MonoBehaviour
             if (aiUpdateInterval > 0 && (distanceMoved / aiUpdateInterval) > movementThreshold)
             {
                 detectedMovingTarget = target;
-                // §ó·s³Ì«á¦ì¸mªºÅŞ¿è²¾¨ìª¬ºA¾÷¤º¡AÁ×§K¬İ¨ìÀR¤îª«Åé¤]§ó·s
+                // æ›´æ–°æœ€å¾Œä½ç½®çš„é‚è¼¯ç§»åˆ°ç‹€æ…‹æ©Ÿå…§ï¼Œé¿å…çœ‹åˆ°éœæ­¢ç‰©é«”ä¹Ÿæ›´æ–°
                 // lastSightingPosition = target.position;
             }
-            lastKnownPositions[target] = target.position; // «ùÄò§ó·s¦ì¸m
+            lastKnownPositions[target] = target.position; // æŒçºŒæ›´æ–°ä½ç½®
         }
 
-        // ²M²z
-        List<Transform> targetsToForget = new List<Transform>(lastKnownPositions.Count); // ªì©l¤Æ®e¶q
+        // æ¸…ç†
+        List<Transform> targetsToForget = new List<Transform>(lastKnownPositions.Count); // åˆå§‹åŒ–å®¹é‡
         foreach (var pair in lastKnownPositions)
         {
             if (!fov.visibleTargets.Contains(pair.Key))
@@ -572,15 +665,15 @@ public class NpcAI : MonoBehaviour
 
         agent.SetDestination(noiseInvestigationTarget.Value);
 
-        // ÀË¬d¬O§_¨ì¹FÁn­µ¨Ó·½ªşªñ
+        // æª¢æŸ¥æ˜¯å¦åˆ°é”è²éŸ³ä¾†æºé™„è¿‘
         if (!agent.pathPending && agent.remainingDistance < 0.5f)
         {
-            // ¨ì¹F¤F¡A¶}©l­p®Éµo§b
+            // åˆ°é”äº†ï¼Œé–‹å§‹è¨ˆæ™‚ç™¼å‘†
             investigationTimer += Time.deltaTime;
             if (investigationTimer >= investigateWaitTime)
             {
-                Debug.Log("NPC: ³o¸Ì¨SªF¦è°Ú... (¦^¥h¨µÅŞ)");
-                noiseInvestigationTarget = null; // ²M°£¥Ø¼Ğ¡A¦^Âk Patrol
+                Debug.Log("NPC: é€™è£¡æ²’æ±è¥¿å•Š... (å›å»å·¡é‚)");
+                noiseInvestigationTarget = null; // æ¸…é™¤ç›®æ¨™ï¼Œå›æ­¸ Patrol
                 investigationTimer = 0f;
             }
         }
@@ -588,74 +681,63 @@ public class NpcAI : MonoBehaviour
 
     public void HearNoise(Vector3 position, float range, float intensity)
     {
-        // 1. ­pºâ¶ZÂ÷°I´î (¥i¿ï¡A³o¸Ì¥ıÂ²¤Æ)
+        // 1. è¨ˆç®—è·é›¢è¡°æ¸› (å¯é¸ï¼Œé€™è£¡å…ˆç°¡åŒ–)
         float distance = Vector3.Distance(transform.position, position);
 
-        // Â²³æ¾B¾×§PÂ_¡G±q NPC ÀY³¡®g¦VÁn­µ¨Ó·½
-        // (³o¸Ì°²³] NPC pivot ¦b¸}©³¡A©Ò¥H + Vector3.up * 1.5f)
+        // ç°¡å–®é®æ“‹åˆ¤æ–·ï¼šå¾ NPC é ­éƒ¨å°„å‘è²éŸ³ä¾†æº
+        // (é€™è£¡å‡è¨­ NPC pivot åœ¨è…³åº•ï¼Œæ‰€ä»¥ + Vector3.up * 1.5f)
         Vector3 earPos = transform.position + Vector3.up * 1.5f;
         if (Physics.Linecast(earPos, position, out RaycastHit hit))
         {
-            // ¦pªG¤¤¶¡¦³Àğ¾À (¤£¬Oª±®a)¡AÁn­µ´î®z
+            // å¦‚æœä¸­é–“æœ‰ç‰†å£ (ä¸æ˜¯ç©å®¶)ï¼Œè²éŸ³æ¸›å¼±
             if (!hit.collider.CompareTag("Player"))
             {
-                intensity *= 0.5f; // ¹jÀğ¦³¦Õ¡A¦ıÅ¥¤£²M·¡
+                intensity *= 0.5f; // éš”ç‰†æœ‰è€³ï¼Œä½†è½ä¸æ¸…æ¥š
             }
         }
 
-        // 2. ¼W¥[Äµ§Ù­È
+        // 2. å¢åŠ è­¦æˆ’å€¼
         float effectiveIntensity = intensity * hearingSensitivity;
         currentAlertLevel += effectiveIntensity;
 
-        Debug.Log($"NPC Å¥¨ìÁn­µ! ¨Ó·½: {position}, ¼W¥[Äµ§Ù: {effectiveIntensity}");
+        Debug.Log($"NPC è½åˆ°è²éŸ³! ä¾†æº: {position}, å¢åŠ è­¦æˆ’: {effectiveIntensity}");
 
-        if (effectiveIntensity > 1f) // ¹LÂo±¼¤Ó¤pªºÁn­µ
+        if (effectiveIntensity > 1f) // éæ¿¾æ‰å¤ªå°çš„è²éŸ³
         {
             OnNoiseHeard?.Invoke(this, effectiveIntensity);
         }
 
-        // 3. ³]©w½Õ¬dÂI (¥u¦³¦b Searching ª¬ºA¤~»İ­n¥h½Õ¬d¡AAlerted ·|ª½±µ°l±ş)
-        // ¡¿¡¿¡¿ [®Ö¤ß­×§ï] ¥[¤JÄµ§Ù­ÈªùÂe§PÂ_ ¡¿¡¿¡¿
-        if (currentState == NpcState.Searching && currentAlertLevel >= 100f) // <--- ¥u¦³°ª©ó 100 (¤¤Äµ§Ù¥H¤W) ¤~¥h½Õ¬d
+        // 3. è¨­å®šèª¿æŸ¥é» (åªæœ‰åœ¨ Searching ç‹€æ…‹æ‰éœ€è¦å»èª¿æŸ¥ï¼ŒAlerted æœƒç›´æ¥è¿½æ®º)
+        // â–¼â–¼â–¼ [æ ¸å¿ƒä¿®æ”¹] åŠ å…¥è­¦æˆ’å€¼é–€æª»åˆ¤æ–· â–¼â–¼â–¼
+        if (currentState != NpcState.Alerted && currentAlertLevel >= 100f)
         {
-            // ¡¿¡¿¡¿ [®Ö¤ß­×§ï] ¨Ï¥Î SamplePosition ­×¥¿¾É¯èÂI ¡¿¡¿¡¿
             NavMeshHit navHit;
-
-            // °Ñ¼Æ»¡©ú:
-            // sourcePosition: Án­µ¨Ó·½
-            // out hit: ¿é¥Xªº¾É¯èÂI¸ê°T
-            // maxDistance: 5.0f (¦bÁn­µ©P³ò 5 ¤½¤Ø¤º§ä¸ô¡A§A¥i¥H®Ú¾Ú³õ´º°ª«×½Õ¾ã)
-            // areaMask: NavMesh.AllAreas (©Ò¦³¥i¦æ¨«°Ï°ì)
             if (NavMesh.SamplePosition(position, out navHit, 5.0f, NavMesh.AllAreas))
             {
-                // §ä¨ì¤F¡I±N½Õ¬d¥Ø¼Ğ³]¬°¾É¯èºô®æ¤Wªº³o­Ó¦³®ÄÂI
                 noiseInvestigationTarget = navHit.position;
-                agent.SetDestination(navHit.position);
-                investigationTimer = 0f;
 
-                Debug.Log($"NPC: Å¥¨ìÁn­µ¡A­×¥¿¾É¯è¥Ø¼Ğ¦Ü: {navHit.position}");
+                // åˆ‡æ›ç‹€æ…‹ï¼
+                if (currentState != NpcState.Investigating)
+                {
+                    Debug.Log("NPC: è½åˆ°å¯ç–‘è²éŸ³ï¼Œåˆ‡æ›è‡³èª¿æŸ¥æ¨¡å¼ï¼");
+                    currentState = NpcState.Investigating;
+                    investigationTimer = 0f; // é‡ç½®æœç´¢è¨ˆæ™‚
+                }
+                else
+                {
+                    Debug.Log("NPC: èª¿æŸ¥ä¸­åˆè½åˆ°è²éŸ³ï¼Œæ›´æ–°ç›®æ¨™ï¼");
+                    // å¦‚æœå·²ç¶“åœ¨èª¿æŸ¥ï¼Œå°±æ›´æ–°åœ°é»ï¼Œä½†ä¸é‡ç½®è¨ˆæ™‚å™¨ (é¿å…è¢«é€£çºŒè²éŸ³é¢¨ç®)
+                }
             }
-            else
-            {
-                // §ä¤£¨ì¥i¦æ¨«ÂI (¨Ò¦pÁn­µ¦b¥bªÅ¤¤©Î¦a¹Ï¥~)
-                // ¿ï¾Ü A: ´N¤£²¾°Ê¤F¡A¥u­ì¦aÄµ§Ù
-                Debug.LogWarning($"NPC: Å¥¨ìÁn­µ {position} ¦ıµLªk¨ì¹F (NavMesh §ä¤£¨ìÂI)¡C");
-
-                // ¿ï¾Ü B: ©Î¬O¹Á¸Õª½±µ³]©w­ì©l®y¼Ğ (ÁöµM¥i¯à·|¥d¦í¡A¦ı¦Ü¤Ö·|¸ÕµÛ¾aªñ)
-                // noiseInvestigationTarget = position;
-                // agent.SetDestination(position);
-            }
-            // ¡¶¡¶¡¶¡¶¡¶¡¶¡¶¡¶¡¶¡¶¡¶¡¶¡¶¡¶¡¶¡¶¡¶¡¶¡¶¡¶¡¶¡¶¡¶¡¶¡¶¡¶¡¶¡¶¡¶¡¶¡¶¡¶¡¶¡¶
-
         }
         else if (currentState == NpcState.Searching)
         {
-            Debug.Log("NPC: ¦n¹³¦³Án­µ... À³¸Ó¬O¿ùÄ± (Äµ§Ù­È < 100¡AµLµø)");
+            Debug.Log("NPC: å¥½åƒæœ‰è²éŸ³... æ‡‰è©²æ˜¯éŒ¯è¦º (è­¦æˆ’å€¼ < 100ï¼Œç„¡è¦–)");
         }
-        // ¡¶¡¶¡¶¡¶¡¶¡¶¡¶¡¶¡¶¡¶¡¶¡¶¡¶¡¶¡¶¡¶¡¶¡¶¡¶¡¶¡¶¡¶
+        // â–²â–²â–²â–²â–²â–²â–²â–²â–²â–²â–²â–²â–²â–²â–²â–²â–²â–²â–²â–²â–²â–²
     }
 
-    // ¨µÅŞ
+    // å·¡é‚
     private void Patrol()
     {
         if (patrolPoints == null || patrolPoints.Count == 0 || agent == null || !agent.enabled || agent.isStopped) return;
