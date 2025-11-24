@@ -63,7 +63,7 @@ public class PlayerMovement : MonoBehaviour
     [Header("跳躍與重力")]
     [SerializeField] private float jumpHeight = 1.5f;
     [SerializeField] private float gravityMultiplier = 2.5f;
-    [SerializeField] private float jumpCooldown = 0.2f; // <--- [新增] 兩次跳躍間的最小間隔
+    [SerializeField] private float jumpCooldown = 0.5f; // <--- [新增] 兩次跳躍間的最小間隔
 
     [Header("地面檢測")]
     [SerializeField] private float groundCheckRadius = 0.4f;
