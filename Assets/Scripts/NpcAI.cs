@@ -46,7 +46,8 @@ public class NpcAI : MonoBehaviour
     [Header("聽覺與調查設定")] // <--- [修改] 分類標題
     [SerializeField] private float hearingSensitivity = 1.0f;
     [SerializeField] private float investigateWaitTime = 4.0f; // [修改]稍微久一點，讓他有時間轉頭
-    [SerializeField] private float lookAroundSpeed = 2.0f; // [新增] 轉頭速度
+    [Tooltip("Animator Controller 裡的 Bool 參數名稱")]
+    [SerializeField] private string lookAroundAnimParam = "IsLookingAround";
     public float HearingSensitivity => hearingSensitivity;
 
     [Header("速度設定")]
@@ -486,30 +487,31 @@ public class NpcAI : MonoBehaviour
     /// </summary>
     private void PerformLookAroundBehavior()
     {
+        // --- 1. 剛到達時，觸發動畫 ---
         if (investigationTimer == 0f)
         {
-            Debug.Log("NPC: 到達聲音點，開始搜索...");
-            investigationStartRotation = transform.rotation; // 記錄到達時的面向
+            Debug.Log("NPC: 到達聲音點，播放搜索動畫...");
+            if (anim != null) anim.SetBool(lookAroundAnimParam, true); // 開啟動畫
+
+            // (可選) 確保 NPC 停下來
+            if (agent.enabled) agent.isStopped = true;
         }
 
-        investigationTimer += aiUpdateInterval; // 這裡用 UpdateInterval 累加有點粗略，但在 Coroutine 裡也可以
-        // 更好的做法是在 Update 裡處理旋轉，這裡只處理邏輯狀態，但為了簡化代碼，我們用簡單的 Rotate
+        investigationTimer += aiUpdateInterval; // 使用 AI Update 的間隔來計時 (注意：這裡比較粗略)
+        // 為了更精準的計時，你可以改成在 Update() 裡累加 Time.deltaTime，但這裡先維持架構一致
 
-        lookAroundTimer += Time.deltaTime; // 使用真實時間
-
-        // 簡單的搖頭邏輯：用 Sin 波模擬左右看
-        // 0~1秒: 左轉, 1~2秒: 右轉...
-        float angle = Mathf.Sin(investigationTimer * 2f) * 90f; // 左右 90 度
-        Quaternion targetRot = investigationStartRotation * Quaternion.Euler(0, angle, 0);
-
-        // 平滑旋轉 (這行通常要在 Update 呼叫才滑順，但在 AI Loop 裡會是一頓一頓的)
-        // 為了效果好，我們在 Update 裡加一個 flag 處理旋轉會更好，但這裡先用簡單方式：
-        transform.rotation = Quaternion.Slerp(transform.rotation, targetRot, Time.deltaTime * lookAroundSpeed);
-
-        // 時間到，沒發現東西
+        // --- 2. 時間到，結束調查 ---
         if (investigationTimer >= investigateWaitTime)
         {
             Debug.Log("NPC: 什麼都沒有... (切回巡邏)");
+
+            // 關閉動畫
+            if (anim != null) anim.SetBool(lookAroundAnimParam, false);
+
+            // 恢復移動
+            if (agent.enabled) agent.isStopped = false;
+
+            // 重置狀態
             currentState = NpcState.Searching;
             noiseInvestigationTarget = null;
             investigationTimer = 0f;
@@ -611,6 +613,9 @@ public class NpcAI : MonoBehaviour
 
     private void EnterAlertedState(Transform target)
     {
+        if (anim != null) anim.SetBool(lookAroundAnimParam, false);
+        if (agent.enabled) agent.isStopped = false;
+
         threatTarget = target;
         currentState = NpcState.Alerted;
         Debug.Log($"State Change: -> Alerted! Target: {threatTarget.name}");
