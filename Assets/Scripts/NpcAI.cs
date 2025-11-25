@@ -51,6 +51,9 @@ public class NpcAI : MonoBehaviour
     [SerializeField] private float investigateWaitTime = 4.0f;
     [Tooltip("Animator Controller 裡的 Bool 參數名稱")]
     [SerializeField] private string lookAroundAnimParam = "IsLookingAround";
+    [Tooltip("NPC 改變調查目標的最小間隔時間 (防止在多個聲音間頻繁來回)")]
+    [SerializeField] private float reactionCooldown = 1.5f; // 建議設 1.0 ~ 2.0 秒
+    private float lastReactionTime = -10f;
     public float HearingSensitivity => hearingSensitivity;
 
     [Header("速度設定")]
@@ -482,6 +485,25 @@ public class NpcAI : MonoBehaviour
                 // 到達目的地，開始「左右張望」行為
                 PerformLookAroundBehavior();
             }
+            // ▼▼▼ [新增] 狀態中斷處理：如果還沒到 (或目標被更新到遠處) ▼▼▼
+            else
+            {
+                // 檢查：如果 NPC 目前是 "停住" 的狀態 (代表他剛剛正在張望)
+                if (agent.enabled && agent.isStopped)
+                {
+                    Debug.Log("NPC: 收到新座標，中斷張望，開始移動！");
+
+                    // 1. 恢復移動
+                    agent.isStopped = false;
+
+                    // 2. 關閉張望動畫
+                    if (anim != null) anim.SetBool(lookAroundAnimParam, false);
+
+                    // 3. (建議) 重置計時器
+                    // 這樣當他走到新地點時，會重新完整張望一次，而不是只剩殘餘時間
+                    investigationTimer = 0f;
+                }
+            }
         }
         else
         {
@@ -769,8 +791,20 @@ public class NpcAI : MonoBehaviour
             NavMeshHit navHit;
             if (NavMesh.SamplePosition(position, out navHit, 5.0f, NavMesh.AllAreas))
             {
-                noiseInvestigationTarget = navHit.position;
+                //  ▼▼▼ [核心修改] 決策冷卻檢查 ▼▼▼
+                // 如果正在調查中，且距離上次決策還不到冷卻時間 -> 忽略這次的位置更新
+                if (currentState == NpcState.Investigating && Time.time < lastReactionTime + reactionCooldown)
+                {
+                    // 這裡可以加個判斷：如果新聲音"非常近"(威脅更大)，則允許插隊
+                    // float distToOld = Vector3.Distance(transform.position, noiseInvestigationTarget.Value);
+                    // float distToNew = Vector3.Distance(transform.position, navHit.position);
+                    // if (distToNew > distToOld * 0.5f) return; // 只有新目標距離小於一半時才插隊，否則 return
 
+                    return; // 簡單版：直接忽略，堅持去上一個點
+                }
+
+                noiseInvestigationTarget = navHit.position;
+                lastReactionTime = Time.time; // [新增] 更新決策時間
                 // 切換狀態！
                 if (currentState != NpcState.Investigating)
                 {
