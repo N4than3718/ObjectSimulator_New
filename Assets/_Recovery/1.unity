@@ -1876,13 +1876,11 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 593485718}
-  - component: {fileID: 593485725}
   - component: {fileID: 593485723}
   - component: {fileID: 593485722}
   - component: {fileID: 593485721}
   - component: {fileID: 593485720}
   - component: {fileID: 593485719}
-  - component: {fileID: 593485724}
   m_Layer: 3
   m_Name: NPC
   m_TagString: Untagged
@@ -2039,49 +2037,6 @@ CapsuleCollider:
   m_Height: 1.95
   m_Direction: 1
   m_Center: {x: 0, y: 1, z: 0}
---- !u!114 &593485724
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 593485716}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b3a2d8b5f25436f4a9478cbac864554d, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::NpcBodyPush
-  pushPower: 2
-  pushLayers:
-    serializedVersion: 2
-    m_Bits: 64
---- !u!54 &593485725
-Rigidbody:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 593485716}
-  serializedVersion: 5
-  m_Mass: 1
-  m_LinearDamping: 0
-  m_AngularDamping: 0.05
-  m_CenterOfMass: {x: 0, y: 0, z: 0}
-  m_InertiaTensor: {x: 1, y: 1, z: 1}
-  m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ImplicitCom: 1
-  m_ImplicitTensor: 1
-  m_UseGravity: 0
-  m_IsKinematic: 1
-  m_Interpolate: 0
-  m_Constraints: 0
-  m_CollisionDetection: 0
 --- !u!4 &632282085 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 1852576806548013000, guid: da85c1c2eee8ddb44a4e1fd5d663f3e1, type: 3}
