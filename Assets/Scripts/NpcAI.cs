@@ -642,16 +642,19 @@ public class NpcAI : MonoBehaviour
 
         if (blindTimer <= 0)
         {
+            if (agent.enabled) agent.isStopped = false;
             Debug.Log("NPC: 視力恢復，進入警戒狀態！");
 
             // 恢復後，直接進入高警戒狀態，因為他知道有人在搞鬼
-            currentAlertLevel = 200f;
-            currentState = NpcState.Alerted;
+            currentAlertLevel = 199f;
+            currentState = NpcState.Investigating;
 
             // 這裡可以讓他在原地先搜尋一下，或者直接根據上次記憶的位置追擊
             if (lastSightingPosition != Vector3.zero)
             {
                 agent.SetDestination(lastSightingPosition);
+                // 重置調查計時，讓他到了之後會認真張望
+                investigationTimer = 0f;
             }
         }
     }
