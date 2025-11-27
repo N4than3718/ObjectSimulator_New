@@ -170,6 +170,19 @@ public class FlashlightSkill : BaseSkill
 
                 if (angle < effectiveAngle)
                 {
+                    // 計算 "NPC -> 手電筒" 的方向
+                    Vector3 dirToLight = (rotatingPart.position - hit.transform.position).normalized;
+                    // 計算 NPC 正面 與 光源方向 的夾角
+                    // 假設 NPC 眼睛視野是 120 度 (左右各 60 度)
+                    float lookAngle = Vector3.Angle(npc.transform.forward, dirToLight);
+
+                    // 如果夾角大於 80 度 (代表光源在他側面或背面)，就不算致盲
+                    if (lookAngle > 80f)
+                    {
+                        // Debug.Log("NPC 背對光源，無效！");
+                        continue; // 跳過，不執行致盲
+                    }
+
                     // 3. 射線檢測 (Raycast) 判斷遮擋
                     // 從燈泡位置射向 NPC 的頭部或胸部 (這裡假設 pivot 在腳底，稍微往上抬一點)
                     Vector3 targetCenter = hit.transform.position + Vector3.up * 1.0f;
