@@ -70,7 +70,9 @@ public class NpcAI : MonoBehaviour
 
     [Header("致盲設定")] // ▼▼▼ [新增]
     [SerializeField] private float blindRecoveryTime = 3.0f; // 致盲後多久恢復
+    [SerializeField] private float blindImmunityTime = 2.0f; // [新增] 免疫時間
     private float blindTimer = 0f;
+    private float immunityTimer = 0f; // [新增] 免疫計時器
 
     [Header("Debug")]
     [SerializeField][Range(0, 200)] private float currentAlertLevel = 0f;
@@ -184,6 +186,11 @@ public class NpcAI : MonoBehaviour
             // 其他情況都讓權重歸零
             handIKWeight = Mathf.Lerp(handIKWeight, 0f, Time.deltaTime * 5f);
             hintIKWeight = Mathf.Lerp(hintIKWeight, 0f, Time.deltaTime * 5f);
+        }
+
+        if (immunityTimer > 0f)
+        {
+            immunityTimer -= Time.deltaTime;
         }
     }
 
@@ -642,6 +649,7 @@ public class NpcAI : MonoBehaviour
 
         if (blindTimer <= 0)
         {
+            immunityTimer = blindImmunityTime;
             if (agent.enabled) agent.isStopped = false;
             Debug.Log("NPC: 視力恢復，進入警戒狀態！");
 
@@ -661,10 +669,13 @@ public class NpcAI : MonoBehaviour
 
     public void GetBlinded(Vector3 lightSourcePos)
     {
-        // 如果已經瞎了，就重置計時器 (持續照射會持續致盲)
+        // 1. 如果處於免疫期，直接無視
+        if (immunityTimer > 0f) return;
+
+        // 2. 如果 "已經" 在 Blinded 狀態，不要重置計時器！(這是無限暈眩的主因)
         if (currentState == NpcState.Blinded)
         {
-            blindTimer = blindRecoveryTime;
+            // 保持原本的 timer 繼續倒數，不執行任何動作
             return;
         }
 
