@@ -1950,6 +1950,7 @@ MonoBehaviour:
   captureDistance: 1
   aiUpdateInterval: 0.2
   blindRecoveryTime: 3
+  blindImmunityTime: 2
   currentAlertLevel: 0
 --- !u!114 &593485720
 MonoBehaviour:
@@ -4771,7 +4772,7 @@ MonoBehaviour:
   gizmoDuration: 1
   animationBaseSpeed: 3
   uncontrolledAngularDrag: 1
-  jumpHeight: 1
+  jumpHeight: 0.5
   gravityMultiplier: 2.5
   jumpCooldown: 0.2
   groundCheckRadius: 0.1
