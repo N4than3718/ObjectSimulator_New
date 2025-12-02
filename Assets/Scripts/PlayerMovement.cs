@@ -373,35 +373,54 @@ public class PlayerMovement : MonoBehaviour
         Vector3 pointFarBelow = objectCenter + (Vector3.down * 10f);
         Vector3 lowestPointOnCollider = coll.ClosestPoint(pointFarBelow);
 
-        // 設定 CheckSphere 參數
-        float checkRadius = groundCheckRadius; // 使用 Inspector 的半徑
-        float checkDistanceOffset = groundCheckLeeway / 2f; // 把檢測球心設在「最低點」再往下「Leeway」一半的位置
-        Vector3 checkSphereCenter = lowestPointOnCollider + (Vector3.down * checkDistanceOffset);
+        // 建構 SphereCast 的起點
+        float radius = groundCheckRadius;
+        Vector3 castOrigin = lowestPointOnCollider + (Vector3.up * radius);
+
+        // 設定檢測距離
+        float castDistance = groundCheckLeeway + 0.05f;
+
         LayerMask combinedMask = groundLayer | platformLayer;
+        RaycastHit hitInfo;
 
-        int numCollidersFound = Physics.OverlapSphereNonAlloc(
-         checkSphereCenter,
-         checkRadius,
-         groundCheckColliders, // 存入緩衝區
-         combinedMask,
-         QueryTriggerInteraction.Ignore
-     );
+        // 發射
+        // 這裡改用 SphereCast，這樣我們才能拿到 out hitInfo
+        bool hasHit = Physics.SphereCast(
+            castOrigin,
+            radius,
+            Vector3.down,
+            out hitInfo,
+            castDistance,
+            combinedMask,
+            QueryTriggerInteraction.Ignore
+        );
 
-        bool foundGround = false;
-        if (numCollidersFound > 0)
+        if (hasHit)
         {
-            for (int i = 0; i < numCollidersFound; i++)
+            // 檢查碰到的 Collider 是不是 *不是* 我們自己
+            if (hitInfo.collider.attachedRigidbody != rb)
             {
-                // 檢查碰到的 Collider 是不是 *不是* 我們自己
-                if (groundCheckColliders[i].attachedRigidbody != rb)
+                // 雖然偵測到碰撞，但要檢查碰撞點的法線 (Normal)
+                if (hitInfo.normal.y > 0.7f)
                 {
-                    foundGround = true; // 只要碰到任何一個 *不是自己* 的東西，就當作在地上
-                    break; // 找到就不用再查了
+                    IsGrounded = true; // 這才是地板 (朝上的面)
+
+                    // Debug 視覺化：著地時畫綠線
+                    Debug.DrawLine(castOrigin, hitInfo.point, Color.green);
+                    return;
+                }
+                else
+                {
+                    // Debug 視覺化：撞到牆壁時畫黃線 (代表被擋下了)
+                    Debug.DrawLine(castOrigin, hitInfo.point, Color.yellow);
                 }
             }
         }
 
-        IsGrounded = foundGround;
+        // 沒撞到，或者撞到的是牆壁
+        IsGrounded = false;
+        // Debug 視覺化：沒撞到畫紅線
+        Debug.DrawRay(castOrigin, Vector3.down * castDistance, Color.red);
     }
 
     private void HandlePossessedHighlight()
