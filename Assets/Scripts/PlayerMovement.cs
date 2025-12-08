@@ -65,6 +65,10 @@ public class PlayerMovement : MonoBehaviour
     [SerializeField] private float gravityMultiplier = 2.5f;
     [SerializeField] private float jumpCooldown = 0.5f; // <--- [新增] 兩次跳躍間的最小間隔
 
+    [Header("跳躍手感優化")]
+    [SerializeField] private float jumpCutMultiplier = 0.5f; // 鬆開按鍵時，垂直速度剩多少 (0.5 = 砍一半)
+    [SerializeField] private float airControl = 0.5f; // 0 = 空中完全無法移動, 1 = 跟地面一樣靈活
+
     [Header("地面檢測")]
     [SerializeField] private float groundCheckRadius = 0.4f;
     [SerializeField] private float groundCheckLeeway = 0.1f;
@@ -227,7 +231,7 @@ public class PlayerMovement : MonoBehaviour
         {
             HandleMovement();
         }
-        else if (!isOverEncumbered) // [新增] 如果沒超重，也沒按鍵，就停下
+        else if (!isOverEncumbered && IsGrounded) // [新增] 如果沒超重，也沒按鍵，就停下
         {
             rb.linearVelocity = new Vector3(0, rb.linearVelocity.y, 0);
         }
@@ -289,10 +293,29 @@ public class PlayerMovement : MonoBehaviour
         camForward.Normalize(); camRight.Normalize();
         Vector3 moveDirection = (camForward * moveInput.y + camRight * moveInput.x).normalized;
 
-        // --- 2. 應用移動速度 (保持不變) ---
-        Vector3 targetVelocity = moveDirection * CurrentSpeed;
-        // 我們只設定 XZ 軸速度，保留 Y 軸讓物理引擎處理 (重力/跳躍)
-        rb.linearVelocity = new Vector3(targetVelocity.x, rb.linearVelocity.y, targetVelocity.z);
+        // 2. 根據是否在地面，決定移動邏輯
+        if (IsGrounded)
+        {
+            // --- 地面：保持原本的「直接速度控制」，反應靈敏 ---
+            Vector3 targetVelocity = moveDirection * CurrentSpeed;
+            rb.linearVelocity = new Vector3(targetVelocity.x, rb.linearVelocity.y, targetVelocity.z);
+        }
+        else
+        {
+            // --- 空中：改為「施加力」或「限制性速度控制」，保留慣性 ---
+            // 方案 A (簡單版)：只允許玩家在空中「微調」方向，但不能急停
+            if (moveInput.magnitude > 0.1f)
+            {
+                Vector3 targetVelocity = moveDirection * CurrentSpeed;
+
+                // 使用 Lerp 插值，讓空中的轉向變遲鈍 (airControl 越小越遲鈍)
+                Vector3 currentHorizontal = new Vector3(rb.linearVelocity.x, 0, rb.linearVelocity.z);
+                Vector3 newHorizontal = Vector3.Lerp(currentHorizontal, targetVelocity, Time.fixedDeltaTime * airControl * 5f);
+
+                rb.linearVelocity = new Vector3(newHorizontal.x, rb.linearVelocity.y, newHorizontal.z);
+            }
+            // 注意：這裡沒有 else { velocity = 0 }，所以鬆開按鍵後，角色會繼續依照慣性飛行！
+        }
 
         // --- 3. 處理旋轉 ---
         // 只有在實際移動時才進行旋轉
@@ -535,6 +558,12 @@ public class PlayerMovement : MonoBehaviour
             }
 
             lastJumpTime = Time.fixedTime;
+        }
+
+        if (playerActions.Player.Jump.WasReleasedThisFrame() && rb.linearVelocity.y > 0)
+        {
+            // 直接把垂直速度砍半，造成「急墜」感，縮短滯空時間 = 縮短距離
+            rb.linearVelocity = new Vector3(rb.linearVelocity.x, rb.linearVelocity.y * jumpCutMultiplier, rb.linearVelocity.z);
         }
     }
 

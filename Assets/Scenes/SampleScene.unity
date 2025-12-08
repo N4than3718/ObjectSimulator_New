@@ -759,7 +759,7 @@ MonoBehaviour:
   footstepSounds: []
   minPitch: 0.9
   maxPitch: 1.1
-  playerSpeed: 5
+  playerSpeed: 1.5
   fastSpeed: 10
   rotationSpeed: 10
   walkNoiseRange: 10
@@ -774,6 +774,8 @@ MonoBehaviour:
   jumpHeight: 1
   gravityMultiplier: 2.5
   jumpCooldown: 0.2
+  jumpCutMultiplier: 0.5
+  airControl: 0.5
   groundCheckRadius: 0.1
   groundCheckLeeway: 0.1
   groundLayer:
@@ -793,7 +795,7 @@ CapsuleCollider:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 340754700}
-  m_Material: {fileID: 0}
+  m_Material: {fileID: 13400000, guid: f0ea7025b4540c64a8aa4ddd09988aac, type: 2}
   m_IncludeLayers:
     serializedVersion: 2
     m_Bits: 0
@@ -1206,6 +1208,8 @@ MonoBehaviour:
   jumpHeight: 1.5
   gravityMultiplier: 2.5
   jumpCooldown: 0.2
+  jumpCutMultiplier: 0.5
+  airControl: 0.5
   groundCheckRadius: 0.4
   groundCheckLeeway: 0.1
   groundLayer:
@@ -1337,7 +1341,7 @@ CapsuleCollider:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 400415114}
-  m_Material: {fileID: 0}
+  m_Material: {fileID: 13400000, guid: f0ea7025b4540c64a8aa4ddd09988aac, type: 2}
   m_IncludeLayers:
     serializedVersion: 2
     m_Bits: 0
@@ -1681,9 +1685,16 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CamControl
   FollowTarget: {fileID: 2094097422}
   offsetZ: 1
-  offsetY: 0.25
+  defaultOffsetY: 0.5
+  minOffsetY: 0.2
+  obstacleLayer:
+    serializedVersion: 2
+    m_Bits: 0
+  checkRadius: 0.2
+  heightSmoothTime: 0.1
   rotateSpeed: 1
   rotateLerp: 8
+  positionSmoothTime: 0.05
   pitchMin: -85
   pitchMax: 85
 --- !u!114 &449396935
@@ -2594,6 +2605,8 @@ MonoBehaviour:
   jumpHeight: 0.5
   gravityMultiplier: 2.5
   jumpCooldown: 0.2
+  jumpCutMultiplier: 0.5
+  airControl: 0.5
   groundCheckRadius: 0.1
   groundCheckLeeway: 0.1
   groundLayer:
@@ -2710,7 +2723,7 @@ CapsuleCollider:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 869523636}
-  m_Material: {fileID: 0}
+  m_Material: {fileID: 13400000, guid: f0ea7025b4540c64a8aa4ddd09988aac, type: 2}
   m_IncludeLayers:
     serializedVersion: 2
     m_Bits: 0
@@ -4688,9 +4701,16 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CamControl
   FollowTarget: {fileID: 1045982609}
   offsetZ: 1
-  offsetY: 0.25
+  defaultOffsetY: 0.5
+  minOffsetY: 0.2
+  obstacleLayer:
+    serializedVersion: 2
+    m_Bits: 0
+  checkRadius: 0.2
+  heightSmoothTime: 0.1
   rotateSpeed: 0.1
   rotateLerp: 15
+  positionSmoothTime: 0.05
   pitchMin: -85
   pitchMax: 85
 --- !u!1 &1190774497
@@ -4760,8 +4780,8 @@ MonoBehaviour:
   footstepSounds: []
   minPitch: 0.9
   maxPitch: 1.1
-  playerSpeed: 5
-  fastSpeed: 10
+  playerSpeed: 1.5
+  fastSpeed: 2.5
   rotationSpeed: 10
   walkNoiseRange: 10
   sprintNoiseRange: 20
@@ -4772,9 +4792,11 @@ MonoBehaviour:
   gizmoDuration: 1
   animationBaseSpeed: 3
   uncontrolledAngularDrag: 1
-  jumpHeight: 0.5
+  jumpHeight: 0.65
   gravityMultiplier: 2.5
   jumpCooldown: 0.2
+  jumpCutMultiplier: 0.5
+  airControl: 0.5
   groundCheckRadius: 0.1
   groundCheckLeeway: 0.1
   groundLayer:
@@ -4794,7 +4816,7 @@ CapsuleCollider:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1190774497}
-  m_Material: {fileID: 0}
+  m_Material: {fileID: 13400000, guid: f0ea7025b4540c64a8aa4ddd09988aac, type: 2}
   m_IncludeLayers:
     serializedVersion: 2
     m_Bits: 0
@@ -5314,10 +5336,17 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CamControl
   FollowTarget: {fileID: 957414671}
   offsetZ: 1
-  offsetY: 0.25
+  defaultOffsetY: 0.8
+  minOffsetY: 0.1
+  obstacleLayer:
+    serializedVersion: 2
+    m_Bits: 129
+  checkRadius: 0.05
+  heightSmoothTime: 0.1
   rotateSpeed: 1
   rotateLerp: 8
-  pitchMin: -85
+  positionSmoothTime: 0.05
+  pitchMin: -10
   pitchMax: 85
 --- !u!114 &1402469982
 MonoBehaviour:
@@ -6079,6 +6108,8 @@ MonoBehaviour:
   jumpHeight: 1.5
   gravityMultiplier: 2.5
   jumpCooldown: 0.2
+  jumpCutMultiplier: 0.5
+  airControl: 0.5
   groundCheckRadius: 0.4
   groundCheckLeeway: 0.1
   groundLayer:
@@ -6210,7 +6241,7 @@ CapsuleCollider:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1465795877}
-  m_Material: {fileID: 0}
+  m_Material: {fileID: 13400000, guid: f0ea7025b4540c64a8aa4ddd09988aac, type: 2}
   m_IncludeLayers:
     serializedVersion: 2
     m_Bits: 0
@@ -6391,9 +6422,16 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CamControl
   FollowTarget: {fileID: 378211013}
   offsetZ: 1.5
-  offsetY: 0.25
+  defaultOffsetY: 0.5
+  minOffsetY: 0.2
+  obstacleLayer:
+    serializedVersion: 2
+    m_Bits: 0
+  checkRadius: 0.2
+  heightSmoothTime: 0.1
   rotateSpeed: 0.1
   rotateLerp: 15
+  positionSmoothTime: 0.05
   pitchMin: -85
   pitchMax: 85
 --- !u!114 &1531655496
@@ -6899,10 +6937,17 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CamControl
   FollowTarget: {fileID: 643507237}
   offsetZ: 1
-  offsetY: 0.25
+  defaultOffsetY: 0.2
+  minOffsetY: 0.05
+  obstacleLayer:
+    serializedVersion: 2
+    m_Bits: 129
+  checkRadius: 0.2
+  heightSmoothTime: 0.1
   rotateSpeed: 1
   rotateLerp: 8
-  pitchMin: -85
+  positionSmoothTime: 0.05
+  pitchMin: -10
   pitchMax: 85
 --- !u!114 &1746449005
 MonoBehaviour:
@@ -7223,9 +7268,16 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CamControl
   FollowTarget: {fileID: 189545398}
   offsetZ: 1
-  offsetY: 0.25
+  defaultOffsetY: 0.5
+  minOffsetY: 0.2
+  obstacleLayer:
+    serializedVersion: 2
+    m_Bits: 0
+  checkRadius: 0.2
+  heightSmoothTime: 0.1
   rotateSpeed: 1
   rotateLerp: 8
+  positionSmoothTime: 0.05
   pitchMin: -85
   pitchMax: 85
 --- !u!114 &1816948869
@@ -7945,6 +7997,8 @@ MonoBehaviour:
   jumpHeight: 1.5
   gravityMultiplier: 2.5
   jumpCooldown: 0.2
+  jumpCutMultiplier: 0.5
+  airControl: 0.5
   groundCheckRadius: 0.1
   groundCheckLeeway: 0.1
   groundLayer:
@@ -8061,7 +8115,7 @@ CapsuleCollider:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2128674175}
-  m_Material: {fileID: 0}
+  m_Material: {fileID: 13400000, guid: f0ea7025b4540c64a8aa4ddd09988aac, type: 2}
   m_IncludeLayers:
     serializedVersion: 2
     m_Bits: 0
