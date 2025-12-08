@@ -1685,17 +1685,17 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CamControl
   FollowTarget: {fileID: 2094097422}
   offsetZ: 1
-  defaultOffsetY: 0.5
-  minOffsetY: 0.2
+  defaultOffsetY: 0.8
+  minOffsetY: 0.1
   obstacleLayer:
     serializedVersion: 2
-    m_Bits: 0
-  checkRadius: 0.2
+    m_Bits: 129
+  checkRadius: 0.05
   heightSmoothTime: 0.1
   rotateSpeed: 1
   rotateLerp: 8
   positionSmoothTime: 0.05
-  pitchMin: -85
+  pitchMin: -10
   pitchMax: 85
 --- !u!114 &449396935
 MonoBehaviour:
@@ -4701,17 +4701,17 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CamControl
   FollowTarget: {fileID: 1045982609}
   offsetZ: 1
-  defaultOffsetY: 0.5
-  minOffsetY: 0.2
+  defaultOffsetY: 0.8
+  minOffsetY: 0.1
   obstacleLayer:
     serializedVersion: 2
-    m_Bits: 0
-  checkRadius: 0.2
+    m_Bits: 129
+  checkRadius: 0.05
   heightSmoothTime: 0.1
   rotateSpeed: 0.1
   rotateLerp: 15
   positionSmoothTime: 0.05
-  pitchMin: -85
+  pitchMin: -10
   pitchMax: 85
 --- !u!1 &1190774497
 GameObject:
@@ -6422,17 +6422,17 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CamControl
   FollowTarget: {fileID: 378211013}
   offsetZ: 1.5
-  defaultOffsetY: 0.5
-  minOffsetY: 0.2
+  defaultOffsetY: 0.8
+  minOffsetY: 0.1
   obstacleLayer:
     serializedVersion: 2
-    m_Bits: 0
-  checkRadius: 0.2
+    m_Bits: 129
+  checkRadius: 0.05
   heightSmoothTime: 0.1
   rotateSpeed: 0.1
   rotateLerp: 15
   positionSmoothTime: 0.05
-  pitchMin: -85
+  pitchMin: -10
   pitchMax: 85
 --- !u!114 &1531655496
 MonoBehaviour:
@@ -6937,12 +6937,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CamControl
   FollowTarget: {fileID: 643507237}
   offsetZ: 1
-  defaultOffsetY: 0.2
-  minOffsetY: 0.05
+  defaultOffsetY: 0.8
+  minOffsetY: 0.1
   obstacleLayer:
     serializedVersion: 2
     m_Bits: 129
-  checkRadius: 0.2
+  checkRadius: 0.05
   heightSmoothTime: 0.1
   rotateSpeed: 1
   rotateLerp: 8
@@ -7268,17 +7268,17 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CamControl
   FollowTarget: {fileID: 189545398}
   offsetZ: 1
-  defaultOffsetY: 0.5
-  minOffsetY: 0.2
+  defaultOffsetY: 0.8
+  minOffsetY: 0.1
   obstacleLayer:
     serializedVersion: 2
-    m_Bits: 0
-  checkRadius: 0.2
+    m_Bits: 129
+  checkRadius: 0.05
   heightSmoothTime: 0.1
   rotateSpeed: 1
   rotateLerp: 8
   positionSmoothTime: 0.05
-  pitchMin: -85
+  pitchMin: -10
   pitchMax: 85
 --- !u!114 &1816948869
 MonoBehaviour:
