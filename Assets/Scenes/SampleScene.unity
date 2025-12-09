@@ -751,6 +751,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::PlayerMovement2
   cameraTransform: {fileID: 1402469980}
   centerOfMassHelper: {fileID: 0}
+  movementCollider: {fileID: 0}
   radialMenuIcon: {fileID: 21300000, guid: c15b1da7b82d5fb45b1a105d7aaea10f, type: 3}
   myCharacterCamera: {fileID: 1402469981}
   myFollowTarget: {fileID: 957414671}
@@ -771,6 +772,8 @@ MonoBehaviour:
   gizmoDuration: 1
   animationBaseSpeed: 3
   uncontrolledAngularDrag: 1
+  moveDrag: 0
+  stopDrag: 10
   jumpHeight: 0.65
   gravityMultiplier: 2.5
   jumpCooldown: 0.3
@@ -1122,7 +1125,7 @@ GameObject:
   m_Component:
   - component: {fileID: 400415122}
   - component: {fileID: 400415121}
-  - component: {fileID: 400415120}
+  - component: {fileID: 400415125}
   - component: {fileID: 400415119}
   - component: {fileID: 400415118}
   - component: {fileID: 400415117}
@@ -1186,6 +1189,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::PlayerMovement
   cameraTransform: {fileID: 449396938}
   centerOfMassHelper: {fileID: 0}
+  movementCollider: {fileID: 400415125}
   radialMenuIcon: {fileID: 21300000, guid: 4c0026f6c19e0b144bb44c49e2840958, type: 3}
   myCharacterCamera: {fileID: 449396934}
   myFollowTarget: {fileID: 2094097422}
@@ -1206,6 +1210,8 @@ MonoBehaviour:
   gizmoDuration: 1
   animationBaseSpeed: 5
   uncontrolledAngularDrag: 0.05
+  moveDrag: 0
+  stopDrag: 10
   jumpHeight: 0.65
   gravityMultiplier: 2.5
   jumpCooldown: 0.2
@@ -1213,7 +1219,7 @@ MonoBehaviour:
   airControl: 0.5
   groundCheckRadius: 0.1
   groundCheckLeeway: 0.1
-  groundCheckVerticalOffset: 0.25
+  groundCheckVerticalOffset: -0.1
   groundLayer:
     serializedVersion: 2
     m_Bits: 385
@@ -1336,29 +1342,6 @@ AudioSource:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
---- !u!136 &400415120
-CapsuleCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 400415114}
-  m_Material: {fileID: 13400000, guid: f0ea7025b4540c64a8aa4ddd09988aac, type: 2}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 0
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 2
-  m_Radius: 0.0375
-  m_Height: 0.125
-  m_Direction: 1
-  m_Center: {x: 0, y: 0.075, z: 0.0125}
 --- !u!54 &400415121
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -1384,7 +1367,7 @@ Rigidbody:
   m_UseGravity: 1
   m_IsKinematic: 0
   m_Interpolate: 1
-  m_Constraints: 0
+  m_Constraints: 80
   m_CollisionDetection: 0
 --- !u!4 &400415122
 Transform:
@@ -1425,6 +1408,27 @@ MonoBehaviour:
   audioSource: {fileID: 0}
   ringingPart: {fileID: 755088639}
   shakeAmount: 0.05
+--- !u!65 &400415125
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 400415114}
+  m_Material: {fileID: 13400000, guid: f0ea7025b4540c64a8aa4ddd09988aac, type: 2}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 0.10362011, y: 0.024928331, z: 0.0112912655}
+  m_Center: {x: -0.00008955598, y: 0.011096239, z: 0.031422496}
 --- !u!1 &410087039
 GameObject:
   m_ObjectHideFlags: 0
@@ -2585,6 +2589,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::PlayerMovement
   cameraTransform: {fileID: 1531655499}
   centerOfMassHelper: {fileID: 0}
+  movementCollider: {fileID: 0}
   radialMenuIcon: {fileID: 21300000, guid: 1fa10a85b0ccbe74b9ff54e3e7eaae55, type: 3}
   myCharacterCamera: {fileID: 1531655495}
   myFollowTarget: {fileID: 378211013}
@@ -2605,6 +2610,8 @@ MonoBehaviour:
   gizmoDuration: 1
   animationBaseSpeed: 3
   uncontrolledAngularDrag: 0.05
+  moveDrag: 0
+  stopDrag: 10
   jumpHeight: 0.5
   gravityMultiplier: 2.5
   jumpCooldown: 0.2
@@ -4776,6 +4783,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::PlayerMovement2
   cameraTransform: {fileID: 1746449003}
   centerOfMassHelper: {fileID: 0}
+  movementCollider: {fileID: 0}
   radialMenuIcon: {fileID: 21300000, guid: 01e10e29455387f4a9a2b6d4ca3e1dbb, type: 3}
   myCharacterCamera: {fileID: 1746449004}
   myFollowTarget: {fileID: 643507237}
@@ -4796,6 +4804,8 @@ MonoBehaviour:
   gizmoDuration: 1
   animationBaseSpeed: 3
   uncontrolledAngularDrag: 1
+  moveDrag: 0
+  stopDrag: 10
   jumpHeight: 0.65
   gravityMultiplier: 2.5
   jumpCooldown: 0.3
@@ -6090,6 +6100,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::PlayerMovement
   cameraTransform: {fileID: 1816948872}
   centerOfMassHelper: {fileID: 0}
+  movementCollider: {fileID: 0}
   radialMenuIcon: {fileID: 21300000, guid: 2116512939e06f04fbcb68e66fbf73d5, type: 3}
   myCharacterCamera: {fileID: 1816948868}
   myFollowTarget: {fileID: 189545398}
@@ -6110,6 +6121,8 @@ MonoBehaviour:
   gizmoDuration: 1
   animationBaseSpeed: 5
   uncontrolledAngularDrag: 0.05
+  moveDrag: 0
+  stopDrag: 10
   jumpHeight: 0.65
   gravityMultiplier: 2.5
   jumpCooldown: 0.2
@@ -7614,9 +7627,6 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 8817f3db4d75b0a4e87b713768927fe4, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1905454477}
-    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 8817f3db4d75b0a4e87b713768927fe4, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 1905454478}
   m_SourcePrefab: {fileID: 100100000, guid: 8817f3db4d75b0a4e87b713768927fe4, type: 3}
 --- !u!4 &1905454472 stripped
 Transform:
@@ -7642,29 +7652,8 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 0.41808105, y: 0.103210926, z: 0.047862053}
-  m_Center: {x: -0.0011507273, y: 0.045129538, z: 0.12377548}
---- !u!65 &1905454478
-BoxCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 648006367}
-  m_Material: {fileID: 13400000, guid: f0ea7025b4540c64a8aa4ddd09988aac, type: 2}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 0
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Size: {x: 0.5629909, y: 0.56978464, z: 0.33022642}
-  m_Center: {x: 0.0015312433, y: 0.3079121, z: 0.055981874}
+  m_Size: {x: 0.55, y: 0.57734966, z: 0.3270445}
+  m_Center: {x: 0, y: 0.30335665, z: 0.062024593}
 --- !u!1 &1915972163
 GameObject:
   m_ObjectHideFlags: 0
@@ -7908,6 +7897,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::PlayerMovement
   cameraTransform: {fileID: 1182257441}
   centerOfMassHelper: {fileID: 0}
+  movementCollider: {fileID: 0}
   radialMenuIcon: {fileID: 21300000, guid: 590e721e29e51a14dac543e7eae203a7, type: 3}
   myCharacterCamera: {fileID: 1182257445}
   myFollowTarget: {fileID: 1045982609}
@@ -7928,6 +7918,8 @@ MonoBehaviour:
   gizmoDuration: 1
   animationBaseSpeed: 2
   uncontrolledAngularDrag: 0.05
+  moveDrag: 0
+  stopDrag: 10
   jumpHeight: 1
   gravityMultiplier: 2.5
   jumpCooldown: 0.2
