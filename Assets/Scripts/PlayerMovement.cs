@@ -2,19 +2,20 @@ using System.Collections;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-[RequireComponent(typeof(Rigidbody), typeof(CapsuleCollider), typeof(AudioSource))]
+[RequireComponent(typeof(Rigidbody), typeof(Collider), typeof(AudioSource))]
 public class PlayerMovement : MonoBehaviour
 {
     [Header("元件參考")]
     public Transform cameraTransform;
     private Rigidbody rb;
     private Collider coll;
-    private Collider[] groundCheckColliders = new Collider[5]; // <--- [新增] 緩衝區
+    private Collider[] _groundOverlapResults = new Collider[10];
     private TeamManager teamManager;
     private AudioSource audioSource;
     private Animator animator;
     [Tooltip("用於指定 Rigidbody 重心的輔助物件 (可選)")]
     [SerializeField] private Transform centerOfMassHelper;
+    [SerializeField] private Collider movementCollider;
 
     [Header("UI Display")] // <-- [新增]
     public Sprite radialMenuIcon;
@@ -59,6 +60,8 @@ public class PlayerMovement : MonoBehaviour
     [Header("物理設定")]
     [Tooltip("未操控時的物理角阻力 (預設 0.05)")]
     [SerializeField] private float uncontrolledAngularDrag = 0.05f;
+    public float moveDrag = 0f; // 移動時的阻力 (設為 0，讓它滑順)
+    public float stopDrag = 10f; // 停止時的阻力 (設高一點，讓它急停)
 
     [Header("跳躍與重力")]
     [SerializeField] private float jumpHeight = 1.5f;
@@ -109,7 +112,7 @@ public class PlayerMovement : MonoBehaviour
     void Awake()
     {
         rb = GetComponent<Rigidbody>();
-        coll = GetComponent<Collider>();
+        coll = movementCollider;
         audioSource = GetComponent<AudioSource>();
         animator = GetComponent<Animator>();
 
@@ -233,11 +236,20 @@ public class PlayerMovement : MonoBehaviour
         GroundCheck();
         if (!isOverEncumbered && moveInput.magnitude > 0.1f)
         {
+            rb.linearDamping = moveDrag;
             HandleMovement();
         }
         else if (!isOverEncumbered && IsGrounded) // [新增] 如果沒超重，也沒按鍵，就停下
         {
+            rb.linearDamping = stopDrag;
             rb.linearVelocity = new Vector3(0, rb.linearVelocity.y, 0);
+        }
+        else if (!isOverEncumbered)
+        {
+            // 如果 GroundCheck 稍微閃了一下 (判定成空中)，
+            // 我們不能讓阻力維持在 0，否則會無限滑行。
+            // 給它一個介於中間的阻力 (例如 2.0f)，讓它在"微跳"時也能減速。
+            rb.linearDamping = 2.0f;
         }
 
         CurrentHorizontalSpeed = new Vector3(rb.linearVelocity.x, 0, rb.linearVelocity.z).magnitude;
@@ -408,46 +420,54 @@ public class PlayerMovement : MonoBehaviour
         float castDistance = groundCheckLeeway + groundCheckVerticalOffset + 0.05f;
 
         LayerMask combinedMask = groundLayer | platformLayer;
-        RaycastHit hitInfo;
+        int hitCount = Physics.OverlapSphereNonAlloc(
+                    castOrigin,
+                    groundCheckRadius,
+                    _groundOverlapResults,
+                    combinedMask,
+                    QueryTriggerInteraction.Ignore
+                );
 
-        // 發射
-        // 這裡改用 SphereCast，這樣我們才能拿到 out hitInfo
-        bool hasHit = Physics.SphereCast(
-            castOrigin,
-            radius,
-            Vector3.down,
-            out hitInfo,
-            castDistance,
-            combinedMask,
-            QueryTriggerInteraction.Ignore
-        );
+        bool validGroundFound = false;
 
-        if (hasHit)
+        for (int i = 0; i < hitCount; i++)
         {
-            // 檢查碰到的 Collider 是不是 *不是* 我們自己
-            if (hitInfo.collider.attachedRigidbody != rb)
-            {
-                // 雖然偵測到碰撞，但要檢查碰撞點的法線 (Normal)
-                if (hitInfo.normal.y > 0.7f)
-                {
-                    IsGrounded = true; // 這才是地板 (朝上的面)
+            Collider hitColl = _groundOverlapResults[i];
 
-                    // Debug 視覺化：著地時畫綠線
-                    Debug.DrawLine(castOrigin, hitInfo.point, Color.green);
-                    return;
-                }
-                else
-                {
-                    // Debug 視覺化：撞到牆壁時畫黃線 (代表被擋下了)
-                    Debug.DrawLine(castOrigin, hitInfo.point, Color.yellow);
-                }
+            // A. 排除自己
+            if (hitColl.transform.root == transform.root) continue;
+            if (hitColl.attachedRigidbody == rb) continue;
+
+            // B. 【關鍵修改】計算碰撞點與角度
+            // 找出這個牆壁/地板上，離我最近的那個點
+            Vector3 closestPointOnHit = hitColl.ClosestPoint(objectCenter);
+
+            // 計算方向向量：從「碰撞點」指向「我的中心」
+            // 想像一根箭頭從地板射向你的肚子
+            Vector3 directionToCenter = (objectCenter - closestPointOnHit).normalized;
+
+            // C. 判斷角度 (Normal Check)
+            // directionToCenter.y > 0.7f 代表這個面大致朝上 (約 45 度以內的坡度)
+            // 如果是牆壁，這個值會接近 0；如果是天花板，這個值會是負的
+            if (directionToCenter.y > 0.7f)
+            {
+                validGroundFound = true;
+
+                // Debug: 畫出確認為地板的點 (綠色線)
+                if (showDebugGizmos)
+                    Debug.DrawLine(closestPointOnHit, objectCenter, Color.green);
+
+                break; // 只要找到一個合法的地板，就算著地
+            }
+            else
+            {
+                // Debug: 畫出被剔除的牆壁 (紅色線)
+                if (showDebugGizmos)
+                    Debug.DrawLine(closestPointOnHit, objectCenter, Color.red);
             }
         }
 
-        // 沒撞到，或者撞到的是牆壁
-        IsGrounded = false;
-        // Debug 視覺化：沒撞到畫紅線
-        Debug.DrawRay(castOrigin, Vector3.down * castDistance, Color.red);
+        IsGrounded = validGroundFound;
     }
 
     private void HandlePossessedHighlight()
@@ -542,6 +562,8 @@ public class PlayerMovement : MonoBehaviour
             {
                 animator.SetTrigger("Jump");
             }
+            transform.position += Vector3.up * 0.1f;
+            rb.linearDamping = 0f;
             float jumpForce = Mathf.Sqrt(jumpHeight * -2f * Physics.gravity.y);
             rb.linearVelocity = new Vector3(rb.linearVelocity.x, jumpForce, rb.linearVelocity.z);
 
