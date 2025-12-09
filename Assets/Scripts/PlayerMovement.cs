@@ -70,8 +70,12 @@ public class PlayerMovement : MonoBehaviour
     [SerializeField] private float airControl = 0.5f; // 0 = 空中完全無法移動, 1 = 跟地面一樣靈活
 
     [Header("地面檢測")]
-    [SerializeField] private float groundCheckRadius = 0.4f;
+    [Tooltip("檢測球的半徑 (越小的物件應該設越小)")]
+    [SerializeField] private float groundCheckRadius = 0.2f;
+    [Tooltip("檢測距離 (越不規則的物件可能需要長一點的緩衝)")]
     [SerializeField] private float groundCheckLeeway = 0.1f;
+    [Tooltip("垂直偏移修正 (如果球一直卡在模型裡，把這個值調大)")]
+    [SerializeField] private float groundCheckVerticalOffset = 0f; // [新增] 手動修正起點高度
     [SerializeField] private LayerMask groundLayer;
     [SerializeField] private LayerMask platformLayer;
 
@@ -398,10 +402,10 @@ public class PlayerMovement : MonoBehaviour
 
         // 建構 SphereCast 的起點
         float radius = groundCheckRadius;
-        Vector3 castOrigin = lowestPointOnCollider + (Vector3.up * radius);
+        Vector3 castOrigin = lowestPointOnCollider + (Vector3.up * (groundCheckRadius + groundCheckVerticalOffset));
 
         // 設定檢測距離
-        float castDistance = groundCheckLeeway + 0.05f;
+        float castDistance = groundCheckLeeway + groundCheckVerticalOffset + 0.05f;
 
         LayerMask combinedMask = groundLayer | platformLayer;
         RaycastHit hitInfo;
@@ -589,43 +593,43 @@ public class PlayerMovement : MonoBehaviour
                 Gizmos.DrawSphere(_lastNoisePos, 0.1f);
             }
         }
-    }
-    // ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
 
-    private void OnDrawGizmosSelected()
-    {
+        // 確保在編輯器裡也能看到 (即使沒選中物件)
         if (coll == null) coll = GetComponent<Collider>();
         if (coll == null) return;
 
-        // --- [修改] 繪製 GroundCheck Gizmos ---
-        Gizmos.color = IsGrounded ? Color.green : Color.red;
+        // --- 1. 計算並畫出 GroundCheck 的位置 ---
 
-        float checkRadius = groundCheckRadius;
-        float checkDistanceOffset = groundCheckLeeway / 2f;
+        // 這些變數應該要是可以調整的 (詳見下方修改後的代碼)
+        float currentRadius = groundCheckRadius; // 這裡讀取變數
+        float currentOffset = groundCheckLeeway; // 這裡讀取變數
 
-        // 計算 Gizmo 位置 (如果 coll.bounds 還沒準備好，可能會在 (0,0,0))
         Vector3 objectCenter = coll.bounds.center;
-        if (objectCenter == Vector3.zero && transform.position != Vector3.zero)
-        {
-            objectCenter = transform.position; // 備案
-        }
-
         Vector3 pointFarBelow = objectCenter + (Vector3.down * 10f);
         Vector3 lowestPointOnCollider = coll.ClosestPoint(pointFarBelow);
-        Vector3 checkSphereCenter = lowestPointOnCollider + (Vector3.down * checkDistanceOffset);
 
-        Gizmos.DrawWireSphere(checkSphereCenter, checkRadius);
+        // 計算球心 (Origin)
+        Vector3 castOrigin = lowestPointOnCollider + (Vector3.up * currentRadius);
+        // 計算檢測距離
+        float castDistance = currentOffset + 0.05f;
 
-        if (rb == null) rb = GetComponent<Rigidbody>();
-        if (rb != null)
-        {
-            Gizmos.color = Color.cyan; // 用青色顯示
-                                       // 將本地的 centerOfMass 點轉換為世界座標
-            Vector3 worldCoM = transform.TransformPoint(rb.centerOfMass);
-            Gizmos.DrawWireSphere(worldCoM, 0.1f);
-            Gizmos.DrawLine(transform.position, worldCoM); // 從物件中心拉一條線過去
-        }
+        // 畫出起點球 (黃色)
+        Gizmos.color = Color.yellow;
+        Gizmos.DrawWireSphere(castOrigin, currentRadius);
+
+        // 畫出射線路徑 (藍色)
+        Gizmos.color = Color.cyan;
+        Gizmos.DrawLine(castOrigin, castOrigin + Vector3.down * castDistance);
+
+        // 畫出終點球 (紅色 = 地板位置預測)
+        Gizmos.color = new Color(1, 0, 0, 0.5f);
+        Gizmos.DrawWireSphere(castOrigin + Vector3.down * castDistance, currentRadius);
+
+        // 畫出 "最低點" (綠色小點) - 確認 ClosestPoint 沒抓錯
+        Gizmos.color = Color.green;
+        Gizmos.DrawSphere(lowestPointOnCollider, 0.02f);
     }
+    // ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
 
     /// <summary>
     /// (Public Setter) 允許 BoxContainer 更新此物件的所有重量相關狀態
