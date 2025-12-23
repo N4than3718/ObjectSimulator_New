@@ -110,7 +110,7 @@ public class CamControl : MonoBehaviour
         float targetHeight = defaultOffsetY;
 
         // 從目標頭頂微微往上發射 SphereCast
-        Vector3 castOrigin = FollowTarget.position + Vector3.up * 0.05f; // 起點稍微抬高，避免卡在地板
+        Vector3 castOrigin = FollowTarget.position + Vector3.up * 0.2f; // 起點稍微抬高，避免卡在地板
         float castDistance = defaultOffsetY - 0.1f; // 檢測距離
 
         RaycastHit hit;
@@ -129,9 +129,8 @@ public class CamControl : MonoBehaviour
         _currentHeight = Mathf.SmoothDamp(_currentHeight, targetHeight, ref _heightVelocity, heightSmoothTime);
 
         // 5. 計算並更新位置 (在目標移動完成後，且攝影機旋轉更新後)
-        Vector3 targetPos = FollowTarget.position;
-        targetPos.y += _currentHeight;
-        Vector3 desiredPosition = targetPos - (transform.rotation * new Vector3(0, 0, offsetZ));
+        Vector3 targetPos = FollowTarget.position + Vector3.up * _currentHeight;
+        Vector3 desiredPosition = targetPos - (targetRotation * Vector3.forward * offsetZ);
 
         float snapSpeed = 60f;
 
