@@ -100,6 +100,7 @@ public class PlayerMovement : MonoBehaviour
     private float currentWeight = 0f;
     private float currentHeavyPushForce = 50f; // (保留預設值)
     private float currentPushInterval = 0.8f;  // (保留預設值)
+    private float sleepTimer = 0f;
     private float noiseTimer = 0f; // 計時器
     private float _lastNoiseTime = -10f;
     private float _lastNoiseRadius;
@@ -187,9 +188,29 @@ public class PlayerMovement : MonoBehaviour
         jumpHeld = false;
     }
 
+    // 當有東西撞到我們時觸發
+    private void OnCollisionEnter(Collision collision)
+    {
+        // 1. 如果我們目前是「鎖死/裝死」狀態 (Kinematic)
+        if (rb.isKinematic)
+        {
+            // 2. 過濾條件：只有被「動態物體」撞到才醒來
+            // collision.rigidbody != null 代表撞我的人有物理剛體 (例如 NPC, 其他掉落物)
+            // collision.impulse.magnitude > 0.5f 代表撞擊力道夠大 (過濾掉微小的誤觸)
+            if (collision.rigidbody != null || collision.impulse.magnitude > 0.5f)
+            {
+                // 3. 解除封印！變回物理物件
+                rb.isKinematic = false;
+                rb.interpolation = RigidbodyInterpolation.Interpolate; // 記得把畫面平滑開回來
+
+                Debug.Log($"Ouch! 被 {collision.gameObject.name} 撞醒了！");
+            }
+        }
+    }
+    
     /// <summary>
-    /// 負責播放跳躍音效 (包含 Debug 檢查)
-    /// </summary>
+         /// 負責播放跳躍音效 (包含 Debug 檢查)
+         /// </summary>
     private void PlayJumpSound()
     {
         if (audioSource != null && jumpSound != null)
@@ -210,6 +231,18 @@ public class PlayerMovement : MonoBehaviour
         if (playerActions == null) return;
         moveInput = playerActions.Player.Move.ReadValue<Vector2>();
         HandlePossessedHighlight();
+
+        // 只要偵測到輸入，立刻解除鎖定，並重置貪睡鐘
+        if (moveInput.sqrMagnitude > 0.01f)
+        {
+            sleepTimer = 0f; // 重置計時器，代表我很活躍
+
+            if (rb.isKinematic)
+            {
+                rb.isKinematic = false;
+                rb.interpolation = RigidbodyInterpolation.Interpolate;
+            }
+        }
 
         // 2. 獲取移動方向 (相對於攝影機)
         Vector3 camForward = cameraTransform.forward;
@@ -241,13 +274,39 @@ public class PlayerMovement : MonoBehaviour
         }
         else if (!isOverEncumbered && IsGrounded) // [新增] 如果沒超重，也沒按鍵，就停下
         {
-            rb.linearDamping = stopDrag;
+            sleepTimer += Time.fixedDeltaTime;
+
+            // 檢查水平速度是否已經很慢了
+            Vector3 horizontalVel = new Vector3(rb.linearVelocity.x, 0, rb.linearVelocity.z);
+
+            if (horizontalVel.sqrMagnitude < 0.05f && sleepTimer > 0.5f) // 閾值可以微調，例如 0.05f
+            {
+                // 【關鍵】如果夠慢，直接開啟 Kinematic，物理引擎完全停止運算此物件
+                if (!rb.isKinematic)
+                {
+                    rb.isKinematic = true;
+                    // 關閉插值，避免鎖死瞬間的視覺拉扯 (可選，視情況)
+                    // rb.interpolation = RigidbodyInterpolation.None; 
+
+                    // 強制歸零速度，以防切換回物理時亂噴
+                    rb.linearVelocity = Vector3.zero;
+                    rb.angularVelocity = Vector3.zero;
+                }
+            }
+            else
+            {
+                // 還沒夠慢，先用高阻尼減速 (你原本的邏輯)
+                rb.linearDamping = stopDrag;
+                // 或者保留你剛剛加的主動煞車代碼
+            }
         }
         else if (!isOverEncumbered)
         {
             // 如果 GroundCheck 稍微閃了一下 (判定成空中)，
             // 我們不能讓阻力維持在 0，否則會無限滑行。
             // 給它一個介於中間的阻力 (例如 2.0f)，讓它在"微跳"時也能減速。
+            sleepTimer = 0f; // 空中不鎖死
+            rb.isKinematic = false;
             rb.linearDamping = 0.5f;
         }
 
@@ -570,6 +629,7 @@ public class PlayerMovement : MonoBehaviour
 
         if ((freshJumpPressed || heldJumpActive) && IsGrounded && canJump)
         {
+            rb.isKinematic = false;
             float currentVerticalVelocity = rb.linearVelocity.y;
             bool canPlaySound = Mathf.Abs(currentVerticalVelocity) < jumpSoundVelocityThreshold;
 
