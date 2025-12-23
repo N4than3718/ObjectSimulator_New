@@ -15,6 +15,10 @@ public class GameDirector : MonoBehaviour
     public GameObject gameOverPanel;
     public GameObject victoryPanel;
 
+    [Header("幀率設定")]
+    public int targetFrameRate = 60;
+    public bool useVSync = false;
+
     private void Awake()
     {
         // 單例模式 (Singleton Pattern) - 確保只有一個導演
@@ -24,6 +28,9 @@ public class GameDirector : MonoBehaviour
             return;
         }
         Instance = this;
+
+        QualitySettings.vSyncCount = useVSync ? 1 : 0;
+        Application.targetFrameRate = targetFrameRate;
     }
 
     private void Start()

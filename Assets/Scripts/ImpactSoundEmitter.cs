@@ -38,7 +38,6 @@ public class ImpactSoundEmitter : MonoBehaviour
 
             // 發出聲音
             StealthManager.MakeNoise(gameObject, transform.position, range, intensity);
-            Debug.Log($"{name} 撞擊發出噪音! 範圍: {range}");
 
             // ▼▼▼ [新增] 紀錄 Debug 資訊 ▼▼▼
             if (showDebugGizmos)

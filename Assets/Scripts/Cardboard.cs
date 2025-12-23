@@ -11,6 +11,7 @@ public class Cardboard : MonoBehaviour
     private PlayerMovement playerMovement;
     private InputSystem_Actions playerActions;
     private TeamManager teamManager;
+    private Animator animator;
 
     [Header("Heavy Push Settings")]
     [Tooltip("超過這個重量，移動方式變為'重推'")]
@@ -19,6 +20,8 @@ public class Cardboard : MonoBehaviour
     [SerializeField] private float heavyPushForce = 50f;
     [Tooltip("每次重推的間隔/動畫時長 (秒)")]
     [SerializeField] private float pushInterval = 0.8f;
+    [Tooltip("動畫在 1x 速度播放時，對應的移動速度 (m/s)")]
+    [SerializeField] private float animationBaseSpeed = 5.0f;
 
     [Header("倉儲設定")]
     [SerializeField] private int maxStorage = 3;
@@ -42,6 +45,8 @@ public class Cardboard : MonoBehaviour
 
     void Awake()
     {
+        if (animator == null) animator = GetComponent<Animator>();
+
         // 找到在同一個物件上的 PlayerMovement
         playerMovement = GetComponent<PlayerMovement>();
         selfObjectStats = GetComponent<ObjectStats>();
@@ -314,5 +319,49 @@ public class Cardboard : MonoBehaviour
         playerMovement.SetWeightAndPushStats(totalWeight, isOver, heavyPushForce, pushInterval);
 
         //Debug.Log($"[BoxContainer] 總重量更新為: {totalWeight}kg");
+    }
+
+    /// <summary>
+    /// 由 PlayerMovement 呼叫，每一幀更新動畫狀態
+    /// </summary>
+    /// <param name="rb">主角的剛體 (用來算速度)</param>
+    /// <param name="isOverEncumbered">是否超重</param>
+    /// <param name="isPushing">是否正在推東西</param>
+    public void UpdateAnimationState(Rigidbody rb, bool isOverEncumbered, bool isPushing)
+    {
+        if (animator == null || rb == null) return; // 防呆
+
+        // 1. 傳遞基本狀態
+        animator.SetBool("isOverEncumbered", isOverEncumbered);
+
+        // 2. 處理速度與播放倍率
+        if (isOverEncumbered)
+        {
+            if (!isPushing)
+            {
+                animator.SetFloat("Speed", 0f);
+                animator.speed = 1.0f;
+            }
+            // 如果 isPushing == true，通常會有另一個推的動畫邏輯，或者由推的協程控制
+        }
+        else
+        {
+            // --- 正常狀態 ---
+            // 計算水平速度 (忽略 Y 軸)
+            float horizontalSpeed = new Vector3(rb.linearVelocity.x, 0, rb.linearVelocity.z).magnitude;
+
+            animator.SetFloat("Speed", horizontalSpeed);
+
+            // 根據移動速度調整動畫播放速度 (防止滑步)
+            if (horizontalSpeed > 0.1f && animationBaseSpeed > 0f)
+            {
+                float playbackSpeed = horizontalSpeed / animationBaseSpeed;
+                animator.speed = playbackSpeed;
+            }
+            else
+            {
+                animator.speed = 1.0f;
+            }
+        }
     }
 }

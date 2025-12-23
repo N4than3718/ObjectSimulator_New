@@ -14,6 +14,30 @@ public class SoundRipple : MonoBehaviour
     private float timer = 0f;
     private Color startColor;
 
+    private void Awake()
+    {
+        // 確保剛開始就記住 Sprite 原本設定的顏色 (包含透明度 1)
+        if (spriteRenderer != null)
+        {
+            startColor = spriteRenderer.color;
+        }
+    }
+
+    private void OnEnable()
+    {
+        // 1. 重置計時器
+        timer = 0f;
+
+        // 2. 重置大小 (先縮到最小，避免瞬間看到巨大的殘影)
+        transform.localScale = Vector3.zero;
+
+        // 3. 【核心修復】強制重置顏色為 "完全不透明"
+        if (spriteRenderer != null)
+        {
+            spriteRenderer.color = startColor;
+        }
+    }
+
     public void Initialize(float radius, float lifeTime)
     {
         this.maxRadius = radius;
@@ -25,6 +49,7 @@ public class SoundRipple : MonoBehaviour
 
         // 初始大小設為 0
         transform.localScale = Vector3.zero;
+        gameObject.SetActive(true);
     }
 
     void Update()
@@ -46,7 +71,15 @@ public class SoundRipple : MonoBehaviour
         // 3. 生命週期結束
         if (timer >= duration)
         {
-            Destroy(gameObject);
+            if (NoiseRippleManager.Instance != null) 
+            {
+                NoiseRippleManager.Instance.ReturnRipple(this);
+            }
+            else
+            {
+                // 如果找不到 Manager (例如場景切換了)，才銷毀
+                Destroy(gameObject);
+            }
         }
     }
 }

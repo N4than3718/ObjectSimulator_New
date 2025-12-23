@@ -16,6 +16,8 @@ public class FieldOfView : MonoBehaviour
     [HideInInspector]
     public List<Transform> visibleTargets = new List<Transform>();
 
+    private Collider[] _targetBuffer = new Collider[10]; // 最多偵測 10 個目標，夠用了
+
     void Start()
     {
         StartCoroutine(FindTargetsWithDelay(0.1f)); // 每 0.1 秒檢查一次
@@ -33,11 +35,11 @@ public class FieldOfView : MonoBehaviour
     void FindVisibleTargets()
     {
         visibleTargets.Clear();
-        Collider[] targetsInViewRadius = Physics.OverlapSphere(transform.position, viewRadius, targetMask);
+        int count = Physics.OverlapSphereNonAlloc(transform.position, viewRadius, _targetBuffer, targetMask);
 
-        for (int i = 0; i < targetsInViewRadius.Length; i++)
+        for (int i = 0; i < count; i++)
         {
-            Transform target = targetsInViewRadius[i].transform;
+            Transform target = _targetBuffer[i].transform;
             Vector3 dirToTarget = (target.position - transform.position).normalized;
 
             if (Vector3.Angle(transform.forward, dirToTarget) < viewAngle / 2)

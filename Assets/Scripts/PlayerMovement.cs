@@ -23,6 +23,7 @@ public class PlayerMovement : MonoBehaviour
     [Header("Component Links")]
     public CamControl myCharacterCamera;
     public Transform myFollowTarget;
+    public Cardboard currentCardboard;
 
     [Header("音效設定 (SFX)")]
     [SerializeField] private AudioClip jumpSound;
@@ -267,6 +268,13 @@ public class PlayerMovement : MonoBehaviour
     void FixedUpdate()
     {
         GroundCheck();
+
+        if (currentCardboard != null)
+        {
+            // 把自己的 Rigidbody 和狀態傳過去
+            currentCardboard.UpdateAnimationState(rb, isOverEncumbered, isPushing);
+        }
+
         if (!isOverEncumbered && moveInput.magnitude > 0.1f)
         {
             rb.linearDamping = moveDrag;
@@ -314,46 +322,7 @@ public class PlayerMovement : MonoBehaviour
 
         HandleJump();
         ApplyExtraGravity();
-        UpdateAnimationParameters();
-        // ▼▼▼ [新增] 處理移動聲音 ▼▼▼
         HandleMovementNoise();
-        // ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
-    }
-
-    /// <summary>
-    /// 將 PlayerMovement 的狀態傳遞給 Animator
-    /// </summary>
-    private void UpdateAnimationParameters()
-    {
-        if (animator == null || rb == null) return; // 防呆
-
-        // 傳遞參數
-        animator.SetBool("isOverEncumbered", isOverEncumbered);
-
-        if (isOverEncumbered)
-        {
-            if (!isPushing)
-            {
-                animator.SetFloat("Speed", 0f);
-                animator.speed = 1.0f;
-            }
-        }
-        else
-        {
-            // --- 正常狀態 ---
-            float horizontalSpeed = new Vector3(rb.linearVelocity.x, 0, rb.linearVelocity.z).magnitude;
-            animator.SetFloat("Speed", horizontalSpeed);
-
-            if (horizontalSpeed > 0.1f && animationBaseSpeed > 0f)
-            {
-                float playbackSpeed = horizontalSpeed / animationBaseSpeed;
-                animator.speed = playbackSpeed;
-            }
-            else
-            {
-                animator.speed = 1.0f;
-            }
-        }
     }
 
     private void HandleMovement()

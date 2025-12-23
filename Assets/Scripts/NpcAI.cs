@@ -792,8 +792,6 @@ public class NpcAI : MonoBehaviour
         float effectiveIntensity = intensity * hearingSensitivity;
         currentAlertLevel += effectiveIntensity;
 
-        Debug.Log($"NPC 聽到聲音! 來源: {position}, 增加警戒: {effectiveIntensity}");
-
         if (effectiveIntensity > 1f) // 過濾掉太小的聲音
         {
             OnNoiseHeard?.Invoke(this, effectiveIntensity);
@@ -834,11 +832,6 @@ public class NpcAI : MonoBehaviour
                 }
             }
         }
-        else if (currentState == NpcState.Searching)
-        {
-            Debug.Log("NPC: 好像有聲音... 應該是錯覺 (警戒值 < 100，無視)");
-        }
-        // ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
     }
 
     // 巡邏

@@ -3,9 +3,15 @@ using UnityEngine;
 
 public class NoiseRippleManager : MonoBehaviour
 {
+    public static NoiseRippleManager Instance { get; private set; }
+
     [Header("資源設定")]
     [SerializeField] private SoundRipple ripplePrefab; // 拖曳剛才做的 Ripple Prefab
     [SerializeField] private float rippleLifeTime = 0.8f; // 聲紋顯示多久
+
+    [Header("物件池設定")] // [新增]
+    [SerializeField] private int initialPoolSize = 20; // 預先準備 20 個
+    private Queue<SoundRipple> _pool = new Queue<SoundRipple>();
 
     [Header("微調")]
     [SerializeField] private float heightOffset = 0.05f; // 稍微浮起，避免 Z-Fighting
@@ -16,6 +22,32 @@ public class NoiseRippleManager : MonoBehaviour
 
     private Dictionary<GameObject, float> _cooldownDict = new Dictionary<GameObject, float>();
     private float _globalFallbackTime = -10f; // 給沒有 source 的聲音用的後備冷卻
+
+    private void Awake()
+    {
+        // 設定單例
+        if (Instance == null) Instance = this;
+        else Destroy(gameObject);
+
+        // [新增] 遊戲開始時，先「印好」20 個波紋備用
+        InitializePool();
+    }
+
+    private void InitializePool()
+    {
+        for (int i = 0; i < initialPoolSize; i++)
+        {
+            SoundRipple ripple = CreateRawRipple(); // 只生成
+            _pool.Enqueue(ripple); // 放進倉庫
+        }
+    }
+
+private SoundRipple CreateRawRipple()
+    {
+        SoundRipple ripple = Instantiate(ripplePrefab, transform);
+        ripple.gameObject.SetActive(false);
+        return ripple;
+    }
 
     private void OnEnable()
     {
@@ -60,10 +92,43 @@ public class NoiseRippleManager : MonoBehaviour
         Quaternion rotation = Quaternion.Euler(90f, 0f, 0f);
         Vector3 spawnPos = position + Vector3.up * heightOffset;
 
-        SoundRipple ripple = Instantiate(ripplePrefab, spawnPos, rotation);
+        SoundRipple ripple = GetRippleFromPool(spawnPos, rotation);
 
         // 初始化：傳入聲音的範圍 (Range)
-        ripple.Initialize(range, rippleLifeTime);
+        if (ripple != null)
+        {
+            ripple.Initialize(range, rippleLifeTime);
+        }
+    }
+
+    private SoundRipple GetRippleFromPool(Vector3 pos, Quaternion rot)
+    {
+        SoundRipple ripple = null;
+
+        if (_pool.Count > 0)
+        {
+            ripple = _pool.Dequeue();
+        }
+        else
+        {
+            // 如果池子空了，臨時加印一個 (Expand Pool)
+            ripple = CreateRawRipple();
+        }
+
+        // 設定狀態
+        ripple.transform.position = pos;
+        ripple.transform.rotation = rot;
+        ripple.gameObject.SetActive(true);
+
+        return ripple;
+    }
+
+    public void ReturnRipple(SoundRipple ripple)
+    {
+        if (!ripple.gameObject.activeSelf) return;
+
+        ripple.gameObject.SetActive(false); // 睡覺
+        _pool.Enqueue(ripple); // 排隊
     }
 
     // (可選) 定期清理被銷毀的物件，防止記憶體洩漏
