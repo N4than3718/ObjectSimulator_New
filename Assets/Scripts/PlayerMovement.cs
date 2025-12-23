@@ -2,7 +2,7 @@ using System.Collections;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-[RequireComponent(typeof(Rigidbody), typeof(Collider), typeof(AudioSource))]
+[RequireComponent(typeof(Rigidbody), typeof(AudioSource))]
 public class PlayerMovement : MonoBehaviour
 {
     [Header("元件參考")]
@@ -242,14 +242,13 @@ public class PlayerMovement : MonoBehaviour
         else if (!isOverEncumbered && IsGrounded) // [新增] 如果沒超重，也沒按鍵，就停下
         {
             rb.linearDamping = stopDrag;
-            rb.linearVelocity = new Vector3(0, rb.linearVelocity.y, 0);
         }
         else if (!isOverEncumbered)
         {
             // 如果 GroundCheck 稍微閃了一下 (判定成空中)，
             // 我們不能讓阻力維持在 0，否則會無限滑行。
             // 給它一個介於中間的阻力 (例如 2.0f)，讓它在"微跳"時也能減速。
-            rb.linearDamping = 2.0f;
+            rb.linearDamping = 0.5f;
         }
 
         CurrentHorizontalSpeed = new Vector3(rb.linearVelocity.x, 0, rb.linearVelocity.z).magnitude;
@@ -314,7 +313,13 @@ public class PlayerMovement : MonoBehaviour
         {
             // --- 地面：保持原本的「直接速度控制」，反應靈敏 ---
             Vector3 targetVelocity = moveDirection * CurrentSpeed;
-            rb.linearVelocity = new Vector3(targetVelocity.x, rb.linearVelocity.y, targetVelocity.z);
+
+            Vector3 currentVelocity = rb.linearVelocity;
+            Vector3 velocityChange = targetVelocity - currentVelocity;
+
+            velocityChange.y = 0;
+
+            rb.AddForce(velocityChange, ForceMode.VelocityChange);
         }
         else
         {
@@ -322,13 +327,23 @@ public class PlayerMovement : MonoBehaviour
             // 方案 A (簡單版)：只允許玩家在空中「微調」方向，但不能急停
             if (moveInput.magnitude > 0.1f)
             {
+                // 1. 計算目標速度
                 Vector3 targetVelocity = moveDirection * CurrentSpeed;
 
-                // 使用 Lerp 插值，讓空中的轉向變遲鈍 (airControl 越小越遲鈍)
-                Vector3 currentHorizontal = new Vector3(rb.linearVelocity.x, 0, rb.linearVelocity.z);
-                Vector3 newHorizontal = Vector3.Lerp(currentHorizontal, targetVelocity, Time.fixedDeltaTime * airControl * 5f);
+                // 2. 取得當前水平速度
+                Vector3 currentVelocity = rb.linearVelocity;
+                Vector3 currentHorizontal = new Vector3(currentVelocity.x, 0, currentVelocity.z);
 
-                rb.linearVelocity = new Vector3(newHorizontal.x, rb.linearVelocity.y, newHorizontal.z);
+                // 3. 【關鍵還原】計算 Lerp 之後的「預期速度」
+                // 這裡保留你原本的參數 (Time.fixedDeltaTime * airControl * 5f)
+                Vector3 intendedVelocity = Vector3.Lerp(currentHorizontal, targetVelocity, Time.fixedDeltaTime * airControl * 5f);
+
+                // 4. 計算「速度差 (Delta)」： 預期速度 - 當前速度
+                Vector3 velocityChange = intendedVelocity - currentHorizontal;
+
+                // 5. 將這個差值轉化為力，施加給剛體
+                // ForceMode.VelocityChange 會無視質量，直接改變速度，效果等同於你原本的寫法，但更安全
+                rb.AddForce(velocityChange, ForceMode.VelocityChange);
             }
             // 注意：這裡沒有 else { velocity = 0 }，所以鬆開按鍵後，角色會繼續依照慣性飛行！
         }
