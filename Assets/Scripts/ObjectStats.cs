@@ -1,6 +1,5 @@
 using UnityEngine;
 
-[RequireComponent(typeof(Collider))]
 public class ObjectStats : MonoBehaviour
 {
     [Header("物件基礎屬性")]
