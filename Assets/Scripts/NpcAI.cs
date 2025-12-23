@@ -361,6 +361,7 @@ public class NpcAI : MonoBehaviour
         if (objectToGrab != null)
         {
             if (teamManager != null) teamManager.RemoveCharacterFromTeam(objectToGrab.gameObject);
+            GameDirector.Instance.TriggerGameOver();
 
             _heldObjectRef = objectToGrab; // 正式持有物件
 
