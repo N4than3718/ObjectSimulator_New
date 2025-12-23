@@ -132,7 +132,18 @@ public class CamControl : MonoBehaviour
         Vector3 targetPos = FollowTarget.position;
         targetPos.y += _currentHeight;
         Vector3 desiredPosition = targetPos - (transform.rotation * new Vector3(0, 0, offsetZ));
-        transform.position = Vector3.SmoothDamp(transform.position, desiredPosition, ref _currentVelocity, positionSmoothTime);
+
+        float snapSpeed = 60f;
+
+        // 如果距離太遠 (例如傳送)，就直接瞬移，避免拖影
+        if (Vector3.Distance(transform.position, desiredPosition) > 1f)
+        {
+            transform.position = desiredPosition;
+        }
+        else
+        {
+            transform.position = Vector3.Lerp(transform.position, desiredPosition, Time.deltaTime * snapSpeed);
+        }
     }
 
     void OnDrawGizmos()
