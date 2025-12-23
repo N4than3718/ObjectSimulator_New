@@ -452,17 +452,25 @@ public class PlayerMovement : MonoBehaviour
 
         // 取得碰撞體的世界最低點
         Vector3 objectCenter = coll.bounds.center;
-        Vector3 pointFarBelow = objectCenter + (Vector3.down * 10f);
-        Vector3 lowestPointOnCollider = coll.ClosestPoint(pointFarBelow);
+
+        float bottomY = coll.bounds.min.y;
 
         // 建構 SphereCast 的起點
         float radius = groundCheckRadius;
-        Vector3 castOrigin = lowestPointOnCollider + (Vector3.up * (groundCheckRadius + groundCheckVerticalOffset));
+        Vector3 castOrigin = objectCenter;
 
-        // 設定檢測距離
-        float castDistance = groundCheckLeeway + groundCheckVerticalOffset + 0.05f;
+        if (coll is BoxCollider box)
+        {
+            castOrigin = transform.TransformPoint(box.center + Vector3.down * (box.size.y * 0.5f - groundCheckRadius));
+        }
+        else
+        {
+            // 其他形狀：確保起點在底部附近
+            castOrigin = new Vector3(objectCenter.x, bottomY + groundCheckRadius, objectCenter.z);
+        }
 
         LayerMask combinedMask = groundLayer | platformLayer;
+
         int hitCount = Physics.OverlapSphereNonAlloc(
                     castOrigin,
                     groundCheckRadius,
@@ -483,30 +491,51 @@ public class PlayerMovement : MonoBehaviour
 
             // B. 【關鍵修改】計算碰撞點與角度
             // 找出這個牆壁/地板上，離我最近的那個點
-            Vector3 closestPointOnHit = hitColl.ClosestPoint(objectCenter);
+            Vector3 closestPoint = hitColl.ClosestPoint(objectCenter);
 
             // 計算方向向量：從「碰撞點」指向「我的中心」
             // 想像一根箭頭從地板射向你的肚子
-            Vector3 directionToCenter = (objectCenter - closestPointOnHit).normalized;
+            Vector3 rayOrigin = closestPoint + Vector3.up * 0.5f;
 
             // C. 判斷角度 (Normal Check)
             // directionToCenter.y > 0.7f 代表這個面大致朝上 (約 45 度以內的坡度)
             // 如果是牆壁，這個值會接近 0；如果是天花板，這個值會是負的
-            if (directionToCenter.y > 0.7f)
+            if (Physics.Raycast(rayOrigin, Vector3.down, out RaycastHit hitInfo, 1.0f, combinedMask))
             {
-                validGroundFound = true;
+                // 如果射線打到的 collider 就是我們 overlap 到的這個 (確認沒打錯人)
+                if (hitInfo.collider == hitColl)
+                {
+                    // 使用法線 (Normal) 來判斷坡度
+                    // 只要法線跟向上的夾角小於 50 度，就算地板 (包含了平地、斜坡)
+                    float angle = Vector3.Angle(hitInfo.normal, Vector3.up);
 
-                // Debug: 畫出確認為地板的點 (綠色線)
-                if (showDebugGizmos)
-                    Debug.DrawLine(closestPointOnHit, objectCenter, Color.green);
+                    if (angle < 50f)
+                    {
+                        validGroundFound = true;
 
-                break; // 只要找到一個合法的地板，就算著地
+                        // Debug: 綠色線代表確認為地板
+                        if (showDebugGizmos)
+                            Debug.DrawRay(hitInfo.point, hitInfo.normal, Color.green);
+
+                        break; // 找到一個地板就夠了
+                    }
+                }
             }
-            else
+
+            if (!validGroundFound)
             {
-                // Debug: 畫出被剔除的牆壁 (紅色線)
-                if (showDebugGizmos)
-                    Debug.DrawLine(closestPointOnHit, objectCenter, Color.red);
+                bool isBelowCenter = closestPoint.y < objectCenter.y;
+
+                float heightDiff = Mathf.Abs(closestPoint.y - bottomY);
+                bool isAtFeetLevel = heightDiff < 0.15f;
+
+                // 容許 0.05f 的高度誤差
+                if (isBelowCenter && isAtFeetLevel)
+                {
+                    validGroundFound = true;
+                    if (showDebugGizmos) Debug.DrawRay(closestPoint, Vector3.up * 0.2f, Color.yellow); // 黃色表示備案生效
+                    break;
+                }
             }
         }
 
