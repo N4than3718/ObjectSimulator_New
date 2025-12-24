@@ -80,6 +80,7 @@ public class GameDirector : MonoBehaviour
 
         // 2. 暫停遊戲
         Time.timeScale = 0f;
+        if (CamControl.Current != null) CamControl.Current.enabled = false;
 
         // 3. 解鎖滑鼠 (讓玩家可以點按鈕)
         Cursor.lockState = CursorLockMode.None;

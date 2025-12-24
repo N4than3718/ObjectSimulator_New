@@ -3,6 +3,8 @@ using UnityEngine.InputSystem;
 
 public class CamControl : MonoBehaviour
 {
+    public static CamControl Current { get; private set; }
+
     [Header("∏Ú¿H•ÿº–")]
     public Transform FollowTarget;
 
@@ -44,12 +46,19 @@ public class CamControl : MonoBehaviour
 
     private void OnEnable()
     {
+        Current = this;
+
         playerActions.Player.Enable();
         playerActions.Player.UnlockCursor.performed += OnUnlockCursor;
     }
 
     private void OnDisable()
     {
+        if(Current = this)
+        {
+            Current = null;
+        }
+
         playerActions.Player.Disable();
         playerActions.Player.UnlockCursor.performed -= OnUnlockCursor;
     }

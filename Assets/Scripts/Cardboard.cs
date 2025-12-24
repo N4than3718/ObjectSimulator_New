@@ -165,17 +165,14 @@ public class Cardboard : MonoBehaviour
         {
             Debug.Log($"[Cardboard] 儲存: {obj.name}。 目前容量: {storedItems.Count + 1}/{maxStorage}"); // [修改]
 
-            // 1. 推入堆疊
+            // 推入堆疊
             item.isInsideContainer = true;
             storedItems.Push(item); // [修改]
 
-            // 2. 通知 TeamManager 移除
-            teamManager.RemoveCharacterFromTeam(obj);
-
-            // 3. 真正讓物件從場景消失
+            // 真正讓物件從場景消失
             obj.SetActive(false);
 
-            // 4. 重新計算總重量
+            // 重新計算總重量
             UpdateTotalWeight();
         }
     }
