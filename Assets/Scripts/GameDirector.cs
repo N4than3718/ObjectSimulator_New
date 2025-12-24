@@ -11,11 +11,13 @@ public class GameDirector : MonoBehaviour
     [Header("Game State")]
     public GameState CurrentState;
 
-    [Header("UI References (Drag & Drop later)")]
+    [Header("UI References")]
     public GameObject gameOverPanel;
     public GameObject victoryPanel;
+    [Tooltip("主選單的場景名稱 (破關後回去用)")]
+    public string mainMenuSceneName = "MainMenu";
 
-    [Header("幀率設定")]
+    [Header("系統設定")]
     public int targetFrameRate = 60;
     public bool useVSync = false;
 
@@ -57,11 +59,7 @@ public class GameDirector : MonoBehaviour
         CurrentState = GameState.Victory;
         Debug.Log("Game Director: Cut! It's a wrap. (Victory)");
 
-        // 顯示勝利畫面
-        if (victoryPanel) victoryPanel.SetActive(true);
-
-        // 選擇性：暫停遊戲或進入慢動作
-        // Time.timeScale = 0f; 
+        EndGameLogic(victoryPanel);
     }
 
     public void TriggerGameOver()
@@ -71,16 +69,52 @@ public class GameDirector : MonoBehaviour
         CurrentState = GameState.GameOver;
         Debug.Log("Game Director: Cut! Bad take. (Game Over)");
 
-        // 顯示失敗畫面
-        if (gameOverPanel) gameOverPanel.SetActive(true);
+        EndGameLogic(gameOverPanel);
+    }
 
-        // 暫停遊戲，避免玩家被抓後還能亂跑
+    // 共用的結束邏輯
+    private void EndGameLogic(GameObject panelToShow)
+    {
+        // 1. 顯示對應 UI
+        if (panelToShow) panelToShow.SetActive(true);
+
+        // 2. 暫停遊戲
         Time.timeScale = 0f;
+
+        // 3. 解鎖滑鼠 (讓玩家可以點按鈕)
+        Cursor.lockState = CursorLockMode.None;
+        Cursor.visible = true;
     }
 
     // 給 UI 按鈕呼叫的
     public void RestartLevel()
     {
-        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+        Debug.Log("Game Director: Restarting...");
+        // 直接呼叫經理
+        if (GameSceneManager.Instance != null)
+        {
+            GameSceneManager.Instance.ReloadCurrentScene();
+        }
+        else
+        {
+            // 防呆：如果沒放經理，就用原始方法
+            Time.timeScale = 1f;
+            SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+        }
+    }
+
+    public void GoToNextLevel()
+    {
+        Debug.Log("Game Director: Next Level...");
+
+        if (GameSceneManager.Instance != null)
+        {
+            GameSceneManager.Instance.LoadNextLevel();
+        }
+        else
+        {
+            Time.timeScale = 1f;
+            SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex + 1);
+        }
     }
 }

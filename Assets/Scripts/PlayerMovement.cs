@@ -5,6 +5,8 @@ using UnityEngine.InputSystem;
 [RequireComponent(typeof(Rigidbody), typeof(AudioSource))]
 public class PlayerMovement : MonoBehaviour
 {
+    public static PlayerMovement Current { get; private set; }
+
     [Header("元件參考")]
     public Transform cameraTransform;
     private Rigidbody rb;
@@ -78,8 +80,8 @@ public class PlayerMovement : MonoBehaviour
     [SerializeField] private float groundCheckRadius = 0.2f;
     [Tooltip("檢測距離 (越不規則的物件可能需要長一點的緩衝)")]
     [SerializeField] private float groundCheckLeeway = 0.1f;
-    [Tooltip("垂直偏移修正 (如果球一直卡在模型裡，把這個值調大)")]
-    [SerializeField] private float groundCheckVerticalOffset = 0f; // [新增] 手動修正起點高度
+    [Tooltip("手動修正起點高度")]
+    [SerializeField] private float sinkAmount = 0.15f; // [新增] 手動修正起點高度
     [SerializeField] private LayerMask groundLayer;
     [SerializeField] private LayerMask platformLayer;
 
@@ -144,6 +146,8 @@ public class PlayerMovement : MonoBehaviour
 
     private void OnEnable()
     {
+        Current = this;
+
         if (playerActions == null) playerActions = new InputSystem_Actions();
         playerActions.Player.Enable();
         playerActions.Player.AddToTeam.performed += OnAddToTeam;
@@ -158,7 +162,12 @@ public class PlayerMovement : MonoBehaviour
 
     private void OnDisable()
     {
-        if(playerActions != null)
+        if (Current == this)
+        {
+            Current = null;
+        }
+
+        if (playerActions != null)
         {
             playerActions.Player.Disable();
             playerActions.Player.AddToTeam.performed -= OnAddToTeam;
@@ -204,7 +213,6 @@ public class PlayerMovement : MonoBehaviour
                 rb.isKinematic = false;
                 rb.interpolation = RigidbodyInterpolation.Interpolate; // 記得把畫面平滑開回來
 
-                Debug.Log($"Ouch! 被 {collision.gameObject.name} 撞醒了！");
             }
         }
     }
@@ -461,12 +469,12 @@ public class PlayerMovement : MonoBehaviour
 
         if (coll is BoxCollider box)
         {
-            castOrigin = transform.TransformPoint(box.center + Vector3.down * (box.size.y * 0.5f - groundCheckRadius));
+            castOrigin = transform.TransformPoint(box.center + Vector3.down * (box.size.y * 0.5f - groundCheckRadius + sinkAmount));
         }
         else
         {
             // 其他形狀：確保起點在底部附近
-            castOrigin = new Vector3(objectCenter.x, bottomY + groundCheckRadius, objectCenter.z);
+            castOrigin = new Vector3(objectCenter.x, bottomY + groundCheckRadius - sinkAmount, objectCenter.z);
         }
 
         LayerMask combinedMask = groundLayer | platformLayer;
@@ -527,7 +535,7 @@ public class PlayerMovement : MonoBehaviour
                 bool isBelowCenter = closestPoint.y < objectCenter.y;
 
                 float heightDiff = Mathf.Abs(closestPoint.y - bottomY);
-                bool isAtFeetLevel = heightDiff < 0.15f;
+                bool isAtFeetLevel = (closestPoint.y < bottomY + 0.15f) && (closestPoint.y > bottomY - 0.25f);
 
                 // 容許 0.05f 的高度誤差
                 if (isBelowCenter && isAtFeetLevel)
@@ -674,9 +682,9 @@ public class PlayerMovement : MonoBehaviour
         }
     }
 
-    // ▼▼▼ [新增] 繪製 Gizmos (複製過來的邏輯) ▼▼▼
     private void OnDrawGizmos()
     {
+        // --- 1. 噪音視覺化 (保留原本邏輯) ---
         if (showDebugGizmos && Application.isPlaying)
         {
             float timeSinceLastNoise = Time.time - _lastNoiseTime;
@@ -689,42 +697,90 @@ public class PlayerMovement : MonoBehaviour
             }
         }
 
-        // 確保在編輯器裡也能看到 (即使沒選中物件)
-        if (coll == null) coll = GetComponent<Collider>();
+        // --- 2. GroundCheck 視覺化 (更新為 Hybrid 邏輯) ---
+        // 即使沒選中物件，只要有 Collider 就畫出來，方便調試
+        if (coll == null) coll = movementCollider != null ? movementCollider : GetComponent<Collider>();
         if (coll == null) return;
 
-        // --- 1. 計算並畫出 GroundCheck 的位置 ---
-
-        // 這些變數應該要是可以調整的 (詳見下方修改後的代碼)
-        float currentRadius = groundCheckRadius; // 這裡讀取變數
-        float currentOffset = groundCheckLeeway; // 這裡讀取變數
-
+        // A. 重現 GroundCheck 的起點計算 (必須跟 GroundCheck 邏輯一致)
         Vector3 objectCenter = coll.bounds.center;
-        Vector3 pointFarBelow = objectCenter + (Vector3.down * 10f);
-        Vector3 lowestPointOnCollider = coll.ClosestPoint(pointFarBelow);
+        float bottomY = coll.bounds.min.y;
+        Vector3 castOrigin = objectCenter;
 
-        // 計算球心 (Origin)
-        Vector3 castOrigin = lowestPointOnCollider + (Vector3.up * currentRadius);
-        // 計算檢測距離
-        float castDistance = currentOffset + 0.05f;
+        if (coll is BoxCollider box)
+        {
+            castOrigin = transform.TransformPoint(box.center + Vector3.down * (box.size.y * 0.5f - groundCheckRadius + sinkAmount));
+        }
+        else
+        {
+            castOrigin = new Vector3(objectCenter.x, bottomY + groundCheckRadius - sinkAmount, objectCenter.z);
+        }
 
-        // 畫出起點球 (黃色)
-        Gizmos.color = Color.yellow;
-        Gizmos.DrawWireSphere(castOrigin, currentRadius);
+        // B. 畫出檢測範圍 (黃色透明球) - 這是 Physics.OverlapSphere 的範圍
+        Gizmos.color = new Color(1, 1, 0, 0.3f);
+        Gizmos.DrawWireSphere(castOrigin, groundCheckRadius);
 
-        // 畫出射線路徑 (藍色)
-        Gizmos.color = Color.cyan;
-        Gizmos.DrawLine(castOrigin, castOrigin + Vector3.down * castDistance);
+        // C. 模擬 GroundCheck 的內部邏輯來畫線
+        // 注意：這裡為了視覺化，我們在 Editor 裡再跑一次檢測，可能會稍微吃一點點編輯器效能，但在 Game 視窗不影響
+        LayerMask combinedMask = groundLayer | platformLayer;
+        Collider[] hits = Physics.OverlapSphere(castOrigin, groundCheckRadius, combinedMask);
 
-        // 畫出終點球 (紅色 = 地板位置預測)
-        Gizmos.color = new Color(1, 0, 0, 0.5f);
-        Gizmos.DrawWireSphere(castOrigin + Vector3.down * castDistance, currentRadius);
+        foreach (var hitColl in hits)
+        {
+            if (hitColl.transform.root == transform.root) continue; // 忽略自己
 
-        // 畫出 "最低點" (綠色小點) - 確認 ClosestPoint 沒抓錯
-        Gizmos.color = Color.green;
-        Gizmos.DrawSphere(lowestPointOnCollider, 0.02f);
+            // 找出最近點
+            Vector3 closestPoint = hitColl.ClosestPoint(objectCenter);
+
+            // --- 視覺化 Micro-Raycast ---
+            Vector3 rayOrigin = closestPoint + Vector3.up * 0.5f;
+            Ray ray = new Ray(rayOrigin, Vector3.down);
+
+            // 模擬射線檢測
+            if (hitColl.Raycast(ray, out RaycastHit hitInfo, 1.0f))
+            {
+                // 檢查角度
+                float angle = Vector3.Angle(hitInfo.normal, Vector3.up);
+
+                if (angle < 50f)
+                {
+                    // [綠色] 通過：這是合法的地面
+                    Gizmos.color = Color.green;
+                    Gizmos.DrawLine(rayOrigin, hitInfo.point); // 畫出射線
+                    Gizmos.DrawRay(hitInfo.point, hitInfo.normal * 0.3f); // 畫出法線 (刺刺的那個)
+                }
+                else
+                {
+                    // [紅色] 失敗：坡度太陡 (牆壁)
+                    Gizmos.color = Color.red;
+                    Gizmos.DrawLine(rayOrigin, hitInfo.point);
+                    Gizmos.DrawRay(hitInfo.point, hitInfo.normal * 0.3f);
+                }
+            }
+            else
+            {
+                // --- 視覺化 Fallback (備案) ---
+                // 如果射線失敗，檢查備案條件
+                bool isBelowCenter = closestPoint.y < objectCenter.y;
+                float heightDiff = Mathf.Abs(closestPoint.y - bottomY);
+                bool isAtFeetLevel = heightDiff < 0.15f;
+
+                if (isBelowCenter && isAtFeetLevel)
+                {
+                    // [青色] 備案通過：雖然射線沒打到(可能穿模)，但高度正確
+                    Gizmos.color = Color.cyan;
+                    Gizmos.DrawWireSphere(closestPoint, 0.05f);
+                    Gizmos.DrawLine(closestPoint, closestPoint + Vector3.up * 0.1f);
+                }
+                else
+                {
+                    // [洋紅色] 完全失敗：射線沒打到，高度也不對
+                    Gizmos.color = Color.magenta;
+                    Gizmos.DrawWireSphere(closestPoint, 0.02f);
+                }
+            }
+        }
     }
-    // ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
 
     /// <summary>
     /// (Public Setter) 允許 BoxContainer 更新此物件的所有重量相關狀態
