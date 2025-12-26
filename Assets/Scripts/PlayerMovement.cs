@@ -611,6 +611,21 @@ public class PlayerMovement : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// 取得當前準星鎖定並高亮的物件 (唯讀)
+    /// </summary>
+    public GameObject CurrentTargetedObject
+    {
+        get
+        {
+            if (currentlyTargetedPlayerObject != null)
+            {
+                return currentlyTargetedPlayerObject.gameObject;
+            }
+            return null;
+        }
+    }
+
     private void OnAddToTeam(InputAction.CallbackContext context)
     {
         if (teamManager == null) return;
