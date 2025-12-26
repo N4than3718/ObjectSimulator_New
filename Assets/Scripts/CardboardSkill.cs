@@ -22,7 +22,7 @@ public class CardboardSkill : BaseSkill // 1. 改為繼承 BaseSkill
 
     [Header("倉儲設定")]
     [SerializeField] private int maxStorage = 3;
-    [SerializeField] private float detectionRadius = 1.5f;
+    [SerializeField] private float detectionRadius = 3.0f;
     [SerializeField] private LayerMask possessableLayer;
     [SerializeField] private Transform spitOutPoint;
 
@@ -146,7 +146,7 @@ public class CardboardSkill : BaseSkill // 1. 改為繼承 BaseSkill
 
     private void HandleSkillTap()
     {
-        Collider target = FindClosestNearbyObject();
+        GameObject target = GetTarget();
 
         if (target != null && storedItems.Count < maxStorage)
         {
@@ -237,38 +237,58 @@ public class CardboardSkill : BaseSkill // 1. 改為繼承 BaseSkill
         UpdateTotalWeight();
     }
 
-    // --- 輔助功能 ---
-
-    private Collider FindClosestNearbyObject()
+    /// <summary>
+    /// 【核心修改】從攝影機準星發射射線尋找物品
+    /// </summary>
+    private GameObject GetTarget()
     {
-        // (保持原本的 OverlapSphere 邏輯)
-        int hits = Physics.OverlapSphereNonAlloc(transform.position, detectionRadius, detectedObjectsBuffer, possessableLayer, QueryTriggerInteraction.Ignore);
-        Collider closest = null;
-        float minSqrDist = Mathf.Infinity;
+        // 1. 確保有攝影機參考
+        if (playerMovement.cameraTransform == null) return null;
 
-        for (int i = 0; i < hits; i++)
+        Transform cam = playerMovement.cameraTransform;
+        Ray ray = new Ray(cam.position, cam.forward);
+        RaycastHit hit;
+
+        // 2. 發射射線
+        // 注意：這裡我用 ~0 (Detect All Layers) 是為了防止「隔牆取物」。
+        // 如果射線先打到牆壁 (Default Layer)，就會停下來，不會穿過去打到後面的物品。
+        if (Physics.Raycast(ray, out hit, detectionRadius, ~0, QueryTriggerInteraction.Ignore))
         {
-            Collider hit = detectedObjectsBuffer[i];
-            if (hit.attachedRigidbody == playerMovement.GetComponent<Rigidbody>()) continue;
-            if (hit.GetComponent<PlayerMovement>() == null) continue;
-            if (hit.GetComponent<CardboardSkill>() != null) continue;
-            ObjectStats stats = hit.GetComponent<ObjectStats>();
-            if (stats != null && stats.isInsideContainer) continue;
-
-            float sqrDist = (transform.position - hit.transform.position).sqrMagnitude;
-            if (sqrDist < minSqrDist)
+            // 3. 檢查打到的東西是不是在 Possessable Layer 裡
+            // (利用位元運算檢查 LayerMask)
+            if (((1 << hit.collider.gameObject.layer) & possessableLayer) != 0)
             {
-                minSqrDist = sqrDist;
-                closest = hit;
+                GameObject target = hit.collider.gameObject;
+
+                // 4. 驗證目標有效性 (跟原本的邏輯一樣)
+
+                // 排除自己
+                if (target.transform.root == transform.root) return null;
+
+                // 排除另一個紙箱
+                if (target.GetComponent<CardboardSkill>() != null) return null;
+
+                // 必須有 ObjectStats 且不在容器內
+                ObjectStats stats = target.GetComponent<ObjectStats>();
+                if (stats != null && !stats.isInsideContainer)
+                {
+                    // 找到有效目標！
+                    return target;
+                }
             }
         }
-        return closest;
+
+        return null;
     }
 
     private void OnDrawGizmosSelected()
     {
-        Gizmos.color = new Color(0.5f, 0.2f, 0f, 0.3f);
-        Gizmos.DrawWireSphere(transform.position, detectionRadius);
+        // 畫出射線長度，方便調整 interactionRange
+        if (playerMovement != null && playerMovement.cameraTransform != null)
+        {
+            Gizmos.color = Color.red;
+            Gizmos.DrawRay(playerMovement.cameraTransform.position, playerMovement.cameraTransform.forward * detectionRadius);
+        }
     }
 
     // --- 重量與動畫 ---
