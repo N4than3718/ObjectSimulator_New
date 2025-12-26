@@ -100,6 +100,12 @@ public class CamControl : MonoBehaviour
             return; // Don't process rotation, positioning, etc.
         }
 
+        // 如果 GameDirector 存在，且狀態不是 Playing (例如是 GameOver 或 Victory)
+        if (GameDirector.Instance != null && GameDirector.Instance.CurrentState != GameDirector.GameState.Playing)
+        {
+            return; // 直接中斷，不執行後面的旋轉邏輯
+        }
+
         // 1. 計算目標旋轉角度 (使用 Update 中讀取的 lookInput)
         //    注意：這裡用 Time.deltaTime 是因為 LateUpdate 跟隨幀率
         yaw += lookInput.x * rotateSpeed;
