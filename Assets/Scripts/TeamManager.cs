@@ -557,7 +557,7 @@ public class TeamManager : MonoBehaviour
         var animator = unit.character.GetComponent<MovementAnimator>();
         if (animator != null) animator.enabled = isActive;
 
-        var cardboardSkill = unit.character.GetComponent<Cardboard>();
+        var cardboardSkill = unit.character.GetComponent<CardboardSkill>();
         if (cardboardSkill != null)
         {
             cardboardSkill.enabled = isActive;
