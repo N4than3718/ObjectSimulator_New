@@ -25,7 +25,7 @@ public class PlayerMovement : MonoBehaviour
     [Header("Component Links")]
     public CamControl myCharacterCamera;
     public Transform myFollowTarget;
-    public Cardboard currentCardboard;
+    public CardboardSkill currentCardboard;
 
     [Header("音效設定 (SFX)")]
     [SerializeField] private AudioClip jumpSound;

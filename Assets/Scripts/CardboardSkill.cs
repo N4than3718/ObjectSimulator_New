@@ -1,41 +1,36 @@
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq; // 這是 C# 的好東西，用來加總 (Sum)
+using System.Linq;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.UI; // 引用 UI
 
 [RequireComponent(typeof(PlayerMovement), typeof(Collider), typeof(ObjectStats))]
-public class Cardboard : MonoBehaviour
+public class CardboardSkill : BaseSkill // 1. 改為繼承 BaseSkill
 {
-    [Header("元件參考")]
+    [Header("元件參考 (Cardboard 專用)")]
     private PlayerMovement playerMovement;
     private InputSystem_Actions playerActions;
     private TeamManager teamManager;
     private Animator animator;
 
     [Header("Heavy Push Settings")]
-    [Tooltip("超過這個重量，移動方式變為'重推'")]
     [SerializeField] private float weightThreshold = 50f;
-    [Tooltip("重推的單次爆發力")]
     [SerializeField] private float heavyPushForce = 50f;
-    [Tooltip("每次重推的間隔/動畫時長 (秒)")]
     [SerializeField] private float pushInterval = 0.8f;
-    [Tooltip("動畫在 1x 速度播放時，對應的移動速度 (m/s)")]
     [SerializeField] private float animationBaseSpeed = 5.0f;
 
     [Header("倉儲設定")]
     [SerializeField] private int maxStorage = 3;
     [SerializeField] private float detectionRadius = 1.5f;
-    [SerializeField] private LayerMask possessableLayer; // <--- 在 Inspector 設為 "Player"
-    [SerializeField] private Transform spitOutPoint; // <--- 在 Prefab 建立一個空物件作為吐出點
+    [SerializeField] private LayerMask possessableLayer;
+    [SerializeField] private Transform spitOutPoint;
 
     [Header("輸入設定")]
-    [SerializeField]
     [Tooltip("長按 F 鍵觸發「吐出全部」所需的時間")]
-    private float holdDuration = 0.8f;
+    [SerializeField] private float holdDuration = 0.8f;
 
     [Header("庫存狀態")]
-    [Tooltip("目前裝在裡面的物品清單 (除錯用)")]
     [SerializeField]
     private Stack<ObjectStats> storedItems = new Stack<ObjectStats>();
 
@@ -43,42 +38,40 @@ public class Cardboard : MonoBehaviour
     private Collider[] detectedObjectsBuffer = new Collider[10];
     private float fKeyStartTime = 0f;
 
+    // --- 初始化 ---
+
     void Awake()
     {
-        if (animator == null) animator = GetComponent<Animator>();
+        // 不需要 base.Awake() 因為 BaseSkill 沒有 Awake，但如果有就要加
 
-        // 找到在同一個物件上的 PlayerMovement
+        if (animator == null) animator = GetComponent<Animator>();
         playerMovement = GetComponent<PlayerMovement>();
         selfObjectStats = GetComponent<ObjectStats>();
         playerActions = new InputSystem_Actions();
-        teamManager = FindAnyObjectByType<TeamManager>(); // 找到 TeamManager
+        teamManager = FindAnyObjectByType<TeamManager>();
 
         if (spitOutPoint == null)
         {
-            Debug.LogWarning("Cardboard: SpitOutPoint 未設定，將使用自身位置。", this);
             spitOutPoint = this.transform;
         }
-        if (teamManager == null)
-        {
-            Debug.LogError("Cardboard: 找不到 TeamManager！倉儲功能將失效。", this);
-        }
 
-        // 遊戲一開始，先把紙箱的基礎重量設定好
+        // 初始化 BaseSkill 的設定 (如果 Inspector 沒設)
+        if (string.IsNullOrEmpty(skillName)) skillName = "紙箱收納";
+
         UpdateTotalWeight();
     }
 
-    // 當 PlayerMovement 被 TeamManager 啟用時，這個也會被啟用
     void OnEnable()
     {
-        // 確保 OnEnable/OnDisable 與 PlayerMovement (line 150) 一致
+        // 啟用輸入
         if (playerActions == null) playerActions = new InputSystem_Actions();
         playerActions.Player.Enable();
 
-        playerActions.Player.Interact.started += OnSkillPress; // 監聽按下
-        playerActions.Player.Interact.canceled += OnSkillRelease; // 監聽放開
+        // 監聽 F 鍵 (Interact)
+        playerActions.Player.Interact.started += OnSkillPress;
+        playerActions.Player.Interact.canceled += OnSkillRelease;
     }
 
-    // 當 PlayerMovement 被 TeamManager 禁用時...
     void OnDisable()
     {
         if (playerActions != null) playerActions.Player.Disable();
@@ -87,132 +80,138 @@ public class Cardboard : MonoBehaviour
         playerActions.Player.Interact.canceled -= OnSkillRelease;
     }
 
-    void Update()
-    {   }
+    // --- 繼承 BaseSkill 的 Update ---
+    protected override void Update()
+    {
+        base.Update(); // 2. 這行最重要！它負責更新 UI 的冷卻圈圈
+    }
 
-    /// <summary>
-    /// 當 F 鍵 (Interact) 按下時呼叫
-    /// </summary>
+    // --- 輸入處理邏輯 ---
+
+    // 覆寫 BaseSkill 的 OnInput，因為我們有自己的複雜輸入邏輯，
+    // 不希望 BaseSkill 的通用邏輯干擾我們
+    public override void OnInput(InputAction.CallbackContext context)
+    {
+        // 留空，完全交給 OnSkillPress/Release 處理
+    }
+
     private void OnSkillPress(InputAction.CallbackContext context)
     {
-        // 只在被操控時才記錄
         if (!playerMovement.enabled) return;
-
-        // 記錄按下的精確時間
         fKeyStartTime = Time.time;
     }
 
-    /// <summary>
-    /// 當 F 鍵 (Interact) 放開時呼叫
-    /// </summary>
     private void OnSkillRelease(InputAction.CallbackContext context)
     {
-        // 只在被操控時才處理
         if (!playerMovement.enabled) return;
 
-        // 計算按了多久
+        // 檢查是否還在冷卻中 (如果有 UI，這裡就會擋住輸入)
+        // 注意：這裡我選擇「如果是 SpitAll (長按) 則忽略冷卻」，
+        // 或者你可以統一都檢查 !isReady。這裡示範統一檢查。
+        if (!isReady)
+        {
+            Debug.Log("技能冷卻中...");
+            return;
+        }
+
         float pressDuration = Time.time - fKeyStartTime;
 
         if (pressDuration < holdDuration)
         {
-            // 這是一次「點擊」
-            HandleSkillTap();
+            // 短按：呼叫 BaseSkill 的流程來處理「點擊行為」
+            TryActivate();
+            // TryActivate 會檢查 isReady -> 呼叫 Activate() -> StartCooldown()
         }
         else
         {
-            // 這是一次「長按」結束
+            // 長按：直接執行特殊邏輯 (吐出全部)
+            // 視設計決定長按要不要進冷卻，這裡假設長按也要冷卻
             HandleSkillHold();
         }
-        // (fKeyStartTime 不需要重置，下次按下時會自動覆蓋)
     }
 
+    // --- 實作 BaseSkill 的核心方法 ---
+
     /// <summary>
-    /// 處理「點擊 F」：嘗試儲存，如果不行就吐出最後一個
+    /// 這是 BaseSkill 要求實作的方法。
+    /// 當 TryActivate() 通過檢查時，會呼叫這裡。
+    /// 對應「短按 F」的邏輯。
     /// </summary>
+    protected override void Activate()
+    {
+        HandleSkillTap();
+    }
+
+    // --- 具體邏輯 ---
+
     private void HandleSkillTap()
     {
         Collider target = FindClosestNearbyObject();
 
         if (target != null && storedItems.Count < maxStorage)
         {
-            // 情況 1: 附近有東西，且還有空間 -> 儲存
+            // 吃東西
             StoreObject(target.gameObject);
         }
         else
         {
-            // 情況 2: 附近沒東西，或空間已滿 -> 吐出
+            // 吐東西
             SpitOutLastObject();
+        }
+        // 因為是透過 TryActivate 呼叫的，BaseSkill 會自動幫我們 StartCooldown()
+    }
+
+    private void HandleSkillHold()
+    {
+        // 吐出全部
+        if (storedItems.Count > 0)
+        {
+            SpitOutAllObjects();
+
+            // 長按結束後，也手動觸發冷卻 UI
+            StartCooldown();
         }
     }
 
-    /// <summary>
-    /// 處理「長按 F」：吐出所有
-    /// </summary>
-    private void HandleSkillHold()
-    {
-        SpitOutAllObjects();
-    }
+    // --- 物品操作邏輯 (保持原樣，稍微整理) ---
 
-    /// <summary>
-    /// 儲存一個物件
-    /// </summary>
     private void StoreObject(GameObject obj)
     {
         ObjectStats item = obj.GetComponent<ObjectStats>();
-
-        // 確保 1. 它是物品 2. 它還沒在任何容器裡 3. 它不是自己
         if (item != null && item != selfObjectStats && !item.isInsideContainer)
         {
-            Debug.Log($"[Cardboard] 儲存: {obj.name}。 目前容量: {storedItems.Count + 1}/{maxStorage}"); // [修改]
-
-            // 推入堆疊
             item.isInsideContainer = true;
-            storedItems.Push(item); // [修改]
-
-            // 真正讓物件從場景消失
+            storedItems.Push(item);
             obj.SetActive(false);
-
-            // 重新計算總重量
             UpdateTotalWeight();
+            Debug.Log($"[Cardboard] 吞入: {obj.name}");
         }
     }
 
-    /// <summary>
-    /// 吐出最後一個物件
-    /// </summary>
     private void SpitOutLastObject()
     {
-        if (storedItems.Count > 0) // [修改]
+        if (storedItems.Count > 0)
         {
-            // 1. 彈出堆疊
-            ObjectStats item = storedItems.Pop(); // [修改]
+            ObjectStats item = storedItems.Pop();
             GameObject obj = item.gameObject;
             item.isInsideContainer = false;
 
-            Debug.Log($"[Cardboard] 吐出: {obj.name}。 剩餘: {storedItems.Count}"); // [修改]
-
-            // 2. 在吐出點啟用物件
             obj.transform.position = spitOutPoint.position;
             obj.SetActive(true);
 
-            // 3. 重新計算總重量
             UpdateTotalWeight();
-            Debug.Log($"[BoxContainer] {obj.name} 離開。");
+            Debug.Log($"[Cardboard] 吐出: {obj.name}");
         }
         else
         {
-            Debug.Log("[Cardboard] 箱子是空的，沒東西可吐出。");
+            Debug.Log("[Cardboard] 空空如也。");
         }
     }
 
-    /// <summary>
-    /// 透過 Coroutine 吐出所有物件
-    /// </summary>
     private void SpitOutAllObjects()
     {
         if (storedItems.Count > 0)
         {
-            Debug.Log($"[Cardboard] 吐出全部 {storedItems.Count} 個物件...");
             StartCoroutine(SpitAllCoroutine());
         }
     }
@@ -222,65 +221,40 @@ public class Cardboard : MonoBehaviour
         float offsetDistance = 1.0f;
         while (storedItems.Count > 0)
         {
-            ObjectStats item = storedItems.Pop(); // [修改]
+            ObjectStats item = storedItems.Pop();
             GameObject obj = item.gameObject;
             item.isInsideContainer = false;
 
-            // 計算吐出位置 (在前方散開)
             Vector3 spitPos = spitOutPoint.position + (transform.forward * offsetDistance) + (Random.insideUnitSphere * 0.1f);
-            spitPos.y = spitOutPoint.position.y; // 保持在同一水平面
+            spitPos.y = spitOutPoint.position.y;
 
             obj.transform.position = spitPos;
             obj.SetActive(true);
 
-            Debug.Log($"[BoxContainer] {obj.name} 離開。");
-
-            offsetDistance += 0.5f; // 下一個吐遠一點
-            yield return new WaitForSeconds(0.15f); // 稍微間隔
+            offsetDistance += 0.5f;
+            yield return new WaitForSeconds(0.15f);
         }
         UpdateTotalWeight();
     }
 
-    /// <summary>
-    /// 尋找最近的、可儲存的物件
-    /// </summary>
+    // --- 輔助功能 ---
+
     private Collider FindClosestNearbyObject()
     {
-        int hits = Physics.OverlapSphereNonAlloc(
-            transform.position,
-            detectionRadius,
-            detectedObjectsBuffer,
-            possessableLayer, // 只偵測 "Player" Layer
-            QueryTriggerInteraction.Ignore
-        );
-
+        // (保持原本的 OverlapSphere 邏輯)
+        int hits = Physics.OverlapSphereNonAlloc(transform.position, detectionRadius, detectedObjectsBuffer, possessableLayer, QueryTriggerInteraction.Ignore);
         Collider closest = null;
         float minSqrDist = Mathf.Infinity;
 
         for (int i = 0; i < hits; i++)
         {
             Collider hit = detectedObjectsBuffer[i];
-
-            // 排除自己 (檢查 attachedRigidbody 是最準確的)
-            if (hit.attachedRigidbody == playerMovement.GetComponent<Rigidbody>())
-            {
-                continue;
-            }
-
-            // 確保對方也是一個可操控的物件 (有 PlayerMovement 腳本)
-            if (hit.GetComponent<PlayerMovement>() == null)
-            {
-                continue;
-            }
-
-            // [新增] 檢查對方是否也是 Cardboard，箱子不能裝箱子
-            if (hit.GetComponent<Cardboard>() != null) { continue; }
-
-            // [新增] 檢查對方是否已在容器中 (雖然 PlayerMovement enabled 應該=false了，但雙重保險)
+            if (hit.attachedRigidbody == playerMovement.GetComponent<Rigidbody>()) continue;
+            if (hit.GetComponent<PlayerMovement>() == null) continue;
+            if (hit.GetComponent<CardboardSkill>() != null) continue;
             ObjectStats stats = hit.GetComponent<ObjectStats>();
-            if (stats != null && stats.isInsideContainer) { continue; }
+            if (stats != null && stats.isInsideContainer) continue;
 
-            // 找到最近的
             float sqrDist = (transform.position - hit.transform.position).sqrMagnitude;
             if (sqrDist < minSqrDist)
             {
@@ -291,47 +265,28 @@ public class Cardboard : MonoBehaviour
         return closest;
     }
 
-    // 在 Scene 視窗繪製偵測範圍，方便 Debug
     private void OnDrawGizmosSelected()
     {
-        Gizmos.color = new Color(0.5f, 0.2f, 0f, 0.3f); // 咖啡色
+        Gizmos.color = new Color(0.5f, 0.2f, 0f, 0.3f);
         Gizmos.DrawWireSphere(transform.position, detectionRadius);
     }
 
-    /// <summary>
-    /// 計算總重量並更新 PlayerMovement
-    /// </summary>
+    // --- 重量與動畫 ---
+
     private void UpdateTotalWeight()
     {
-        // 總重 = 紙箱自重 + (清單中所有物品的重量)
         float totalWeight = selfObjectStats.weight;
-
-        // 使用 Linq.Sum() 快速加總
         totalWeight += storedItems.Sum(item => item.weight);
-
         bool isOver = (totalWeight > weightThreshold);
-
-        // **這就是關鍵：**
-        // 把計算好的總重，"餵" 給 PlayerMovement 腳本
         playerMovement.SetWeightAndPushStats(totalWeight, isOver, heavyPushForce, pushInterval);
-
-        //Debug.Log($"[BoxContainer] 總重量更新為: {totalWeight}kg");
     }
 
-    /// <summary>
-    /// 由 PlayerMovement 呼叫，每一幀更新動畫狀態
-    /// </summary>
-    /// <param name="rb">主角的剛體 (用來算速度)</param>
-    /// <param name="isOverEncumbered">是否超重</param>
-    /// <param name="isPushing">是否正在推東西</param>
     public void UpdateAnimationState(Rigidbody rb, bool isOverEncumbered, bool isPushing)
     {
-        if (animator == null || rb == null) return; // 防呆
+        if (animator == null || rb == null) return;
 
-        // 1. 傳遞基本狀態
         animator.SetBool("isOverEncumbered", isOverEncumbered);
 
-        // 2. 處理速度與播放倍率
         if (isOverEncumbered)
         {
             if (!isPushing)
@@ -339,21 +294,15 @@ public class Cardboard : MonoBehaviour
                 animator.SetFloat("Speed", 0f);
                 animator.speed = 1.0f;
             }
-            // 如果 isPushing == true，通常會有另一個推的動畫邏輯，或者由推的協程控制
         }
         else
         {
-            // --- 正常狀態 ---
-            // 計算水平速度 (忽略 Y 軸)
             float horizontalSpeed = new Vector3(rb.linearVelocity.x, 0, rb.linearVelocity.z).magnitude;
-
             animator.SetFloat("Speed", horizontalSpeed);
 
-            // 根據移動速度調整動畫播放速度 (防止滑步)
             if (horizontalSpeed > 0.1f && animationBaseSpeed > 0f)
             {
-                float playbackSpeed = horizontalSpeed / animationBaseSpeed;
-                animator.speed = playbackSpeed;
+                animator.speed = horizontalSpeed / animationBaseSpeed;
             }
             else
             {
