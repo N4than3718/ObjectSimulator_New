@@ -237,46 +237,39 @@ public class CardboardSkill : BaseSkill // 1. 改為繼承 BaseSkill
     }
 
     /// <summary>
-    /// 【核心修改】從攝影機準星發射射線尋找物品
+    /// 直接向 PlayerMovement 詢問當前瞄準的對象，並驗證是否可收納
     /// </summary>
     private GameObject GetTarget()
     {
-        // 1. 確保有攝影機參考
-        if (playerMovement.cameraTransform == null) return null;
+        // 1. 直接取得 PlayerMovement 已經算好的目標 (省下一次 Raycast 效能，且保證視覺一致)
+        GameObject target = playerMovement.CurrentTargetedObject;
 
-        Transform cam = playerMovement.cameraTransform;
-        Ray ray = new Ray(cam.position, cam.forward);
-        RaycastHit hit;
+        // 如果當前沒瞄準任何東西，直接回傳 null
+        if (target == null) return null;
 
-        // 2. 發射射線
-        // 注意：這裡我用 ~0 (Detect All Layers) 是為了防止「隔牆取物」。
-        // 如果射線先打到牆壁 (Default Layer)，就會停下來，不會穿過去打到後面的物品。
-        float range = playerMovement.interactionDistance;
+        // 2. 雖然 PlayerMovement 說有目標，但我們還是要檢查這個目標「合不合胃口」
+        // (例如：可能瞄準到隊友，但隊友不能被吃；或者瞄準到不可互動的物件)
 
-        if (Physics.Raycast(ray, out hit, range, ~0, QueryTriggerInteraction.Ignore))
+        // 檢查 Layer (利用位元運算檢查是否在 possessableLayer 清單內)
+        if (((1 << target.layer) & possessableLayer) == 0)
         {
-            // 3. 檢查打到的東西是不是在 Possessable Layer 裡
-            // (利用位元運算檢查 LayerMask)
-            if (((1 << hit.collider.gameObject.layer) & possessableLayer) != 0)
-            {
-                GameObject target = hit.collider.gameObject;
+            return null; // 層級不對 (例如瞄準到牆壁或地板)
+        }
 
-                // 4. 驗證目標有效性 (跟原本的邏輯一樣)
+        // 3. 執行原本的防呆檢查
 
-                // 排除自己
-                if (target.transform.root == transform.root) return null;
+        // 排除自己
+        if (target.transform.root == transform.root) return null;
 
-                // 排除另一個紙箱
-                if (target.GetComponent<CardboardSkill>() != null) return null;
+        // 排除另一個紙箱 (假設設定上不能吃紙箱)
+        if (target.GetComponent<CardboardSkill>() != null) return null;
 
-                // 必須有 ObjectStats 且不在容器內
-                ObjectStats stats = target.GetComponent<ObjectStats>();
-                if (stats != null && !stats.isInsideContainer)
-                {
-                    // 找到有效目標！
-                    return target;
-                }
-            }
+        // 必須有 ObjectStats 且不在容器內
+        ObjectStats stats = target.GetComponent<ObjectStats>();
+        if (stats != null && !stats.isInsideContainer)
+        {
+            // 通過所有檢查，這就是我們要吃的東西！
+            return target;
         }
 
         return null;
