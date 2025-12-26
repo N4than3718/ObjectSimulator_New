@@ -22,7 +22,6 @@ public class CardboardSkill : BaseSkill // 1. 改為繼承 BaseSkill
 
     [Header("倉儲設定")]
     [SerializeField] private int maxStorage = 3;
-    [SerializeField] private float detectionRadius = 3.0f;
     [SerializeField] private LayerMask possessableLayer;
     [SerializeField] private Transform spitOutPoint;
 
@@ -252,7 +251,9 @@ public class CardboardSkill : BaseSkill // 1. 改為繼承 BaseSkill
         // 2. 發射射線
         // 注意：這裡我用 ~0 (Detect All Layers) 是為了防止「隔牆取物」。
         // 如果射線先打到牆壁 (Default Layer)，就會停下來，不會穿過去打到後面的物品。
-        if (Physics.Raycast(ray, out hit, detectionRadius, ~0, QueryTriggerInteraction.Ignore))
+        float range = playerMovement.interactionDistance;
+
+        if (Physics.Raycast(ray, out hit, range, ~0, QueryTriggerInteraction.Ignore))
         {
             // 3. 檢查打到的東西是不是在 Possessable Layer 裡
             // (利用位元運算檢查 LayerMask)
@@ -283,11 +284,14 @@ public class CardboardSkill : BaseSkill // 1. 改為繼承 BaseSkill
 
     private void OnDrawGizmosSelected()
     {
-        // 畫出射線長度，方便調整 interactionRange
+        // 確保 playerMovement 存在 (編輯器模式下可能需要 GetComponent)
+        if (playerMovement == null) playerMovement = GetComponent<PlayerMovement>();
+
         if (playerMovement != null && playerMovement.cameraTransform != null)
         {
             Gizmos.color = Color.red;
-            Gizmos.DrawRay(playerMovement.cameraTransform.position, playerMovement.cameraTransform.forward * detectionRadius);
+            // 使用 playerMovement.interactionDistance
+            Gizmos.DrawRay(playerMovement.cameraTransform.position, playerMovement.cameraTransform.forward * playerMovement.interactionDistance);
         }
     }
 

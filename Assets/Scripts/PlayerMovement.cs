@@ -85,8 +85,9 @@ public class PlayerMovement : MonoBehaviour
     [SerializeField] private LayerMask groundLayer;
     [SerializeField] private LayerMask platformLayer;
 
-    [Header("Possessed Mode Interaction & Highlighting")]
-    [SerializeField] private float interactionDistance = 10f;
+    [Header("Interaction & Highlighting")]
+    [Tooltip("這是所有互動與準星高亮的標準距離")]
+    public float interactionDistance = 1.0f;
 
     [Header("Dynamic Outline")]
     [SerializeField] private float minOutlineWidth = 0.003f;

@@ -418,6 +418,7 @@ GameObject:
   - component: {fileID: 55529470}
   - component: {fileID: 55529469}
   - component: {fileID: 55529468}
+  - component: {fileID: 55529472}
   m_Layer: 5
   m_Name: HUD Canvas
   m_TagString: Untagged
@@ -500,12 +501,12 @@ RectTransform:
   m_LocalScale: {x: 0, y: 0, z: 0}
   m_ConstrainProportionsScale: 0
   m_Children:
+  - {fileID: 1796688444}
   - {fileID: 242880678}
   - {fileID: 1697534512}
   - {fileID: 411922699}
   - {fileID: 2066927766}
   - {fileID: 1419436492}
-  - {fileID: 1796688444}
   m_Father: {fileID: 1915972164}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
@@ -513,6 +514,21 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0, y: 0}
+--- !u!114 &55529472
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 55529467}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 46ce2e18cc5c4c54d95cac08a4625f27, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::UIManager
+  iconImage: {fileID: 1796688445}
+  cooldownFillImage: {fileID: 217244260}
+  defaultIcon: {fileID: 0}
 --- !u!4 &78840897 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 9108637429346870453, guid: 41df444ea3a5a6047bf25530f442a1c3, type: 3}
@@ -6377,7 +6393,7 @@ MonoBehaviour:
   platformLayer:
     serializedVersion: 2
     m_Bits: 64
-  interactionDistance: 15
+  interactionDistance: 5
   minOutlineWidth: 0.003
   maxOutlineWidth: 0.04
   maxDistanceForOutline: 50
@@ -7007,7 +7023,7 @@ MonoBehaviour:
   platformLayer:
     serializedVersion: 2
     m_Bits: 64
-  interactionDistance: 10
+  interactionDistance: 5
   minOutlineWidth: 0.003
   maxOutlineWidth: 0.04
   maxDistanceForOutline: 50
@@ -7182,7 +7198,6 @@ MonoBehaviour:
   skillName: "\u97FF\u9234\u8A98\u990C"
   cooldownTime: 1
   skillIcon: {fileID: 21300000, guid: 4c0026f6c19e0b144bb44c49e2840958, type: 3}
-  cooldownOverlay: {fileID: 217244260}
   noiseRadius: 45
   noiseIntensity: 30
   noiseInterval: 0.8
@@ -8531,10 +8546,10 @@ Light:
   serializedVersion: 11
   m_Type: 0
   m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_Intensity: 100
-  m_Range: 100
+  m_Intensity: 10
+  m_Range: 1.5
   m_SpotAngle: 30
-  m_InnerSpotAngle: 21.80208
+  m_InnerSpotAngle: 20
   m_CookieSize: 10
   m_Shadows:
     m_Type: 0
@@ -9109,7 +9124,7 @@ MonoBehaviour:
   platformLayer:
     serializedVersion: 2
     m_Bits: 64
-  interactionDistance: 15
+  interactionDistance: 5
   minOutlineWidth: 0.003
   maxOutlineWidth: 0.04
   maxDistanceForOutline: 50
@@ -9252,13 +9267,11 @@ MonoBehaviour:
   skillName: "\u672A\u547D\u540D\u6280\u80FD"
   cooldownTime: 2
   skillIcon: {fileID: 21300000, guid: 1fa10a85b0ccbe74b9ff54e3e7eaae55, type: 3}
-  cooldownOverlay: {fileID: 217244260}
   weightThreshold: 5
   heavyPushForce: 8
   pushInterval: 1
   animationBaseSpeed: 5
   maxStorage: 3
-  detectionRadius: 2.5
   possessableLayer:
     serializedVersion: 2
     m_Bits: 64
@@ -11951,7 +11964,7 @@ MonoBehaviour:
   platformLayer:
     serializedVersion: 2
     m_Bits: 64
-  interactionDistance: 15
+  interactionDistance: 5
   minOutlineWidth: 0.003
   maxOutlineWidth: 0.04
   maxDistanceForOutline: 50
@@ -13901,7 +13914,6 @@ MonoBehaviour:
   skillName: "\u672A\u547D\u540D\u6280\u80FD"
   cooldownTime: 0.3
   skillIcon: {fileID: 21300000, guid: 2116512939e06f04fbcb68e66fbf73d5, type: 3}
-  cooldownOverlay: {fileID: 217244260}
   spotlight: {fileID: 773731391}
   rotatingPart: {fileID: 1465795887}
   clickSound: {fileID: 0}
@@ -13969,7 +13981,7 @@ MonoBehaviour:
   platformLayer:
     serializedVersion: 2
     m_Bits: 64
-  interactionDistance: 10
+  interactionDistance: 5
   minOutlineWidth: 0.003
   maxOutlineWidth: 0.04
   maxDistanceForOutline: 50
@@ -15566,7 +15578,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0, y: -400}
   m_SizeDelta: {x: 100, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1796688445
@@ -17083,7 +17095,7 @@ MonoBehaviour:
   platformLayer:
     serializedVersion: 2
     m_Bits: 64
-  interactionDistance: 10
+  interactionDistance: 5
   minOutlineWidth: 0.003
   maxOutlineWidth: 0.04
   maxDistanceForOutline: 50
