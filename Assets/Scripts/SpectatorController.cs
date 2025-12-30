@@ -146,8 +146,19 @@ public class SpectatorController : MonoBehaviour
     {
         if (currentlyTargetedObject != null)
         {
-            Debug.Log($"[Spectator] Select Fired! Target: {currentlyTargetedObject.transform.root.name}");
-            teamManager.PossessCharacter(currentlyTargetedObject.transform.root.gameObject);
+            // 嘗試往上找，直到找到掛有 PlayerMovement 的那個物件
+            var targetMovement = currentlyTargetedObject.GetComponentInParent<PlayerMovement>();
+
+            if (targetMovement != null)
+            {
+                Debug.Log($"[Spectator] Select Fired! Target: {targetMovement.name}");
+                // 傳入找到腳本的那個 GameObject
+                teamManager.PossessCharacter(targetMovement.gameObject);
+            }
+            else
+            {
+                Debug.LogWarning($"[Spectator] {currentlyTargetedObject.name} 身上或父層找不到 PlayerMovement 腳本！");
+            }
         }
         else
         {

@@ -495,7 +495,7 @@ public class PlayerMovement : MonoBehaviour
             Collider hitColl = _groundOverlapResults[i];
 
             // A. 排除自己
-            if (hitColl.transform.root == transform.root) continue;
+            if (hitColl.transform.IsChildOf(transform)) continue;
             if (hitColl.attachedRigidbody == rb) continue;
 
             // B. 【關鍵修改】計算碰撞點與角度
@@ -570,7 +570,7 @@ public class PlayerMovement : MonoBehaviour
         foreach (var hit in hits)
         {
             // 1. 排除自己 (檢查根物件是否相同)
-            if (hit.collider.transform.root == transform.root) continue;
+            if (hit.collider.transform.IsChildOf(transform)) continue;
 
             // 2. 排除 Trigger (視需求，通常 Highlight 不選 Trigger)
             if (hit.collider.isTrigger) continue;
@@ -630,11 +630,23 @@ public class PlayerMovement : MonoBehaviour
     {
         if (teamManager == null) return;
         if (currentlyTargetedPlayerObject != null) {
-            GameObject targetObject = currentlyTargetedPlayerObject.transform.root.gameObject;
-            bool success = teamManager.TryAddCharacterToTeam(targetObject);
-             if (success && currentlyTargetedPlayerObject != null) {
-                currentlyTargetedPlayerObject.SetTargetedHighlight(false);
-                currentlyTargetedPlayerObject = null;
+            PlayerMovement targetMovement = currentlyTargetedPlayerObject.GetComponentInParent<PlayerMovement>();
+
+            if (targetMovement != null)
+            {
+                // 傳入找到腳本的那個 GameObject
+                bool success = teamManager.TryAddCharacterToTeam(targetMovement.gameObject);
+
+                if (success)
+                {
+                    // 如果成功加入，取消高亮
+                    currentlyTargetedPlayerObject.SetTargetedHighlight(false);
+                    currentlyTargetedPlayerObject = null;
+                }
+            }
+            else
+            {
+                Debug.LogWarning($"[PlayerMovement] 嘗試招募 {currentlyTargetedPlayerObject.name}，但找不到 PlayerMovement 腳本！");
             }
         }
     }

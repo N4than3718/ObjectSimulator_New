@@ -21,6 +21,8 @@ public class GameDirector : MonoBehaviour
     public int targetFrameRate = 60;
     public bool useVSync = false;
 
+    public SpectatorController cameraScript;
+
     private void Awake()
     {
         // 單例模式 (Singleton Pattern) - 確保只有一個導演
@@ -81,6 +83,7 @@ public class GameDirector : MonoBehaviour
         // 2. 暫停遊戲
         Time.timeScale = 0f;
         if (CamControl.Current != null) CamControl.Current.enabled = false;
+        if (cameraScript != null) cameraScript.enabled = false;
 
         // 3. 解鎖滑鼠 (讓玩家可以點按鈕)
         Cursor.lockState = CursorLockMode.None;
