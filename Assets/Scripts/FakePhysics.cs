@@ -9,6 +9,9 @@ public class FakePhysics : MonoBehaviour
     [Tooltip("如果不填，預設會使用這個物件的位置。你可以建一個空物件放在門中間，然後拖進來。")]
     public Transform interactionPoint; // 🔥 新增：自訂感應點
 
+    [Header("鎖定設定")]
+    public bool isLocked = false; // 🔥 新增：門是不是鎖著的？
+
     [Header("設定")]
     public float openSpeed = 5.0f;     // 開門速度
     public float maxAngle = 90f;       // 最大開門角度
@@ -72,7 +75,19 @@ public class FakePhysics : MonoBehaviour
 
     bool CanOpenDoor(Collider other)
     {
+        if (isLocked) return false;
         return other.CompareTag("Player") || other.CompareTag("NPC");
+    }
+
+    public void UnlockDoor()
+    {
+        if (isLocked)
+        {
+            isLocked = false;
+            Debug.Log("門已解鎖！");
+
+            // 這裡可以加一個解鎖音效，例如 audioSource.PlayOneShot(unlockSound);
+        }
     }
 
     void OnTriggerEnter(Collider other)
@@ -93,6 +108,9 @@ public class FakePhysics : MonoBehaviour
 
     void OnTriggerStay(Collider other)
     {
+        // 🔥 如果鎖住了，就不執行開門計算
+        if (isLocked) return;
+
         if (CanOpenDoor(other))
         {
             // --- 判斷門現在是不是關著的 ---
