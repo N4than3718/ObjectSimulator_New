@@ -27140,14 +27140,15 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::FakePhysics
   doorVisuals: {fileID: 1128928631}
   interactionPoint: {fileID: 887209096}
+  doorType: 0
   isLocked: 1
   openSpeed: 5
   maxAngle: 90
-  minAngle: -90
   autoClose: 1
-  activationDistance: 0.5
-  reverseDirection: 0
-  showDebugLine: 1
+  audioSource: {fileID: 0}
+  openSound: {fileID: 0}
+  closeSound: {fileID: 0}
+  lockedSound: {fileID: 0}
 --- !u!1001 &1136509514
 PrefabInstance:
   m_ObjectHideFlags: 0
