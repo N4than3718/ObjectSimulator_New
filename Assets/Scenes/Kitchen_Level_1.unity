@@ -23887,7 +23887,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 919132149155446097, guid: 94fc6e3e080c8a941b76e92345e8b4ab, type: 3}
       propertyPath: m_Name
-      value: Key4
+      value: Key
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -27089,6 +27089,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 103837076}
     m_Modifications:
+    - target: {fileID: 3782141263985564287, guid: d0a38f33a3c4c18428032b48dcbfbc31, type: 3}
+      propertyPath: isLocked
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 5174675591891502521, guid: d0a38f33a3c4c18428032b48dcbfbc31, type: 3}
       propertyPath: m_RootOrder
       value: 31
@@ -27144,49 +27148,8 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents:
-    - targetCorrespondingSourceObject: {fileID: 4637191895304900918, guid: d0a38f33a3c4c18428032b48dcbfbc31, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 1128928633}
+    m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: d0a38f33a3c4c18428032b48dcbfbc31, type: 3}
---- !u!4 &1128928631 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: 4637191895305391382, guid: d0a38f33a3c4c18428032b48dcbfbc31, type: 3}
-  m_PrefabInstance: {fileID: 1128928630}
-  m_PrefabAsset: {fileID: 0}
---- !u!1 &1128928632 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 4637191895304900918, guid: d0a38f33a3c4c18428032b48dcbfbc31, type: 3}
-  m_PrefabInstance: {fileID: 1128928630}
-  m_PrefabAsset: {fileID: 0}
---- !u!114 &1128928633
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1128928632}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 55f9c091b71772444a44a4178ff2260c, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::FakePhysics
-  motionType: 0
-  doorType: 0
-  doorVisuals: {fileID: 1128928631}
-  interactionPoint: {fileID: 887209096}
-  speed: 5
-  isLocked: 1
-  autoClose: 1
-  activationDistance: 2.5
-  openAwayFromPlayer: 1
-  openAngle: 90
-  slideDirection: {x: 0, y: 0, z: -1}
-  slideDistance: 0.5
-  audioSource: {fileID: 0}
-  openSound: {fileID: 0}
-  closeSound: {fileID: 0}
-  lockedSound: {fileID: 0}
 --- !u!1001 &1136509514
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -33335,7 +33298,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ThumbnailCreator
   Entities:
-  - {fileID: 0}
+  - {fileID: 1017456092}
   TargetPath: Icons
 --- !u!4 &1451776244
 Transform:
@@ -42822,7 +42785,7 @@ GameObject:
   - component: {fileID: 1932049461}
   m_Layer: 6
   m_Name: Key
-  m_TagString: Untagged
+  m_TagString: Player
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -42873,7 +42836,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::KeySkill
   skillName: "\u672A\u547D\u540D\u6280\u80FD"
   cooldownTime: 2
-  skillIcon: {fileID: 0}
+  skillIcon: {fileID: 21300000, guid: d654166125fe809489319cc03e597c90, type: 3}
   interactionRange: 1.5
   doorLayer:
     serializedVersion: 2
@@ -42917,7 +42880,7 @@ MonoBehaviour:
   cameraTransform: {fileID: 542812360}
   centerOfMassHelper: {fileID: 0}
   movementCollider: {fileID: 1932049459}
-  radialMenuIcon: {fileID: 0}
+  radialMenuIcon: {fileID: 21300000, guid: d654166125fe809489319cc03e597c90, type: 3}
   myCharacterCamera: {fileID: 542812361}
   myFollowTarget: {fileID: 1723257961}
   currentCardboard: {fileID: 0}

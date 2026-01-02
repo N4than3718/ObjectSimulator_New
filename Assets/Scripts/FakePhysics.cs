@@ -173,6 +173,7 @@ public class FakePhysics : MonoBehaviour, IInteractable
 
     void OnTriggerEnter(Collider other)
     {
+        Debug.Log($"有東西進來了: {other.name}, Tag: {other.tag}, Layer: {LayerMask.LayerToName(other.gameObject.layer)}");
         if (CanOpen(other)) peopleInZone++;
     }
 
@@ -183,7 +184,23 @@ public class FakePhysics : MonoBehaviour, IInteractable
 
     bool CanOpen(Collider other)
     {
-        return other.CompareTag("Player") || other.CompareTag("NPC");
+        if (other.attachedRigidbody != null)
+        {
+            // 如果找到了剛體 (通常是角色的根物件)，就檢查剛體的 Tag
+            if (other.attachedRigidbody.CompareTag("Player") ||
+                other.attachedRigidbody.CompareTag("NPC"))
+            {
+                return true;
+            }
+        }
+
+        // 2. 如果沒剛體 (或是剛體 Tag 不對)，再檢查 Collider 本身的 Tag (備案)
+        if (other.CompareTag("Player") || other.CompareTag("NPC"))
+        {
+            return true;
+        }
+
+        return false;
     }
 
     private void PlaySound(AudioClip clip)
