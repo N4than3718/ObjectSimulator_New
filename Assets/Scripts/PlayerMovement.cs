@@ -492,21 +492,31 @@ public class PlayerMovement : MonoBehaviour
             if (hitColl.transform.IsChildOf(transform)) continue;
             if (hitColl.attachedRigidbody == rb) continue;
 
-            if (hitColl is MeshCollider meshColl && !meshColl.convex) continue;
-            if (hitColl is TerrainCollider) continue;
-
-            // B. 【關鍵修改】計算碰撞點與角度
-            // 找出這個牆壁/地板上，離我最近的那個點
-            Vector3 closestPoint = hitColl.ClosestPoint(objectCenter);
+            bool isComplexCollider = (hitColl is MeshCollider mesh && !mesh.convex) || (hitColl is TerrainCollider);
 
             // 計算方向向量：從「碰撞點」指向「我的中心」
             // 想像一根箭頭從地板射向你的肚子
-            Vector3 rayOrigin = closestPoint + Vector3.up * 0.5f;
+            Vector3 rayOrigin;
+
+            if (isComplexCollider)
+            {
+                // 🔥 備案 B：針對地形/複雜網格
+                // 因為算不出 ClosestPoint，我們直接假設接觸點就在「腳底正下方」
+                // 從物件中心往下發射
+                rayOrigin = objectCenter;
+            }
+            else
+            {
+                // ✅ 方案 A：針對一般地板 (最精準)
+                // 找出最靠近的點，並從那裡稍微往上抬一點當作射線起點
+                Vector3 closestPoint = hitColl.ClosestPoint(objectCenter);
+                rayOrigin = closestPoint + Vector3.up * 0.5f;
+            }
 
             // C. 判斷角度 (Normal Check)
             // directionToCenter.y > 0.7f 代表這個面大致朝上 (約 45 度以內的坡度)
             // 如果是牆壁，這個值會接近 0；如果是天花板，這個值會是負的
-            if (Physics.Raycast(rayOrigin, Vector3.down, out RaycastHit hitInfo, 1.0f, combinedMask))
+            if (Physics.Raycast(rayOrigin, Vector3.down, out RaycastHit hitInfo, 2.0f, combinedMask))
             {
                 // 如果射線打到的 collider 就是我們 overlap 到的這個 (確認沒打錯人)
                 if (hitInfo.collider == hitColl)
@@ -530,6 +540,8 @@ public class PlayerMovement : MonoBehaviour
 
             if (!validGroundFound)
             {
+                Vector3 closestPoint = hitColl.ClosestPoint(objectCenter);
+
                 bool isBelowCenter = closestPoint.y < objectCenter.y;
 
                 float heightDiff = Mathf.Abs(closestPoint.y - bottomY);
@@ -752,16 +764,24 @@ public class PlayerMovement : MonoBehaviour
         {
             if (hitColl.transform.root == transform.root) continue; // 忽略自己
 
-            // 1. 如果是 MeshCollider 且不是 Convex (凸面)，跳過
-            if (hitColl is MeshCollider meshColl && !meshColl.convex) continue;
-            // 2. 如果是 TerrainCollider (地形)，ClosestPoint 也不支援，跳過
-            if (hitColl is TerrainCollider) continue;
+            bool isComplexCollider = (hitColl is MeshCollider mesh && !mesh.convex) || (hitColl is TerrainCollider);
 
-            // 找出最近點
-            Vector3 closestPoint = hitColl.ClosestPoint(objectCenter);
+            Vector3 rayOrigin;
+            Vector3 closestPoint;
+
+            if (isComplexCollider)
+            {
+                // 備案：直接從中心往下
+                rayOrigin = objectCenter;
+            }
+            else
+            {
+                // 正規：從最近點
+                closestPoint = hitColl.ClosestPoint(objectCenter);
+                rayOrigin = closestPoint + Vector3.up * 0.5f;
+            }
 
             // --- 視覺化 Micro-Raycast ---
-            Vector3 rayOrigin = closestPoint + Vector3.up * 0.5f;
             Ray ray = new Ray(rayOrigin, Vector3.down);
 
             // 模擬射線檢測
@@ -787,6 +807,8 @@ public class PlayerMovement : MonoBehaviour
             }
             else
             {
+                closestPoint = hitColl.ClosestPoint(objectCenter);
+
                 // --- 視覺化 Fallback (備案) ---
                 // 如果射線失敗，檢查備案條件
                 bool isBelowCenter = closestPoint.y < objectCenter.y;
