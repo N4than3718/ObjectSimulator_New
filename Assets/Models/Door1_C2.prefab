@@ -81,13 +81,15 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::FakePhysics
   doorVisuals: {fileID: 860836350707724103}
   interactionPoint: {fileID: 4825214288381564970}
+  doorType: 0
+  isLocked: 0
   openSpeed: 2
   maxAngle: 90
-  minAngle: -90
   autoClose: 1
-  activationDistance: 0.6
-  reverseDirection: 1
-  showDebugLine: 1
+  audioSource: {fileID: 0}
+  openSound: {fileID: 0}
+  closeSound: {fileID: 0}
+  lockedSound: {fileID: 0}
 --- !u!65 &269483119357640962
 BoxCollider:
   m_ObjectHideFlags: 0
