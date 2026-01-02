@@ -11376,7 +11376,7 @@ MonoBehaviour:
   moveSpeed: 7.5
   lookSensitivity: 0.3
   interactionDistance: 200
-  teamManager: {fileID: 0}
+  teamManager: {fileID: 1464291468}
   highlightMaterial: {fileID: 2100000, guid: 6539271f926886640a9e4ca63e350961, type: 2}
   minOutlineWidth: 0.003
   maxOutlineWidth: 0.04
@@ -14130,10 +14130,11 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 129
   checkRadius: 0.05
+  wallClipPadding: 0.1
   heightSmoothTime: 0.1
   rotateSpeed: 1
   rotateLerp: 8
-  positionSmoothTime: 0.05
+  moveSmoothSpeed: 60
   pitchMin: -10
   pitchMax: 85
 --- !u!114 &449396935
@@ -27653,10 +27654,11 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 129
   checkRadius: 0.05
+  wallClipPadding: 0.1
   heightSmoothTime: 0.1
   rotateSpeed: 0.1
   rotateLerp: 15
-  positionSmoothTime: 0.05
+  moveSmoothSpeed: 60
   pitchMin: -10
   pitchMax: 85
 --- !u!1001 &1183666207
@@ -31707,10 +31709,11 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 129
   checkRadius: 0.05
+  wallClipPadding: 0.1
   heightSmoothTime: 0.1
   rotateSpeed: 1
   rotateLerp: 8
-  positionSmoothTime: 0.05
+  moveSmoothSpeed: 60
   pitchMin: -10
   pitchMax: 85
 --- !u!114 &1402469982
@@ -35097,10 +35100,11 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 129
   checkRadius: 0.05
+  wallClipPadding: 0.1
   heightSmoothTime: 0.1
   rotateSpeed: 0.1
   rotateLerp: 15
-  positionSmoothTime: 0.05
+  moveSmoothSpeed: 60
   pitchMin: -10
   pitchMax: 85
 --- !u!114 &1531655496
@@ -38268,10 +38272,11 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 129
   checkRadius: 0.1
+  wallClipPadding: 0.1
   heightSmoothTime: 0.1
   rotateSpeed: 1
   rotateLerp: 8
-  positionSmoothTime: 0.05
+  moveSmoothSpeed: 60
   pitchMin: -10
   pitchMax: 85
 --- !u!114 &1746449005
@@ -39757,10 +39762,11 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 129
   checkRadius: 0.05
+  wallClipPadding: 0.1
   heightSmoothTime: 0.1
   rotateSpeed: 1
   rotateLerp: 8
-  positionSmoothTime: 0.05
+  moveSmoothSpeed: 60
   pitchMin: -10
   pitchMax: 85
 --- !u!114 &1816948869
