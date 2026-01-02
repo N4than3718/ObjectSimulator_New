@@ -88,6 +88,10 @@ public class PlayerMovement : MonoBehaviour
     [SerializeField] private float maxOutlineWidth = 0.04f;
     [SerializeField] private float maxDistanceForOutline = 50f;
 
+    [Header("Optimization")]
+    // 🔥 新增：預先配置好的射線碰撞陣列 (大小設為 10 通常夠用了)
+    private RaycastHit[] _highlightHits = new RaycastHit[10];
+
     private InputSystem_Actions playerActions;
     private Vector2 moveInput;
     private HighlightableObject currentlyTargetedPlayerObject;
@@ -569,31 +573,43 @@ public class PlayerMovement : MonoBehaviour
         HighlightableObject hitHighlightable = null;
         float hitDistance = interactionDistance;
 
-        // ▼▼▼ [核心修改] 改用 RaycastAll ▼▼▼
-        // 取得射線路徑上所有的碰撞 (不只是一個)
-        RaycastHit[] hits = Physics.RaycastAll(ray, interactionDistance);
+        // 取得射線路徑上的碰撞
+        int hitCount = Physics.RaycastNonAlloc(ray, _highlightHits, interactionDistance);
 
         // 我們需要找到 "最近的" 且 "不是自己" 的那個
-        float closestDistance = float.MaxValue;
+        HighlightableObject closestHighlightable = null;
+        float closestDist = float.MaxValue;
 
-        foreach (var hit in hits)
+        for (int i = 0; i < hitCount; i++)
         {
-            // 1. 排除自己 (檢查根物件是否相同)
+            RaycastHit hit = _highlightHits[i]; // 取出當前的碰撞資訊
+
+            // 1. 排除自己
             if (hit.collider.transform.IsChildOf(transform)) continue;
 
-            // 2. 排除 Trigger (視需求，通常 Highlight 不選 Trigger)
+            // 2. 排除 Trigger
             if (hit.collider.isTrigger) continue;
 
-            // 3. 檢查是否有 HighlightableObject 元件
-            // 注意：這裡優化一下，先看距離，如果比當前最近的還遠，就不用 GetComponent 了，省效能
-            if (hit.distance < closestDistance)
+            // 3. 取得 Highlight 元件
+            // 優化小技巧：先判斷距離是否比目前最近的還近，如果已經比較遠就不用 GetComponent 了 (省效能)
+            // 但因為我們有 "Player Tag 優先權" 的邏輯，所以這裡還是得先抓出來看 Tag
+            var highlightable = hit.collider.GetComponentInParent<HighlightableObject>();
+
+            if (highlightable != null)
             {
-                // 🔥 關鍵修改：只要有 HighlightableObject 就視為目標，不管 Tag 是不是 Player
-                var highlightable = hit.collider.GetComponentInParent<HighlightableObject>();
-                if (highlightable != null)
+                // --- 距離權重邏輯 (保留上一版的優化) ---
+                float modifiedDistance = hit.distance;
+
+                // 如果是物品 (Player Tag)，讓它在判定上「近一點」，解決鑰匙在抽屜裡拿不到的問題
+                if (highlightable.CompareTag("Player"))
                 {
-                    hitHighlightable = highlightable;
-                    closestDistance = hit.distance;
+                    modifiedDistance -= 0.05f;
+                }
+
+                if (modifiedDistance < closestDist)
+                {
+                    closestHighlightable = highlightable;
+                    closestDist = modifiedDistance;
                 }
             }
         }
