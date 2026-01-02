@@ -1,46 +1,86 @@
 ﻿using UnityEngine;
+using UnityEngine.Rendering;
 
 public class AutoEnableObjects : MonoBehaviour
 {
     [Header("把那些你為了方便而關掉的物件拖進來")]
     [Tooltip("遊戲開始時，這些物件會被強制開啟 (SetActive True)")]
-    public GameObject[] visualsToEnable;
+    public GameObject[] targetObjects;
 
-    [Header("設定")]
-    public bool enableOnAwake = true;
+    // 內部快取 Renderers，效能比較好
+    private Renderer[] cachedRenderers;
+    private Collider[] cachedColliders; // 選用：如果你也想順便關掉碰撞
 
     void Awake()
     {
-        if (enableOnAwake)
+        // 1. 預先抓取所有的 Renderer 和 Collider
+        // 這樣切換時就不用一直 GetComponent，效能比較好
+        int count = targetObjects.Length;
+        cachedRenderers = new Renderer[count];
+        cachedColliders = new Collider[count];
+
+        for (int i = 0; i < count; i++)
         {
-            ToggleVisuals(true);
+            if (targetObjects[i] != null)
+            {
+                cachedRenderers[i] = targetObjects[i].GetComponent<Renderer>();
+                cachedColliders[i] = targetObjects[i].GetComponent<Collider>();
+            }
         }
     }
 
-    // 公開這個方法，讓其他腳本 (如 TeamManager) 也可以呼叫
-    public void ToggleVisuals(bool isActive)
+    /// <summary>
+    /// 切換視覺模式
+    /// </summary>
+    /// <param name="isFullVisible">
+    /// true (附身模式) = 看得見實體 + 影子
+    /// false (觀察者模式) = 看不見實體 + 但有影子 (Shadow Only)
+    /// </param>
+    public void ToggleVisuals(bool isFullVisible)
     {
-        foreach (var obj in visualsToEnable)
+        // 處理 Renderer (視覺)
+        if (cachedRenderers != null)
         {
-            if (obj != null)
+            foreach (var r in cachedRenderers)
             {
-                obj.SetActive(isActive);
+                if (r != null)
+                {
+                    // 🔥 核心魔法在這裡：切換陰影模式
+                    if (isFullVisible)
+                    {
+                        // 附身時：完全顯示 (實體 + 陰影)
+                        r.shadowCastingMode = ShadowCastingMode.On;
+                    }
+                    else
+                    {
+                        // 觀察者時：只渲染陰影，本體隱形
+                        r.shadowCastingMode = ShadowCastingMode.ShadowsOnly;
+                    }
+                }
             }
         }
 
-        Debug.Log($"[AutoEnable] 已將 {visualsToEnable.Length} 個環境物件設為: {isActive}");
+        // 處理 Collider (物理)
+        // 💡 根據你的需求：
+        // 如果你是觀察者模式，通常也希望滑鼠射線能穿過屋頂點到地板，所以要把 Collider 關掉
+        if (cachedColliders != null)
+        {
+            foreach (var col in cachedColliders)
+            {
+                if (col != null)
+                {
+                    col.enabled = isFullVisible;
+                }
+            }
+        }
+
+        Debug.Log($"[Environment] 屋頂模式切換: {(isFullVisible ? "實體顯示" : "僅陰影")}");
     }
 
-    // --- ✨ 小功能：在編輯器裡也可以按右鍵快速開關 ---
-    [ContextMenu("開啟所有物件 (Show All)")]
-    public void ShowAll()
-    {
-        foreach (var obj in visualsToEnable) if (obj != null) obj.SetActive(true);
-    }
+    // --- 編輯器測試用按鈕 ---
+    [ContextMenu("切換為：實體顯示 (Possess)")]
+    public void TestShow() => ToggleVisuals(true);
 
-    [ContextMenu("關閉所有物件 (Hide All)")]
-    public void HideAll()
-    {
-        foreach (var obj in visualsToEnable) if (obj != null) obj.SetActive(false);
-    }
+    [ContextMenu("切換為：僅陰影 (Spectator)")]
+    public void TestHide() => ToggleVisuals(false);
 }
