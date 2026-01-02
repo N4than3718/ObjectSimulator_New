@@ -364,7 +364,10 @@ PrefabInstance:
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 99f750cfa228a6f4091c0500fc5ffa93, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 7721811345714732928}
+      addedObject: {fileID: 6448516007452391571}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 99f750cfa228a6f4091c0500fc5ffa93, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 6992657971885445049}
   m_SourcePrefab: {fileID: 100100000, guid: 99f750cfa228a6f4091c0500fc5ffa93, type: 3}
 --- !u!4 &2527652490184330830 stripped
 Transform:
@@ -376,8 +379,8 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: 99f750cfa228a6f4091c0500fc5ffa93, type: 3}
   m_PrefabInstance: {fileID: 2638757474696227237}
   m_PrefabAsset: {fileID: 0}
---- !u!64 &7721811345714732928
-MeshCollider:
+--- !u!65 &6448516007452391571
+BoxCollider:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -394,10 +397,24 @@ MeshCollider:
   m_IsTrigger: 0
   m_ProvidesContacts: 0
   m_Enabled: 1
-  serializedVersion: 5
-  m_Convex: 0
-  m_CookingOptions: 30
-  m_Mesh: {fileID: -8440550282368489618, guid: 99f750cfa228a6f4091c0500fc5ffa93, type: 3}
+  serializedVersion: 3
+  m_Size: {x: 0.85697716, y: 0.16054685, z: 0.39649293}
+  m_Center: {x: 7.197184e-16, y: 0.015386857, z: -0.19935426}
+--- !u!114 &6992657971885445049
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2909279319977219316}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 27db6dbc31f97ab48b79c9276c594513, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::HighlightableObject
+  targetedHighlightTemplate: {fileID: 2100000, guid: 6539271f926886640a9e4ca63e350961, type: 2}
+  availableHighlightTemplate: {fileID: 2100000, guid: ff65ad8d0c8862e4e9abef0f7c56125b, type: 2}
+  inactiveTeamHighlightTemplate: {fileID: 2100000, guid: 62e93f7c4d71da845876a9b40fa10e1d, type: 2}
 --- !u!1001 &6333161876795609626
 PrefabInstance:
   m_ObjectHideFlags: 0
