@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using UnityEngine.Rendering;
+using System.Collections.Generic;
 
 public class AutoEnableObjects : MonoBehaviour
 {
@@ -7,26 +8,28 @@ public class AutoEnableObjects : MonoBehaviour
     [Tooltip("遊戲開始時，這些物件會被強制開啟 (SetActive True)")]
     public GameObject[] targetObjects;
 
-    // 內部快取 Renderers，效能比較好
-    private Renderer[] cachedRenderers;
-    private Collider[] cachedColliders; // 選用：如果你也想順便關掉碰撞
+    private List<Renderer> allRenderers = new List<Renderer>();
+    private List<Collider> allColliders = new List<Collider>();
 
     void Awake()
     {
-        // 1. 預先抓取所有的 Renderer 和 Collider
-        // 這樣切換時就不用一直 GetComponent，效能比較好
-        int count = targetObjects.Length;
-        cachedRenderers = new Renderer[count];
-        cachedColliders = new Collider[count];
-
-        for (int i = 0; i < count; i++)
+        // 1. 徹底搜尋所有子物件
+        foreach (var obj in targetObjects)
         {
-            if (targetObjects[i] != null)
+            if (obj != null)
             {
-                cachedRenderers[i] = targetObjects[i].GetComponent<Renderer>();
-                cachedColliders[i] = targetObjects[i].GetComponent<Collider>();
+                // 抓取自己 + 所有子孫物件的 Renderer
+                Renderer[] rs = obj.GetComponentsInChildren<Renderer>(true); // true 代表連原本被關掉的也抓
+                allRenderers.AddRange(rs);
+
+                // 抓取自己 + 所有子孫物件的 Collider
+                Collider[] cs = obj.GetComponentsInChildren<Collider>(true);
+                allColliders.AddRange(cs);
             }
         }
+
+        // Debug 檢查一下到底抓到了幾個，如果由 0 變多，就代表修好了
+        Debug.Log($"[Environment] 初始化完成：抓到了 {allRenderers.Count} 個 Renderer, {allColliders.Count} 個 Collider");
     }
 
     /// <summary>
@@ -38,43 +41,37 @@ public class AutoEnableObjects : MonoBehaviour
     /// </param>
     public void ToggleVisuals(bool isFullVisible)
     {
-        // 處理 Renderer (視覺)
-        if (cachedRenderers != null)
+        // 處理所有抓到的 Renderers
+        foreach (var r in allRenderers)
         {
-            foreach (var r in cachedRenderers)
+            if (r != null)
             {
-                if (r != null)
+                // 🔥 強制切換模式
+                if (isFullVisible)
                 {
-                    // 🔥 核心魔法在這裡：切換陰影模式
-                    if (isFullVisible)
-                    {
-                        // 附身時：完全顯示 (實體 + 陰影)
-                        r.shadowCastingMode = ShadowCastingMode.On;
-                    }
-                    else
-                    {
-                        // 觀察者時：只渲染陰影，本體隱形
-                        r.shadowCastingMode = ShadowCastingMode.ShadowsOnly;
-                    }
+                    r.shadowCastingMode = ShadowCastingMode.On;
+                    // 有些特殊的 Shader 可能需要強制開啟 Render
+                    r.enabled = true;
+                }
+                else
+                {
+                    r.shadowCastingMode = ShadowCastingMode.ShadowsOnly;
+                    // 保持 enabled = true，不然連影子都不會算
+                    r.enabled = true;
                 }
             }
         }
 
-        // 處理 Collider (物理)
-        // 💡 根據你的需求：
-        // 如果你是觀察者模式，通常也希望滑鼠射線能穿過屋頂點到地板，所以要把 Collider 關掉
-        if (cachedColliders != null)
+        // 處理所有抓到的 Colliders
+        foreach (var col in allColliders)
         {
-            foreach (var col in cachedColliders)
+            if (col != null)
             {
-                if (col != null)
-                {
-                    col.enabled = isFullVisible;
-                }
+                col.enabled = isFullVisible;
             }
         }
 
-        Debug.Log($"[Environment] 屋頂模式切換: {(isFullVisible ? "實體顯示" : "僅陰影")}");
+        // Debug.Log($"[Environment] 模式切換: {(isFullVisible ? "顯示" : "隱藏(ShadowOnly)")}");
     }
 
     // --- 編輯器測試用按鈕 ---
