@@ -19,6 +19,8 @@ public class TeamManager : MonoBehaviour
     public enum GameState { Spectator, Possessing }
     public enum SwitchMethod { Sequential, Direct, Unknown }
 
+    public static TeamManager Instance { get; private set; }
+
     [Header("Game State")]
     [SerializeField] private GameState currentState = GameState.Spectator;
     private bool isTransitioning = false;
