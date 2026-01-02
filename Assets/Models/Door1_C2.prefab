@@ -79,13 +79,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 55f9c091b71772444a44a4178ff2260c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::FakePhysics
+  motionType: 0
+  doorType: 0
   doorVisuals: {fileID: 860836350707724103}
   interactionPoint: {fileID: 4825214288381564970}
-  doorType: 0
+  speed: 5
   isLocked: 0
-  openSpeed: 2
-  maxAngle: 90
   autoClose: 1
+  activationDistance: 0.5
+  openAwayFromPlayer: 1
+  openAngle: 90
+  slideDirection: {x: 0, y: 0, z: -1}
+  slideDistance: 0.5
   audioSource: {fileID: 0}
   openSound: {fileID: 0}
   closeSound: {fileID: 0}

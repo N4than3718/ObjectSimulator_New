@@ -1,14 +1,14 @@
-using System.Collections;
+ï»¿using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.InputSystem;
-using UnityEngine.UI; // ¤Ş¥Î UI
+using UnityEngine.UI; // å¼•ç”¨ UI
 
 [RequireComponent(typeof(PlayerMovement), typeof(Collider), typeof(ObjectStats))]
-public class CardboardSkill : BaseSkill // 1. §ï¬°Ä~©Ó BaseSkill
+public class CardboardSkill : BaseSkill // 1. æ”¹ç‚ºç¹¼æ‰¿ BaseSkill
 {
-    [Header("¤¸¥ó°Ñ¦Ò (Cardboard ±M¥Î)")]
+    [Header("å…ƒä»¶åƒè€ƒ (Cardboard å°ˆç”¨)")]
     private PlayerMovement playerMovement;
     private InputSystem_Actions playerActions;
     private TeamManager teamManager;
@@ -20,28 +20,29 @@ public class CardboardSkill : BaseSkill // 1. §ï¬°Ä~©Ó BaseSkill
     [SerializeField] private float pushInterval = 0.8f;
     [SerializeField] private float animationBaseSpeed = 5.0f;
 
-    [Header("­ÜÀx³]©w")]
+    [Header("å€‰å„²è¨­å®š")]
     [SerializeField] private int maxStorage = 3;
     [SerializeField] private LayerMask possessableLayer;
     [SerializeField] private Transform spitOutPoint;
 
-    [Header("¿é¤J³]©w")]
-    [Tooltip("ªø«ö F ÁäÄ²µo¡u¦R¥X¥ş³¡¡v©Ò»İªº®É¶¡")]
+    [Header("è¼¸å…¥è¨­å®š")]
+    [Tooltip("é•·æŒ‰ F éµè§¸ç™¼ã€Œåå‡ºå…¨éƒ¨ã€æ‰€éœ€çš„æ™‚é–“")]
     [SerializeField] private float holdDuration = 0.8f;
 
-    [Header("®w¦sª¬ºA")]
+    [Header("åº«å­˜ç‹€æ…‹")]
     [SerializeField]
     private Stack<ObjectStats> storedItems = new Stack<ObjectStats>();
 
     private ObjectStats selfObjectStats;
-    private Collider[] detectedObjectsBuffer = new Collider[10];
-    private float fKeyStartTime = 0f;
 
-    // --- ªì©l¤Æ ---
+    // --- è¼¸å…¥è™•ç†è®Šæ•¸ ---
+    private bool isHoldingButton = false;
+    private float currentHoldTime = 0f;
 
+    // --- åˆå§‹åŒ– ---
     void Awake()
     {
-        // ¤£»İ­n base.Awake() ¦]¬° BaseSkill ¨S¦³ Awake¡A¦ı¦pªG¦³´N­n¥[
+        // ä¸éœ€è¦ base.Awake() å› ç‚º BaseSkill æ²’æœ‰ Awakeï¼Œä½†å¦‚æœæœ‰å°±è¦åŠ 
 
         if (animator == null) animator = GetComponent<Animator>();
         playerMovement = GetComponent<PlayerMovement>();
@@ -54,125 +55,101 @@ public class CardboardSkill : BaseSkill // 1. §ï¬°Ä~©Ó BaseSkill
             spitOutPoint = this.transform;
         }
 
-        // ªì©l¤Æ BaseSkill ªº³]©w (¦pªG Inspector ¨S³])
-        if (string.IsNullOrEmpty(skillName)) skillName = "¯È½c¦¬¯Ç";
+        // åˆå§‹åŒ– BaseSkill çš„è¨­å®š (å¦‚æœ Inspector æ²’è¨­)
+        if (string.IsNullOrEmpty(skillName)) skillName = "ç´™ç®±æ”¶ç´";
 
         UpdateTotalWeight();
     }
 
-    void OnEnable()
-    {
-        // ±Ò¥Î¿é¤J
-        if (playerActions == null) playerActions = new InputSystem_Actions();
-        playerActions.Player.Enable();
-
-        // ºÊÅ¥ F Áä (Interact)
-        playerActions.Player.Interact.started += OnSkillPress;
-        playerActions.Player.Interact.canceled += OnSkillRelease;
-    }
-
-    void OnDisable()
-    {
-        if (playerActions != null) playerActions.Player.Disable();
-
-        playerActions.Player.Interact.started -= OnSkillPress;
-        playerActions.Player.Interact.canceled -= OnSkillRelease;
-    }
-
-    // --- Ä~©Ó BaseSkill ªº Update ---
+    // --- ç¹¼æ‰¿ BaseSkill çš„ Update ---
     protected override void Update()
     {
-        base.Update(); // 2. ³o¦æ³Ì­«­n¡I¥¦­t³d§ó·s UI ªº§N«o°é°é
+        base.Update(); // 2. é€™è¡Œæœ€é‡è¦ï¼å®ƒè² è²¬æ›´æ–° UI çš„å†·å»åœˆåœˆ
+
+        // æˆ‘å€‘åœ¨ Update è£¡æª¢æŸ¥æŒ‰ä½çš„æ™‚é–“ï¼Œé€™æ¨£æ¯” Coroutine æ›´å®¹æ˜“æ§åˆ¶
+        if (isHoldingButton && isReady) // åªæœ‰åœ¨æŠ€èƒ½å†·å»å¥½æ™‚æ‰å…è¨±è“„åŠ›
+        {
+            currentHoldTime += Time.deltaTime;
+
+            // å¦‚æœæŒ‰ä½æ™‚é–“è¶…éè¨­å®šï¼Œè§¸ç™¼ã€Œåå‡ºå…¨éƒ¨ã€
+            if (currentHoldTime >= holdDuration)
+            {
+                HandleSkillHold();
+
+                // é‡ç½®ç‹€æ…‹ï¼Œé¿å…ä¸‹ä¸€å¹€é‡è¤‡è§¸ç™¼
+                isHoldingButton = false;
+                currentHoldTime = 0f;
+            }
+        }
     }
 
-    // --- ¿é¤J³B²zÅŞ¿è ---
+    // --- è¼¸å…¥è™•ç†é‚è¼¯ ---
 
-    // ÂĞ¼g BaseSkill ªº OnInput¡A¦]¬°§Ú­Ì¦³¦Û¤vªº½ÆÂø¿é¤JÅŞ¿è¡A
-    // ¤£§Æ±æ BaseSkill ªº³q¥ÎÅŞ¿è¤zÂZ§Ú­Ì
+    // è¦†å¯« BaseSkill çš„ OnInputï¼Œå› ç‚ºæˆ‘å€‘æœ‰è‡ªå·±çš„è¤‡é›œè¼¸å…¥é‚è¼¯ï¼Œ
+    // ä¸å¸Œæœ› BaseSkill çš„é€šç”¨é‚è¼¯å¹²æ“¾æˆ‘å€‘
     public override void OnInput(InputAction.CallbackContext context)
     {
-        // ¯dªÅ¡A§¹¥ş¥æµ¹ OnSkillPress/Release ³B²z
-    }
-
-    private void OnSkillPress(InputAction.CallbackContext context)
-    {
-        if (!playerMovement.enabled) return;
-        fKeyStartTime = Time.time;
-    }
-
-    private void OnSkillRelease(InputAction.CallbackContext context)
-    {
-        if (!playerMovement.enabled) return;
-
-        // ÀË¬d¬O§_ÁÙ¦b§N«o¤¤ (¦pªG¦³ UI¡A³o¸Ì´N·|¾×¦í¿é¤J)
-        // ª`·N¡G³o¸Ì§Ú¿ï¾Ü¡u¦pªG¬O SpitAll (ªø«ö) «h©¿²¤§N«o¡v¡A
-        // ©ÎªÌ§A¥i¥H²Î¤@³£ÀË¬d !isReady¡C³o¸Ì¥Ü½d²Î¤@ÀË¬d¡C
-        if (!isReady)
+        if (context.phase == InputActionPhase.Started)
         {
-            Debug.Log("§Ş¯à§N«o¤¤...");
-            return;
+            // æŒ‰ä¸‹æŒ‰éˆ•ï¼šé–‹å§‹è¨ˆæ™‚
+            isHoldingButton = true;
+            currentHoldTime = 0f;
         }
-
-        float pressDuration = Time.time - fKeyStartTime;
-
-        if (pressDuration < holdDuration)
+        else if (context.phase == InputActionPhase.Canceled)
         {
-            // µu«ö¡G©I¥s BaseSkill ªº¬yµ{¨Ó³B²z¡uÂIÀ»¦æ¬°¡v
-            TryActivate();
-            // TryActivate ·|ÀË¬d isReady -> ©I¥s Activate() -> StartCooldown()
-        }
-        else
-        {
-            // ªø«ö¡Gª½±µ°õ¦æ¯S®íÅŞ¿è (¦R¥X¥ş³¡)
-            // µø³]­p¨M©wªø«ö­n¤£­n¶i§N«o¡A³o¸Ì°²³]ªø«ö¤]­n§N«o
-            HandleSkillHold();
+            // æ”¾é–‹æŒ‰éˆ•
+            if (isHoldingButton)
+            {
+                // å¦‚æœé‚„åœ¨ Holding ç‹€æ…‹ (ä»£è¡¨é‚„æ²’è§¸ç™¼é•·æŒ‰æŠ€èƒ½)ï¼Œé‚£å°±è¦–ç‚ºã€ŒçŸ­æŒ‰ã€
+                // å‘¼å« TryActivate èµ°æ¨™æº–å†·å»æµç¨‹
+                TryActivate();
+
+                isHoldingButton = false;
+                currentHoldTime = 0f;
+            }
         }
     }
 
-    // --- ¹ê§@ BaseSkill ªº®Ö¤ß¤èªk ---
-
-    /// <summary>
-    /// ³o¬O BaseSkill ­n¨D¹ê§@ªº¤èªk¡C
-    /// ·í TryActivate() ³q¹LÀË¬d®É¡A·|©I¥s³o¸Ì¡C
-    /// ¹ïÀ³¡uµu«ö F¡vªºÅŞ¿è¡C
-    /// </summary>
+    // --- å¯¦ä½œ BaseSkill è¦æ±‚çš„æ–¹æ³• (å°æ‡‰çŸ­æŒ‰) ---
     protected override void Activate()
     {
         HandleSkillTap();
     }
 
-    // --- ¨ãÅéÅŞ¿è ---
+    // --- å…·é«”é‚è¼¯ ---
 
-    private void HandleSkillTap()
+    private void HandleSkillTap() // çŸ­æŒ‰ï¼šåƒä¸€å€‹ æˆ– åä¸€å€‹
     {
         GameObject target = GetTarget();
 
+        // é‚è¼¯ï¼šå¦‚æœæœ‰ç„æº–åˆ°æ±è¥¿ ä¸” æ²’è£æ»¿ -> åƒ
         if (target != null && storedItems.Count < maxStorage)
         {
-            // ¦YªF¦è
             StoreObject(target.gameObject);
         }
-        else
+        else // å¦å‰‡ -> å
         {
-            // ¦RªF¦è
             SpitOutLastObject();
         }
-        // ¦]¬°¬O³z¹L TryActivate ©I¥sªº¡ABaseSkill ·|¦Û°ÊÀ°§Ú­Ì StartCooldown()
     }
 
-    private void HandleSkillHold()
+    private void HandleSkillHold() // é•·æŒ‰ï¼šåå…¨éƒ¨
     {
-        // ¦R¥X¥ş³¡
         if (storedItems.Count > 0)
         {
             SpitOutAllObjects();
+            Debug.Log("[Cardboard] ğŸ¤® å˜”å˜”å˜” (å…¨éƒ¨åå‡º)");
 
-            // ªø«öµ²§ô«á¡A¤]¤â°ÊÄ²µo§N«o UI
+            // æ‰‹å‹•è§¸ç™¼å†·å» (å› ç‚ºé€™æ˜¯ç¹é TryActivate ç›´æ¥åŸ·è¡Œçš„)
             StartCooldown();
+        }
+        else
+        {
+            Debug.Log("[Cardboard] æ²’æ±è¥¿å¥½åäº†");
         }
     }
 
-    // --- ª««~¾Ş§@ÅŞ¿è («O«ù­ì¼Ë¡Aµy·L¾ã²z) ---
+    // --- ç‰©å“æ“ä½œé‚è¼¯ (ä¿æŒåŸæ¨£ï¼Œç¨å¾®æ•´ç†) ---
 
     private void StoreObject(GameObject obj)
     {
@@ -183,7 +160,7 @@ public class CardboardSkill : BaseSkill // 1. §ï¬°Ä~©Ó BaseSkill
             storedItems.Push(item);
             obj.SetActive(false);
             UpdateTotalWeight();
-            Debug.Log($"[Cardboard] §]¤J: {obj.name}");
+            Debug.Log($"[Cardboard] åå…¥: {obj.name}");
         }
     }
 
@@ -199,11 +176,11 @@ public class CardboardSkill : BaseSkill // 1. §ï¬°Ä~©Ó BaseSkill
             obj.SetActive(true);
 
             UpdateTotalWeight();
-            Debug.Log($"[Cardboard] ¦R¥X: {obj.name}");
+            Debug.Log($"[Cardboard] åå‡º: {obj.name}");
         }
         else
         {
-            Debug.Log("[Cardboard] ªÅªÅ¦p¤]¡C");
+            Debug.Log("[Cardboard] ç©ºç©ºå¦‚ä¹Ÿã€‚");
         }
     }
 
@@ -237,38 +214,38 @@ public class CardboardSkill : BaseSkill // 1. §ï¬°Ä~©Ó BaseSkill
     }
 
     /// <summary>
-    /// ª½±µ¦V PlayerMovement ¸ß°İ·í«eºË·Çªº¹ï¶H¡A¨ÃÅçÃÒ¬O§_¥i¦¬¯Ç
+    /// ç›´æ¥å‘ PlayerMovement è©¢å•ç•¶å‰ç„æº–çš„å°è±¡ï¼Œä¸¦é©—è­‰æ˜¯å¦å¯æ”¶ç´
     /// </summary>
     private GameObject GetTarget()
     {
-        // 1. ª½±µ¨ú±o PlayerMovement ¤w¸gºâ¦nªº¥Ø¼Ğ (¬Ù¤U¤@¦¸ Raycast ®Ä¯à¡A¥B«OÃÒµøÄ±¤@­P)
+        // 1. ç›´æ¥å–å¾— PlayerMovement å·²ç¶“ç®—å¥½çš„ç›®æ¨™ (çœä¸‹ä¸€æ¬¡ Raycast æ•ˆèƒ½ï¼Œä¸”ä¿è­‰è¦–è¦ºä¸€è‡´)
         GameObject target = playerMovement.CurrentTargetedObject;
 
-        // ¦pªG·í«e¨SºË·Ç¥ô¦óªF¦è¡Aª½±µ¦^¶Ç null
+        // å¦‚æœç•¶å‰æ²’ç„æº–ä»»ä½•æ±è¥¿ï¼Œç›´æ¥å›å‚³ null
         if (target == null) return null;
 
-        // 2. ÁöµM PlayerMovement »¡¦³¥Ø¼Ğ¡A¦ı§Ú­ÌÁÙ¬O­nÀË¬d³o­Ó¥Ø¼Ğ¡u¦X¤£¦X­G¤f¡v
-        // (¨Ò¦p¡G¥i¯àºË·Ç¨ì¶¤¤Í¡A¦ı¶¤¤Í¤£¯à³Q¦Y¡F©ÎªÌºË·Ç¨ì¤£¥i¤¬°Êªºª«¥ó)
+        // 2. é›–ç„¶ PlayerMovement èªªæœ‰ç›®æ¨™ï¼Œä½†æˆ‘å€‘é‚„æ˜¯è¦æª¢æŸ¥é€™å€‹ç›®æ¨™ã€Œåˆä¸åˆèƒƒå£ã€
+        // (ä¾‹å¦‚ï¼šå¯èƒ½ç„æº–åˆ°éšŠå‹ï¼Œä½†éšŠå‹ä¸èƒ½è¢«åƒï¼›æˆ–è€…ç„æº–åˆ°ä¸å¯äº’å‹•çš„ç‰©ä»¶)
 
-        // ÀË¬d Layer (§Q¥Î¦ì¤¸¹BºâÀË¬d¬O§_¦b possessableLayer ²M³æ¤º)
+        // æª¢æŸ¥ Layer (åˆ©ç”¨ä½å…ƒé‹ç®—æª¢æŸ¥æ˜¯å¦åœ¨ possessableLayer æ¸…å–®å…§)
         if (((1 << target.layer) & possessableLayer) == 0)
         {
-            return null; // ¼h¯Å¤£¹ï (¨Ò¦pºË·Ç¨ìÀğ¾À©Î¦aªO)
+            return null; // å±¤ç´šä¸å° (ä¾‹å¦‚ç„æº–åˆ°ç‰†å£æˆ–åœ°æ¿)
         }
 
-        // 3. °õ¦æ­ì¥»ªº¨¾§bÀË¬d
+        // 3. åŸ·è¡ŒåŸæœ¬çš„é˜²å‘†æª¢æŸ¥
 
-        // ±Æ°£¦Û¤v
+        // æ’é™¤è‡ªå·±
         if (target.transform.root == transform.root) return null;
 
-        // ±Æ°£¥t¤@­Ó¯È½c (°²³]³]©w¤W¤£¯à¦Y¯È½c)
+        // æ’é™¤å¦ä¸€å€‹ç´™ç®± (å‡è¨­è¨­å®šä¸Šä¸èƒ½åƒç´™ç®±)
         if (target.GetComponent<CardboardSkill>() != null) return null;
 
-        // ¥²¶·¦³ ObjectStats ¥B¤£¦b®e¾¹¤º
+        // å¿…é ˆæœ‰ ObjectStats ä¸”ä¸åœ¨å®¹å™¨å…§
         ObjectStats stats = target.GetComponent<ObjectStats>();
         if (stats != null && !stats.isInsideContainer)
         {
-            // ³q¹L©Ò¦³ÀË¬d¡A³o´N¬O§Ú­Ì­n¦YªºªF¦è¡I
+            // é€šéæ‰€æœ‰æª¢æŸ¥ï¼Œé€™å°±æ˜¯æˆ‘å€‘è¦åƒçš„æ±è¥¿ï¼
             return target;
         }
 
@@ -277,18 +254,18 @@ public class CardboardSkill : BaseSkill // 1. §ï¬°Ä~©Ó BaseSkill
 
     private void OnDrawGizmosSelected()
     {
-        // ½T«O playerMovement ¦s¦b (½s¿è¾¹¼Ò¦¡¤U¥i¯à»İ­n GetComponent)
+        // ç¢ºä¿ playerMovement å­˜åœ¨ (ç·¨è¼¯å™¨æ¨¡å¼ä¸‹å¯èƒ½éœ€è¦ GetComponent)
         if (playerMovement == null) playerMovement = GetComponent<PlayerMovement>();
 
         if (playerMovement != null && playerMovement.cameraTransform != null)
         {
             Gizmos.color = Color.red;
-            // ¨Ï¥Î playerMovement.interactionDistance
+            // ä½¿ç”¨ playerMovement.interactionDistance
             Gizmos.DrawRay(playerMovement.cameraTransform.position, playerMovement.cameraTransform.forward * playerMovement.interactionDistance);
         }
     }
 
-    // --- ­«¶q»P°Êµe ---
+    // --- é‡é‡èˆ‡å‹•ç•« ---
 
     private void UpdateTotalWeight()
     {

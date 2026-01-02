@@ -11481,6 +11481,7 @@ GameObject:
   - component: {fileID: 340754709}
   - component: {fileID: 340754701}
   - component: {fileID: 340754706}
+  - component: {fileID: 340754711}
   m_Layer: 6
   m_Name: Mug
   m_TagString: Player
@@ -11774,6 +11775,18 @@ MonoBehaviour:
   m_IgnoreFromBuild: 1
   m_ApplyToChildren: 1
   m_AffectedAgents: ffffffff
+--- !u!114 &340754711
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 340754700}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cd22d5a07198b8644a3ebe0ebfa1ddd5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerInteract
 --- !u!1001 &341071019
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -13086,6 +13099,7 @@ GameObject:
   - component: {fileID: 400415116}
   - component: {fileID: 400415123}
   - component: {fileID: 400415115}
+  - component: {fileID: 400415127}
   m_Layer: 6
   m_Name: AlarmClock
   m_TagString: Player
@@ -13404,6 +13418,18 @@ MonoBehaviour:
   m_IgnoreFromBuild: 1
   m_ApplyToChildren: 1
   m_AffectedAgents: ffffffff
+--- !u!114 &400415127
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 400415114}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cd22d5a07198b8644a3ebe0ebfa1ddd5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerInteract
 --- !u!4 &403312194 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 1693220757800414827, guid: 4242fef574d0e5d4fa0358fc7bfa2138, type: 3}
@@ -21231,6 +21257,7 @@ GameObject:
   - component: {fileID: 869523639}
   - component: {fileID: 869523646}
   - component: {fileID: 869523638}
+  - component: {fileID: 869523649}
   m_Layer: 6
   m_Name: Cardboard
   m_TagString: Player
@@ -21571,6 +21598,18 @@ MonoBehaviour:
   m_IgnoreFromBuild: 1
   m_ApplyToChildren: 1
   m_AffectedAgents: ffffffff
+--- !u!114 &869523649
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 869523636}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cd22d5a07198b8644a3ebe0ebfa1ddd5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerInteract
 --- !u!1001 &875449237
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -27138,13 +27177,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 55f9c091b71772444a44a4178ff2260c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::FakePhysics
+  motionType: 0
+  doorType: 0
   doorVisuals: {fileID: 1128928631}
   interactionPoint: {fileID: 887209096}
-  doorType: 0
+  speed: 5
   isLocked: 1
-  openSpeed: 5
-  maxAngle: 90
   autoClose: 1
+  activationDistance: 2.5
+  openAwayFromPlayer: 1
+  openAngle: 90
+  slideDirection: {x: 0, y: 0, z: -1}
+  slideDistance: 0.5
   audioSource: {fileID: 0}
   openSound: {fileID: 0}
   closeSound: {fileID: 0}
@@ -28179,6 +28223,7 @@ GameObject:
   - component: {fileID: 1190774506}
   - component: {fileID: 1190774498}
   - component: {fileID: 1190774503}
+  - component: {fileID: 1190774509}
   m_Layer: 6
   m_Name: Hammer
   m_TagString: Player
@@ -28493,6 +28538,18 @@ MonoBehaviour:
   m_IgnoreFromBuild: 1
   m_ApplyToChildren: 1
   m_AffectedAgents: ffffffff
+--- !u!114 &1190774509
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1190774497}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cd22d5a07198b8644a3ebe0ebfa1ddd5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerInteract
 --- !u!1 &1196041903
 GameObject:
   m_ObjectHideFlags: 0
@@ -31220,7 +31277,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2527652490184330830, guid: 53949e2fddf6a9546bda3dc0e55481f9, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 0.2222
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -33986,6 +34043,7 @@ GameObject:
   - component: {fileID: 1465795880}
   - component: {fileID: 1465795879}
   - component: {fileID: 1465795878}
+  - component: {fileID: 1465795889}
   m_Layer: 6
   m_Name: Flashlight
   m_TagString: Player
@@ -34309,6 +34367,18 @@ MonoBehaviour:
   m_IgnoreFromBuild: 1
   m_ApplyToChildren: 1
   m_AffectedAgents: ffffffff
+--- !u!114 &1465795889
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1465795877}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cd22d5a07198b8644a3ebe0ebfa1ddd5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerInteract
 --- !u!1001 &1472249575
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -42742,6 +42812,7 @@ GameObject:
   - component: {fileID: 1932049455}
   - component: {fileID: 1932049454}
   - component: {fileID: 1932049453}
+  - component: {fileID: 1932049461}
   m_Layer: 6
   m_Name: Key
   m_TagString: Untagged
@@ -42815,7 +42886,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3aa05eca0c1acba4ea9e60861329ec49, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MovementAnimator
-  modelTransform: {fileID: 0}
+  modelTransform: {fileID: 1086086767}
   frequencyMultiplier: 1.5
   overallIntensity: 1
   bobFrequencyX: 1
@@ -42836,23 +42907,23 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9e63eb4aeee5771429faeb52a100c223, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerMovement
-  cameraTransform: {fileID: 0}
+  cameraTransform: {fileID: 542812360}
   centerOfMassHelper: {fileID: 0}
-  movementCollider: {fileID: 0}
+  movementCollider: {fileID: 1932049459}
   radialMenuIcon: {fileID: 0}
-  myCharacterCamera: {fileID: 0}
-  myFollowTarget: {fileID: 0}
+  myCharacterCamera: {fileID: 542812361}
+  myFollowTarget: {fileID: 1723257961}
   currentCardboard: {fileID: 0}
   jumpSound: {fileID: 0}
   jumpSoundVelocityThreshold: 0.5
   footstepSounds: []
   minPitch: 0.9
   maxPitch: 1.1
-  playerSpeed: 5
-  fastSpeed: 10
+  playerSpeed: 1.5
+  fastSpeed: 2.5
   rotationSpeed: 10
   walkNoiseRange: 5
-  sprintNoiseRange: 10
+  sprintNoiseRange: 7.5
   jumpNoiseRange: 8
   noiseFrequency: 0.3
   showDebugGizmos: 1
@@ -42862,21 +42933,21 @@ MonoBehaviour:
   uncontrolledAngularDrag: 0.05
   moveDrag: 0
   stopDrag: 10
-  jumpHeight: 1.5
+  jumpHeight: 0.65
   gravityMultiplier: 2.5
   jumpCooldown: 0.5
   jumpCutMultiplier: 0.5
   airControl: 0.5
-  groundCheckRadius: 0.2
+  groundCheckRadius: 0.1
   groundCheckLeeway: 0.1
   sinkAmount: 0.15
   groundLayer:
     serializedVersion: 2
-    m_Bits: 0
+    m_Bits: 385
   platformLayer:
     serializedVersion: 2
-    m_Bits: 0
-  interactionDistance: 1
+    m_Bits: 64
+  interactionDistance: 5
   minOutlineWidth: 0.003
   maxOutlineWidth: 0.04
   maxDistanceForOutline: 50
@@ -43040,6 +43111,18 @@ Rigidbody:
   m_Interpolate: 1
   m_Constraints: 0
   m_CollisionDetection: 0
+--- !u!114 &1932049461
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1932049451}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cd22d5a07198b8644a3ebe0ebfa1ddd5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerInteract
 --- !u!4 &1933098217 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 456567300848984393, guid: a5ad9f6e37ad5624c8b8ad3e116206db, type: 3}
@@ -46062,6 +46145,7 @@ GameObject:
   - component: {fileID: 2128674178}
   - component: {fileID: 2128674184}
   - component: {fileID: 2128674177}
+  - component: {fileID: 2128674187}
   m_Layer: 6
   m_Name: Trainer
   m_TagString: Player
@@ -46376,6 +46460,18 @@ MonoBehaviour:
   m_IgnoreFromBuild: 1
   m_ApplyToChildren: 1
   m_AffectedAgents: ffffffff
+--- !u!114 &2128674187
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2128674175}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cd22d5a07198b8644a3ebe0ebfa1ddd5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerInteract
 --- !u!1 &2129110657
 GameObject:
   m_ObjectHideFlags: 0
