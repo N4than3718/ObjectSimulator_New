@@ -83,7 +83,7 @@ public class TeamManager : MonoBehaviour
         get
         {
             // !! [修復] struct 不能用 '?'
-            if (currentState == GameState.Possessing && team != null activeCharacterIndex >= 0 && activeCharacterIndex < team.Length && team[activeCharacterIndex].character != null)
+            if (currentState == GameState.Possessing && team != null && activeCharacterIndex >= 0 && activeCharacterIndex < team.Length && team[activeCharacterIndex].character != null)
             {
                 return team[activeCharacterIndex].character.gameObject;
             }
