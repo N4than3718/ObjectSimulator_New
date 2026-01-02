@@ -564,8 +564,6 @@ public class PlayerMovement : MonoBehaviour
 
         // 我們需要找到 "最近的" 且 "不是自己" 的那個
         float closestDistance = float.MaxValue;
-        RaycastHit closestHit = new RaycastHit();
-        bool foundValidTarget = false;
 
         foreach (var hit in hits)
         {
@@ -579,33 +577,33 @@ public class PlayerMovement : MonoBehaviour
             // 注意：這裡優化一下，先看距離，如果比當前最近的還遠，就不用 GetComponent 了，省效能
             if (hit.distance < closestDistance)
             {
+                // 🔥 關鍵修改：只要有 HighlightableObject 就視為目標，不管 Tag 是不是 Player
                 var highlightable = hit.collider.GetComponentInParent<HighlightableObject>();
                 if (highlightable != null)
                 {
-                    closestDistance = hit.distance;
-                    closestHit = hit;
                     hitHighlightable = highlightable;
-                    foundValidTarget = true;
+                    closestDistance = hit.distance;
                 }
             }
         }
 
-        // 更新距離 (如果找到了)
-        if (foundValidTarget)
+        // 處理高亮狀態切換
+        if (hitHighlightable != currentlyTargetedPlayerObject)
         {
-            hitDistance = closestDistance;
-        }
-        // ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
+            // 關掉舊的
+            if (currentlyTargetedPlayerObject != null)
+                currentlyTargetedPlayerObject.SetTargetedHighlight(false);
 
-        if (hitHighlightable != currentlyTargetedPlayerObject) {
-            if (currentlyTargetedPlayerObject != null) currentlyTargetedPlayerObject.SetTargetedHighlight(false);
-            if (hitHighlightable != null && hitHighlightable.CompareTag("Player")) {
-                 currentlyTargetedPlayerObject = hitHighlightable;
-                 currentlyTargetedPlayerObject.SetTargetedHighlight(true);
-            } else { currentlyTargetedPlayerObject = null; }
+            // 開啟新的
+            currentlyTargetedPlayerObject = hitHighlightable;
+            if (currentlyTargetedPlayerObject != null)
+                currentlyTargetedPlayerObject.SetTargetedHighlight(true);
         }
-        if (currentlyTargetedPlayerObject != null) {
-            float t = Mathf.InverseLerp(0, maxDistanceForOutline, hitDistance);
+
+        // 動態調整線條寬度
+        if (currentlyTargetedPlayerObject != null)
+        {
+            float t = Mathf.InverseLerp(0, maxDistanceForOutline, closestDistance);
             float newWidth = Mathf.Lerp(minOutlineWidth, maxOutlineWidth, t);
             currentlyTargetedPlayerObject.SetOutlineWidth(newWidth);
         }
@@ -632,7 +630,7 @@ public class PlayerMovement : MonoBehaviour
         if (currentlyTargetedPlayerObject != null) {
             PlayerMovement targetMovement = currentlyTargetedPlayerObject.GetComponentInParent<PlayerMovement>();
 
-            if (targetMovement != null)
+            if (targetMovement != null && targetMovement.CompareTag("Player"))
             {
                 // 傳入找到腳本的那個 GameObject
                 bool success = teamManager.TryAddCharacterToTeam(targetMovement.gameObject);
