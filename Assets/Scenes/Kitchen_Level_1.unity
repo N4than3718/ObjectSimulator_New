@@ -33842,6 +33842,7 @@ MonoBehaviour:
     cameraFollowTarget: {fileID: 0}
     isAvailable: 0
   spectatorCameraObject: {fileID: 330585543}
+  levelEnvironment: {fileID: 1464291473}
   highlightManager: {fileID: 1464291467}
   sequentialSwitchSound: {fileID: 8300000, guid: d90b938358ff90543bbb2366b73192a5, type: 3}
   directSwitchSound: {fileID: 8300000, guid: 1581ff6545c25904893c402805463996, type: 3}
