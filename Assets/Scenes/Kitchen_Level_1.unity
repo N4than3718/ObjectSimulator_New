@@ -34031,10 +34031,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 34416a8d016fabe4b853fe081e7227b0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::AutoEnableObjects
-  visualsToEnable:
+  targetObjects:
   - {fileID: 1319305755}
   - {fileID: 278519258}
-  enableOnAwake: 0
 --- !u!1 &1465795877
 GameObject:
   m_ObjectHideFlags: 0
