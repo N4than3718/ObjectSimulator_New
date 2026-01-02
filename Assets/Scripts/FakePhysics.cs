@@ -1,157 +1,129 @@
 ﻿using UnityEngine;
 
-public class FakePhysics : MonoBehaviour
+// 🔥 記得繼承 IInteractable
+public class FakePhysics : MonoBehaviour, IInteractable
 {
+    public enum DoorType { Automatic, Manual }
+
     [Header("必填！請把門的模型拖進來")]
-    public Transform doorVisuals; // 🔥 新增：這是我們要轉動的兒子 (門板)
+    public Transform doorVisuals;
+    [Header("自訂感應中心")]
+    public Transform interactionPoint;
 
-    [Header("自訂感應中心 (選填)")]
-    [Tooltip("如果不填，預設會使用這個物件的位置。你可以建一個空物件放在門中間，然後拖進來。")]
-    public Transform interactionPoint; // 🔥 新增：自訂感應點
+    [Header("模式設定")]
+    [Tooltip("Automatic = 靠近自動開 (自動門)\nManual = 按互動鍵才開 (櫃子/寶箱)")]
+    public DoorType doorType = DoorType.Manual; // 🔥 新增：預設改成手動
+    public bool isLocked = false;
 
-    [Header("鎖定設定")]
-    public bool isLocked = false; // 🔥 新增：門是不是鎖著的？
+    [Header("參數設定")]
+    public float openSpeed = 5.0f;
+    public float maxAngle = 90f;
+    public bool autoClose = false; // 手動櫃子通常不自動關，除非你要做鬧鬼效果
 
-    [Header("設定")]
-    public float openSpeed = 5.0f;     // 開門速度
-    public float maxAngle = 90f;       // 最大開門角度
-    public float minAngle = -90f;      // 最小開門角度
-    public bool autoClose = true;      // 自動關門
+    [Header("音效 (選填)")]
+    public AudioSource audioSource;
+    public AudioClip openSound;
+    public AudioClip closeSound;
+    public AudioClip lockedSound;
 
-    [Header("感應設定")]
-    [Tooltip("只有當玩家距離門小於這個數字時，門才會開")]
-    public float activationDistance = 0.5f; // 🔥 新功能：感應距離
-
-    [Header("方向除錯")]
-    [Tooltip("如果門開的方向永遠相反，勾選這個")]
-    public bool reverseDirection = false;
-
-    [Tooltip("勾選後，場景會出現一條紅線，代表門的『正面』方向")]
-    public bool showDebugLine = true;
-
+    // 內部變數
     private float currentAngle = 0f;
     private float targetAngle = 0f;
-    private Quaternion initialRotation; // 🔥 新增：用來記住門一開始的「關閉狀態」
-
-    // 計數器
+    private Quaternion initialRotation;
     private int peopleInZone = 0;
+    private bool isOpen = false; // 手動模式用的開關狀態
 
     void Start()
     {
-        // 🔥 防呆：如果你忘記拉模型，我幫你抓第一個子物件
-        if (doorVisuals == null)
-            doorVisuals = transform.GetChild(0);
-
-        // 🔥 關鍵修正：遊戲開始時，記住現在的旋轉角度當作「0度（關閉）」
+        if (doorVisuals == null) doorVisuals = transform.GetChild(0);
         initialRotation = Quaternion.identity;
+        if (interactionPoint == null) interactionPoint = transform;
 
-        // 🔥 防呆：如果你沒設感應點，我就用我自己 (Root) 當作感應點
-        if (interactionPoint == null)
-            interactionPoint = transform;
+        // 確保初始狀態正確
+        targetAngle = 0f;
+    }
+
+    // 🔥 實作 IInteractable 的接口
+    public void Interact()
+    {
+        // 1. 如果是自動門，就不給按 (或者你可以設計成按了鎖定)
+        if (doorType == DoorType.Automatic) return;
+
+        // 2. 檢查鎖定
+        if (isLocked)
+        {
+            Debug.Log("🔒 門鎖著，打不開！");
+            PlaySound(lockedSound);
+            return;
+        }
+
+        // 3. 切換開關狀態
+        isOpen = !isOpen;
+
+        // 設定目標角度
+        targetAngle = isOpen ? maxAngle : 0f;
+
+        // 播放音效
+        PlaySound(isOpen ? openSound : closeSound);
+    }
+
+    public string GetInteractionPrompt()
+    {
+        if (isLocked) return "鎖住了";
+        return isOpen ? "關閉" : "開啟";
     }
 
     void Update()
     {
-        Debug.Log($"目標: {doorVisuals.name} | 目前角度: {currentAngle} | Root旋轉: {transform.localEulerAngles.y}");
+        // ----------------------------------------------------
+        // 🔥 核心分歧點：根據模式決定 targetAngle 怎麼算
+        // ----------------------------------------------------
 
-        // 2. 自動關門邏輯
-        if (autoClose && peopleInZone <= 0)
+        if (doorType == DoorType.Automatic)
         {
-            // 🔥 優化：不需要在這裡 Lerp，直接設目標為 0，讓下面的主 Lerp 去跑動畫就好
-            // 這樣關門手感會比較乾脆，不會拖泥帶水
-            targetAngle = 0f;
-
-            // 保險機制
-            if (peopleInZone < 0) peopleInZone = 0;
+            // 舊邏輯：感應區有人就開
+            if (peopleInZone > 0 && !isLocked)
+            {
+                // 這裡簡化了方向判斷，如果需要原本的雙向開門，請保留原本的 Dot Product 邏輯
+                targetAngle = maxAngle;
+            }
+            else
+            {
+                targetAngle = 0f;
+            }
+        }
+        else // DoorType.Manual
+        {
+            // 新邏輯：完全聽 isOpen 的話
+            // targetAngle 已經在 Interact() 裡面設好了，這裡只要確保它不跑掉
         }
 
-        // 1. 平滑旋轉計算 (插值)
+        // 平滑旋轉 (通用)
         currentAngle = Mathf.Lerp(currentAngle, targetAngle, Time.deltaTime * openSpeed);
-
-        // 🔥 關鍵修正：基於「初始角度」進行旋轉疊加
-        // 這樣無論你在場景裡怎麼擺這個門，0度永遠等於你擺放時的樣子
         doorVisuals.localRotation = initialRotation * Quaternion.Euler(0, currentAngle, 0);
     }
 
-    bool CanOpenDoor(Collider other)
+    // 輔助函式：解鎖 (給鑰匙用)
+    public void UnlockDoor()
     {
+        isLocked = false;
+        PlaySound(openSound); // 解鎖順便彈開一點感覺很爽
+    }
+
+    private void PlaySound(AudioClip clip)
+    {
+        if (clip != null && audioSource != null) audioSource.PlayOneShot(clip);
+    }
+
+    // --- Trigger 區塊 (只對自動門有效) ---
+    // 為了避免手動櫃子被誤觸，我們加一個檢查
+    bool CanAutoOpen(Collider other)
+    {
+        if (doorType == DoorType.Manual) return false; // 🔥 手動門忽略碰撞
         if (isLocked) return false;
         return other.CompareTag("Player") || other.CompareTag("NPC");
     }
 
-    public void UnlockDoor()
-    {
-        if (isLocked)
-        {
-            isLocked = false;
-            Debug.Log("門已解鎖！");
-
-            // 這裡可以加一個解鎖音效，例如 audioSource.PlayOneShot(unlockSound);
-        }
-    }
-
-    void OnTriggerEnter(Collider other)
-    {
-        if (CanOpenDoor(other))
-        {
-            peopleInZone++;
-        }
-    }
-
-    void OnTriggerExit(Collider other)
-    {
-        if (CanOpenDoor(other))
-        {
-            peopleInZone--;
-        }
-    }
-
-    void OnTriggerStay(Collider other)
-    {
-        // 🔥 如果鎖住了，就不執行開門計算
-        if (isLocked) return;
-
-        if (CanOpenDoor(other))
-        {
-            // --- 判斷門現在是不是關著的 ---
-            bool isClosed = Mathf.Abs(currentAngle) < 5.0f;
-
-            // --- 🔥 關鍵邏輯：距離判斷 ---
-            float dist = Vector3.Distance(interactionPoint.position, other.transform.position);
-
-            // 如果門是「關著」的，且玩家還「太遠」，就什麼都不做 (保持關閉)
-            // 這就是為什麼你的 Collider 可以設很大，但門不會亂開的原因
-            if (isClosed && dist > activationDistance) return;
-
-            if (Mathf.Abs(targetAngle) > 0.1f) return;
-
-            // 計算開門方向
-            Vector3 directionToPlayer = other.transform.position - transform.position;
-
-            // 直接用根物件的 forward 來算，超穩
-            float dot = Vector3.Dot(transform.forward, directionToPlayer);
-
-            bool isInFront = dot > 0;
-            if (reverseDirection) isInFront = !isInFront;
-
-            targetAngle = isInFront ? minAngle : maxAngle;
-        }
-    }
-
-    void OnDrawGizmos()
-    {
-        if (showDebugLine)
-        {
-            Gizmos.color = Color.red;
-            Vector3 direction = reverseDirection ? -transform.forward : transform.forward;
-            Gizmos.DrawRay(transform.position, direction * 2.0f);
-
-            // 🔥 讓 Gizmos 畫在新的感應點上，方便你調整
-            // 如果遊戲還沒開始 (interactionPoint 可能是 null)，暫時用 transform 畫
-            Vector3 center = interactionPoint != null ? interactionPoint.position : transform.position;
-
-            Gizmos.color = Color.yellow;
-            Gizmos.DrawWireSphere(center, activationDistance);
-        }
-    }
+    void OnTriggerEnter(Collider other) { if (CanAutoOpen(other)) peopleInZone++; }
+    void OnTriggerExit(Collider other) { if (CanAutoOpen(other)) peopleInZone--; }
 }
