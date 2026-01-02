@@ -42884,7 +42884,7 @@ MonoBehaviour:
   myCharacterCamera: {fileID: 542812361}
   myFollowTarget: {fileID: 1723257961}
   currentCardboard: {fileID: 0}
-  jumpSound: {fileID: 0}
+  jumpSound: {fileID: 8300000, guid: 6c6851817749c6f4389fe031b749df24, type: 3}
   jumpSoundVelocityThreshold: 0.5
   footstepSounds: []
   minPitch: 0.9
@@ -42943,7 +42943,7 @@ AudioSource:
   m_GameObject: {fileID: 1932049451}
   m_Enabled: 1
   serializedVersion: 4
-  OutputAudioMixerGroup: {fileID: 0}
+  OutputAudioMixerGroup: {fileID: 24300002, guid: b140939044b52f64da79a0ce63541308, type: 2}
   m_audioClip: {fileID: 0}
   m_Resource: {fileID: 0}
   m_PlayOnAwake: 1
