@@ -13,15 +13,16 @@ public class CamControl : MonoBehaviour
     public float defaultOffsetY = 0.8f; // 原本的 offsetY 改名為 default，這是理想高度
     public float minOffsetY = 0.1f;     // 最低能降到多低 (避免貼地太近穿模)
 
-    [Header("自動避障 (Auto-Crouch Cam)")]
-    public LayerMask obstacleLayer;     // 設定成 Default, Ground, Furniture 等層級
-    public float checkRadius = 0.05f;    // 探測球的大小 (比攝影機稍大一點)
-    public float heightSmoothTime = 0.1f; // 高度變化的平滑時間
+    [Header("防穿牆與避障")]
+    public LayerMask obstacleLayer;      // 務必設定為 Default, Ground, Wall 等層級
+    public float checkRadius = 0.2f;     // 探測半徑 (建議設大一點，例如 0.2，避免攝影機穿幫)
+    public float wallClipPadding = 0.1f; // 撞到牆時，稍微把攝影機再往前推一點點，避免看到牆壁內部
 
-    [Header("旋轉設定")]
+    [Header("平滑設定")]
+    public float heightSmoothTime = 0.1f;
     public float rotateSpeed = 0.1f;
-    public float rotateLerp = 15f; // 可以稍微調整這個值來改變平滑度
-    public float positionSmoothTime = 0.05f;
+    public float rotateLerp = 15f;
+    public float moveSmoothSpeed = 60f; // 用於位置跟隨的平滑度
 
     [Header("視角限制 (俯仰角)")]
     public float pitchMin = -10f;
@@ -95,68 +96,64 @@ public class CamControl : MonoBehaviour
     // ▼▼▼ 新增：LateUpdate()，用於處理攝影機移動和旋轉 ▼▼▼
     void LateUpdate()
     {
-        if (IsInputPaused || FollowTarget == null) // Also check FollowTarget just in case
-        {
-            return; // Don't process rotation, positioning, etc.
-        }
+        if (IsInputPaused || FollowTarget == null) return;
+        if (GameDirector.Instance != null && GameDirector.Instance.CurrentState != GameDirector.GameState.Playing) return;
 
-        // 如果 GameDirector 存在，且狀態不是 Playing (例如是 GameOver 或 Victory)
-        if (GameDirector.Instance != null && GameDirector.Instance.CurrentState != GameDirector.GameState.Playing)
-        {
-            return; // 直接中斷，不執行後面的旋轉邏輯
-        }
-
-        // 1. 計算目標旋轉角度 (使用 Update 中讀取的 lookInput)
-        //    注意：這裡用 Time.deltaTime 是因為 LateUpdate 跟隨幀率
+        // 1. 計算旋轉
         yaw += lookInput.x * rotateSpeed;
         pitch -= lookInput.y * rotateSpeed;
         pitch = Mathf.Clamp(pitch, pitchMin, pitchMax);
 
-        // 2. 如果沒有目標，就什麼都不做
-        if (FollowTarget == null) return;
-
-        // 3. 計算並平滑地更新旋轉
-        //    使用 Time.deltaTime 配合 LateUpdate
+        // 2. 應用旋轉 (Slerp 平滑)
         Quaternion targetRotation = Quaternion.Euler(pitch, yaw, 0);
         transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, Time.deltaTime * rotateLerp);
 
-        // 4. 動態高度檢測 (Ceiling Check)
-
+        // 3. 高度檢測 (原本的 Ceiling Check，防撞天花板)
         float targetHeight = defaultOffsetY;
+        Vector3 castOrigin = FollowTarget.position + Vector3.up * 0.2f;
 
-        // 從目標頭頂微微往上發射 SphereCast
-        Vector3 castOrigin = FollowTarget.position + Vector3.up * 0.2f; // 起點稍微抬高，避免卡在地板
-        float castDistance = defaultOffsetY - 0.1f; // 檢測距離
-
-        RaycastHit hit;
-        // 往上掃描，看看有沒有東西擋在 "理想高度" 之間
-        if (Physics.SphereCast(castOrigin, checkRadius, Vector3.up, out hit, castDistance, obstacleLayer))
+        // 向上偵測
+        if (Physics.SphereCast(castOrigin, checkRadius, Vector3.up, out RaycastHit ceilingHit, defaultOffsetY - 0.1f, obstacleLayer))
         {
-            // 如果撞到了 (例如撞到沙發底)，就把目標高度設為 "碰撞點高度"
-            // 減去 checkRadius 是為了留一點緩衝空間，不要讓攝影機中心貼死天花板
-            targetHeight = hit.distance;
+            targetHeight = ceilingHit.distance;
         }
-
-        // 限制高度不低於最小值 (避免鑽太低)
         targetHeight = Mathf.Max(targetHeight, minOffsetY);
-
-        // 使用 SmoothDamp 讓高度變化平滑 (避免因為掃到一根橫樑就劇烈抖動)
         _currentHeight = Mathf.SmoothDamp(_currentHeight, targetHeight, ref _heightVelocity, heightSmoothTime);
 
-        // 5. 計算並更新位置 (在目標移動完成後，且攝影機旋轉更新後)
-        Vector3 targetPos = FollowTarget.position + Vector3.up * _currentHeight;
-        Vector3 desiredPosition = targetPos - (targetRotation * Vector3.forward * offsetZ);
+        // 4. 計算「理想」的攝影機中心點 (Pivot)
+        Vector3 pivotPos = FollowTarget.position + Vector3.up * _currentHeight;
 
-        float snapSpeed = 60f;
+        // 5. 計算攝影機的「後退方向」
+        Vector3 cameraDir = targetRotation * -Vector3.forward;
 
-        // 如果距離太遠 (例如傳送)，就直接瞬移，避免拖影
-        if (Vector3.Distance(transform.position, desiredPosition) > 1f)
+        // 6. 從 Pivot 往後發射射線，看看會不會撞到牆
+        float finalDistance = offsetZ; // 預設距離
+
+        // 使用 SphereCast 更有體積感，避免看穿牆縫
+        if (Physics.SphereCast(pivotPos, checkRadius, cameraDir, out RaycastHit wallHit, offsetZ, obstacleLayer))
         {
-            transform.position = desiredPosition;
+            // 如果撞到了牆，距離 = 撞擊點距離 - 緩衝區
+            // Mathf.Max 確保攝影機不會跑到玩家身體裡面 (保持最小 0.2 距離)
+            finalDistance = Mathf.Max(wallHit.distance - wallClipPadding, 0.2f);
+        }
+
+        // 7. 計算最終位置
+        Vector3 desiredPosition = pivotPos + (cameraDir * finalDistance);
+
+
+        // 8. 移動攝影機
+        // 如果偵測到牆壁導致需要劇烈拉近，直接瞬移比較好，不然會穿幫
+        // 如果是正常跟隨，則用 Lerp 平滑
+        float distToDesired = Vector3.Distance(transform.position, desiredPosition);
+
+        // 如果距離變化太大 (例如傳送) 或 正在撞牆 (需要快速反應)，加快跟隨速度
+        if (distToDesired > 1f || finalDistance < offsetZ - 0.1f)
+        {
+            transform.position = Vector3.Lerp(transform.position, desiredPosition, Time.deltaTime * 100f); // 幾乎瞬移
         }
         else
         {
-            transform.position = Vector3.Lerp(transform.position, desiredPosition, Time.deltaTime * snapSpeed);
+            transform.position = Vector3.Lerp(transform.position, desiredPosition, Time.deltaTime * moveSmoothSpeed);
         }
     }
 
@@ -164,37 +161,26 @@ public class CamControl : MonoBehaviour
     {
         if (FollowTarget == null) return;
 
-        // 重現原本的邏輯參數
-        Vector3 castOrigin = FollowTarget.position + Vector3.up * 0.05f;
-        float castDistance = defaultOffsetY - 0.1f;
+        // 畫出高度偵測 (綠色)
+        Gizmos.color = Color.green;
+        Vector3 pivotPos = FollowTarget.position + Vector3.up * (_currentHeight > 0 ? _currentHeight : defaultOffsetY);
+        Gizmos.DrawWireSphere(pivotPos, 0.1f);
 
-        // 1. 畫出原本預計要偵測的路徑 (黃色線)
-        Gizmos.color = Color.yellow;
-        Gizmos.DrawRay(castOrigin, Vector3.up * castDistance);
-        Gizmos.DrawWireSphere(castOrigin, checkRadius); // 起點球
+        // 畫出防穿牆偵測 (紅色/黃色)
+        Vector3 cameraDir = transform.rotation * -Vector3.forward;
 
-        // 2. 實際做一次檢測，看看撞到什麼
-        RaycastHit hit;
-        bool isHit = Physics.SphereCast(castOrigin, checkRadius, Vector3.up, out hit, castDistance, obstacleLayer);
-
-        if (isHit)
+        // 模擬當前的偵測
+        if (Physics.SphereCast(pivotPos, checkRadius, cameraDir, out RaycastHit hit, offsetZ, obstacleLayer))
         {
-            // 如果撞到了，畫紅色！
             Gizmos.color = Color.red;
-            Gizmos.DrawLine(castOrigin, hit.point);
-            Gizmos.DrawWireSphere(hit.point, checkRadius); // 撞擊點的球
-
-            // 在 Scene 視窗顯示撞到的名字，讓你抓兇手
-            // (需要 UnityEditor 命名空間，或者只看顏色就好)
-#if UNITY_EDITOR
-            UnityEditor.Handles.Label(hit.point, $"Hit: {hit.collider.name}");
-#endif
+            Gizmos.DrawLine(pivotPos, hit.point);
+            Gizmos.DrawWireSphere(hit.point, checkRadius);
         }
         else
         {
-            // 沒撞到，畫綠色虛線表示通過
-            Gizmos.color = Color.green;
-            Gizmos.DrawLine(castOrigin, castOrigin + Vector3.up * castDistance);
+            Gizmos.color = Color.yellow;
+            Gizmos.DrawLine(pivotPos, pivotPos + cameraDir * offsetZ);
+            Gizmos.DrawWireSphere(pivotPos + cameraDir * offsetZ, checkRadius);
         }
     }
 }
