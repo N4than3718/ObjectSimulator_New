@@ -66,13 +66,13 @@ public class TeamManager : MonoBehaviour
                 return spectatorCameraObject.transform;
             }
             // !! [修復] struct 不能用 '?'
-            else if (currentState == GameState.Possessing && activeCharacterIndex >= 0 && activeCharacterIndex < team.Length && team[activeCharacterIndex].characterCamera != null)
+            else if (currentState == GameState.Possessing && team != null && activeCharacterIndex >= 0 && activeCharacterIndex < team.Length && team[activeCharacterIndex].characterCamera != null)
             {
                 return team[activeCharacterIndex].characterCamera.transform;
             }
             else
             {
-                Debug.LogWarning("TeamManager couldn't determine the current active camera transform.");
+                // Debug.LogWarning("TeamManager couldn't determine the current active camera transform.");
                 return spectatorCameraObject != null ? spectatorCameraObject.transform : null;
             }
         }
