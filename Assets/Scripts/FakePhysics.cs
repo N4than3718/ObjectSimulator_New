@@ -8,6 +8,13 @@ public class FakePhysics : MonoBehaviour
     public float minAngle = -90f;      // 最小開門角度
     public bool autoClose = true;      // 自動關門
 
+    [Header("方向除錯")]
+    [Tooltip("如果門開的方向永遠相反，勾選這個")]
+    public bool reverseDirection = false;
+
+    [Tooltip("勾選後，場景會出現一條紅線，代表門的『正面』方向")]
+    public bool showDebugLine = true;
+
     private float currentAngle = 0f;
     private float targetAngle = 0f;
 
@@ -63,14 +70,37 @@ public class FakePhysics : MonoBehaviour
     {
         if (CanOpenDoor(other))
         {
-            // 計算開門方向 (跟之前一樣)
-            Vector3 directionToTarget = other.transform.position - transform.position;
-            float dot = Vector3.Dot(transform.forward, directionToTarget.normalized);
+            // 計算開門方向
+            Vector3 localPos = transform.InverseTransformPoint(other.transform.position);
 
-            if (dot > 0)
-                targetAngle = minAngle; // 往內
+            bool isInFront = localPos.z > 0;
+
+            // 如果勾選了反轉，就把判斷結果顛倒
+            if (reverseDirection) isInFront = !isInFront;
+
+            if (isInFront)
+            {
+                // 玩家在正面，門往負向開 (遠離玩家)
+                targetAngle = minAngle;
+            }
             else
-                targetAngle = maxAngle; // 往外
+            {
+                // 玩家在背面，門往正向開
+                targetAngle = maxAngle;
+            }
+        }
+    }
+
+    // 🎨 畫出輔助線 (只有在 Scene視窗 看得見)
+    void OnDrawGizmos()
+    {
+        if (showDebugLine)
+        {
+            Gizmos.color = Color.red;
+            // 畫一條線表示 "Z軸正前方"
+            Vector3 direction = reverseDirection ? -transform.forward : transform.forward;
+            Gizmos.DrawRay(transform.position, direction * 2.0f);
+            Gizmos.DrawSphere(transform.position + direction * 2.0f, 0.1f);
         }
     }
 }
