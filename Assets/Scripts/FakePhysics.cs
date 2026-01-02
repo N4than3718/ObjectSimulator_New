@@ -61,6 +61,8 @@ public class FakePhysics : MonoBehaviour, IInteractable
     // --- IInteractable 介面實作 (給手動模式用) ---
     public void Interact()
     {
+        Debug.Log($"{gameObject.name} 被按到了！目前的 doorType: {doorType}, motionType: {motionType}");
+
         if (doorType == DoorType.Automatic) return; // 自動門不給按
 
         if (isLocked)
