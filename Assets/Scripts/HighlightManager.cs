@@ -107,15 +107,22 @@ public class HighlightManager : MonoBehaviour
             return; // 找不到攝影機就不更新
         }
 
+        allHighlightables.RemoveWhere(h => h == null);
+
         foreach (HighlightableObject highlightable in allHighlightables)
         {
-            if (highlightable != null && highlightable.enabled)
+            // 雖然 RemoveWhere 清掉了 null，但保險起見還是檢查一下 enabled
+            if (highlightable.enabled)
             {
                 GameObject currentObject = highlightable.gameObject;
+
+                // 再次檢查 TeamManager
+                if (teamManager == null) continue;
+
                 bool isInTeam = highlightable.IsInTeam(teamManager);
                 bool isActive = (currentObject == activeCharacter);
 
-                // --- 狀態判斷 ---
+                // --- 狀態判斷 (邏輯保持不變) ---
                 if (isInTeam && !isActive)
                 {
                     highlightable.SetInactiveTeamHighlight(true);
@@ -132,19 +139,16 @@ public class HighlightManager : MonoBehaviour
                     highlightable.SetInactiveTeamHighlight(false);
                 }
 
-                // --- 更新寬度 (只更新顯示白色或綠色的) ---
-                // 我們需要 HighlightableObject 提供 IsTargeted 狀態
-                bool isTargetedNow = highlightable.IsTargeted; // Assuming IsTargeted property exists
+                // --- 更新寬度 ---
+                bool isTargetedNow = highlightable.IsTargeted;
 
-                // Update width only if it's NOT the active character AND NOT currently targeted (yellow)
-                if (!isActive && !isTargetedNow && (highlightable.IsAvailable() || highlightable.IsInactiveTeamMember())) // Assuming helper methods exist
+                if (!isActive && !isTargetedNow && (highlightable.IsAvailable() || highlightable.IsInactiveTeamMember()))
                 {
                     float distance = Vector3.Distance(currentCameraTransform.position, highlightable.transform.position);
                     float t = Mathf.InverseLerp(0, maxDistanceForOutline, distance);
                     float newWidth = Mathf.Lerp(minOutlineWidth, maxOutlineWidth, t);
                     highlightable.SetOutlineWidth(newWidth);
                 }
-                // If it IS targeted (yellow), the width is controlled by Spectator/PlayerMovement
             }
         }
     }

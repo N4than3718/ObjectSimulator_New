@@ -163,6 +163,7 @@ public class HighlightableObject : MonoBehaviour
 
     public bool IsInTeam(TeamManager teamManager)
     {
+        if (this == null || this.gameObject == null) return false;
         if (teamManager == null) return false;
         return teamManager.IsInTeam(this.gameObject);
     }

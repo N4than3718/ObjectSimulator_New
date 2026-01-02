@@ -90,6 +90,13 @@ public class TeamManager : MonoBehaviour
     // --- Awake ---
     void Awake()
     {
+        if (Instance != null && Instance != this)
+        {
+            Destroy(this.gameObject); // 防止場景有兩個 Manager
+            return;
+        }
+        Instance = this;
+
         playerActions = new InputSystem_Actions();
 
         audioSource = GetComponent<AudioSource>(); // <-- [新增]

@@ -540,6 +540,8 @@ public class PlayerMovement : MonoBehaviour
 
             if (!validGroundFound)
             {
+                if (isComplexCollider) continue;
+
                 Vector3 closestPoint = hitColl.ClosestPoint(objectCenter);
 
                 bool isBelowCenter = closestPoint.y < objectCenter.y;
