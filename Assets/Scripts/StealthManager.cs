@@ -8,6 +8,13 @@ public static class StealthManager
     private static List<NpcAI> allNpcs = new List<NpcAI>();
     public static event System.Action<GameObject, Vector3, float> OnNoiseEmitted;
 
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
+    private static void ResetStatics()
+    {
+        allNpcs.Clear();
+        OnNoiseEmitted = null; // 清空事件訂閱，防止內存洩漏
+    }
+
     // --- NPC 註冊系統 ---
     // NpcAI.cs 在 Start() 時呼叫
     public static void RegisterNpc(NpcAI npc)
