@@ -1,4 +1,4 @@
-using System;
+ï»¿using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -7,13 +7,13 @@ using UnityEngine.InputSystem;
 [System.Serializable]
 public struct TeamUnit
 {
-    public PlayerMovement character; // ¨¤¦âª«¥ó (PlayerMovement ¸}¥»)
-    public CamControl characterCamera; // <--- §ï¦¨ª½±µ¤Ş¥Î CamControl ¸}¥»
+    public PlayerMovement character; // è§’è‰²ç‰©ä»¶ (PlayerMovement è…³æœ¬)
+    public CamControl characterCamera; // <--- æ”¹æˆç›´æ¥å¼•ç”¨ CamControl è…³æœ¬
     public Transform cameraFollowTarget;
     public bool isAvailable;
 }
 
-[RequireComponent(typeof(AudioSource))] // <-- [·s¼W] ±j¨î­n¦³ AudioSource
+[RequireComponent(typeof(AudioSource))] // <-- [æ–°å¢] å¼·åˆ¶è¦æœ‰ AudioSource
 public class TeamManager : MonoBehaviour
 {
     public enum GameState { Spectator, Possessing }
@@ -27,32 +27,36 @@ public class TeamManager : MonoBehaviour
 
     [Header("Team Setup")]
     private const int MaxTeamSize = 8;
-    // °}¦C·|¦b Start ®É³Qµø¬° "ªÅ" (¦]¬° .character ³£¬O null)
+    // é™£åˆ—æœƒåœ¨ Start æ™‚è¢«è¦–ç‚º "ç©º" (å› ç‚º .character éƒ½æ˜¯ null)
     public TeamUnit[] team = new TeamUnit[MaxTeamSize];
 
     [Header("Scene References")]
     public GameObject spectatorCameraObject;
-    private SpectatorController spectatorController; // !! <-- [­×´_] ¥²¶·«Å§i
+    private SpectatorController spectatorController; // !! <-- [ä¿®å¾©] å¿…é ˆå®£å‘Š
+
+    [Header("å ´æ™¯ç’°å¢ƒæ§åˆ¶")]
+    // ğŸ”¥ æ–°å¢ï¼šç”¨ä¾†å­˜ç•¶å‰å ´æ™¯çš„ç’°å¢ƒæ§åˆ¶å™¨
+    [SerializeField] private AutoEnableObjects levelEnvironment;
 
     [Header("References (Add HighlightManager)")]
     [SerializeField] private HighlightManager highlightManager;
 
-    [Header("­µ®Ä³]©w (SFX)")] // <-- [·s¼W]
-    [SerializeField] private AudioClip sequentialSwitchSound; // <-- [·s¼W] Q/E ­µ®Ä (¨Ò¦p Switch_short)
-    [SerializeField] private AudioClip directSwitchSound;     // <-- [·s¼W] ½ü½L/ª½±µ¿ï¾Ü­µ®Ä (¨Ò¦p Switch)
+    [Header("éŸ³æ•ˆè¨­å®š (SFX)")] // <-- [æ–°å¢]
+    [SerializeField] private AudioClip sequentialSwitchSound; // <-- [æ–°å¢] Q/E éŸ³æ•ˆ (ä¾‹å¦‚ Switch_short)
+    [SerializeField] private AudioClip directSwitchSound;     // <-- [æ–°å¢] è¼ªç›¤/ç›´æ¥é¸æ“‡éŸ³æ•ˆ (ä¾‹å¦‚ Switch)
     private AudioSource audioSource;
 
-    [Header("µøÄ±®ÄªG")] // <--- [·s¼W]
-    [SerializeField] private float directTransitionDuration = 0.5f;   // <-- [§ï¦W/·s¼W] ½ü½L/ª½±µ¿ï¾Üªº°Êµe®É¶¡
+    [Header("è¦–è¦ºæ•ˆæœ")] // <--- [æ–°å¢]
+    [SerializeField] private float directTransitionDuration = 0.5f;   // <-- [æ”¹å/æ–°å¢] è¼ªç›¤/ç›´æ¥é¸æ“‡çš„å‹•ç•«æ™‚é–“
     [SerializeField] private float sequentialTransitionDuration = 0.2f;
-    [SerializeField] private AnimationCurve transitionCurve = AnimationCurve.EaseInOut(0, 0, 1, 1); // °Êµe¦±½u (¥i¿ï)
+    [SerializeField] private AnimationCurve transitionCurve = AnimationCurve.EaseInOut(0, 0, 1, 1); // å‹•ç•«æ›²ç·š (å¯é¸)
 
     private int activeCharacterIndex = -1;
     private InputSystem_Actions playerActions;
     public GameState CurrentGameState => currentState;
-    private Camera spectatorCameraComponent; // <--- [·s¼W] ¦s Spectator ªº Camera ¤¸¥ó
+    private Camera spectatorCameraComponent; // <--- [æ–°å¢] å­˜ Spectator çš„ Camera å…ƒä»¶
 
-    // --- ¤½¶}Äİ©Ê ---
+    // --- å…¬é–‹å±¬æ€§ ---
     public Transform CurrentCameraTransform
     {
         get
@@ -61,7 +65,7 @@ public class TeamManager : MonoBehaviour
             {
                 return spectatorCameraObject.transform;
             }
-            // !! [­×´_] struct ¤£¯à¥Î '?'
+            // !! [ä¿®å¾©] struct ä¸èƒ½ç”¨ '?'
             else if (currentState == GameState.Possessing && activeCharacterIndex >= 0 && activeCharacterIndex < team.Length && team[activeCharacterIndex].characterCamera != null)
             {
                 return team[activeCharacterIndex].characterCamera.transform;
@@ -78,7 +82,7 @@ public class TeamManager : MonoBehaviour
     {
         get
         {
-            // !! [­×´_] struct ¤£¯à¥Î '?'
+            // !! [ä¿®å¾©] struct ä¸èƒ½ç”¨ '?'
             if (currentState == GameState.Possessing && activeCharacterIndex >= 0 && activeCharacterIndex < team.Length && team[activeCharacterIndex].character != null)
             {
                 return team[activeCharacterIndex].character.gameObject;
@@ -92,24 +96,29 @@ public class TeamManager : MonoBehaviour
     {
         if (Instance != null && Instance != this)
         {
-            Destroy(this.gameObject); // ¨¾¤î³õ´º¦³¨â­Ó Manager
+            Destroy(this.gameObject); // é˜²æ­¢å ´æ™¯æœ‰å…©å€‹ Manager
             return;
         }
         Instance = this;
 
+        if (levelEnvironment == null)
+        {
+            levelEnvironment = FindAnyObjectByType<AutoEnableObjects>();
+        }
+
         playerActions = new InputSystem_Actions();
 
-        audioSource = GetComponent<AudioSource>(); // <-- [·s¼W]
-        if (audioSource == null) Debug.LogError("TeamManager ¯Ê¤Ö AudioSource ¤¸¥ó!", this.gameObject); // <-- [·s¼W]
+        audioSource = GetComponent<AudioSource>(); // <-- [æ–°å¢]
+        if (audioSource == null) Debug.LogError("TeamManager ç¼ºå°‘ AudioSource å…ƒä»¶!", this.gameObject); // <-- [æ–°å¢]
         else audioSource.playOnAwake = false;
 
         if (highlightManager == null) highlightManager = FindAnyObjectByType<HighlightManager>();
 
-        // !! [­×´_] ¨ú±o SpectatorController ¤¸¥ó
+        // !! [ä¿®å¾©] å–å¾— SpectatorController å…ƒä»¶
         if (spectatorCameraObject != null)
         {
-            spectatorCameraComponent = spectatorCameraObject.GetComponent<Camera>(); // [·s¼W]
-            if (spectatorCameraComponent == null) Debug.LogError("SpectatorCameraObject ¯Ê¤Ö Camera ¤¸¥ó!", spectatorCameraObject); // [·s¼W]
+            spectatorCameraComponent = spectatorCameraObject.GetComponent<Camera>(); // [æ–°å¢]
+            if (spectatorCameraComponent == null) Debug.LogError("SpectatorCameraObject ç¼ºå°‘ Camera å…ƒä»¶!", spectatorCameraObject); // [æ–°å¢]
             spectatorController = spectatorCameraObject.GetComponent<SpectatorController>();
         }
 
@@ -155,54 +164,54 @@ public class TeamManager : MonoBehaviour
     // --- Start ---
     void Start()
     {
-        // ÀË¬d Spectator ©M HighlightManager ¬O§_¦s¦b
+        // æª¢æŸ¥ Spectator å’Œ HighlightManager æ˜¯å¦å­˜åœ¨
         if (spectatorController == null || highlightManager == null)
         {
             Debug.LogError("TeamManager has missing references! (SpectatorController or HighlightManager)");
             return;
         }
 
-        // --- ¸Ñ¨M¤è®×¡G§â¡u±j¨î¸T¥Î¡vÅŞ¿è¥[¦^¨Ó ---
+        // --- è§£æ±ºæ–¹æ¡ˆï¼šæŠŠã€Œå¼·åˆ¶ç¦ç”¨ã€é‚è¼¯åŠ å›ä¾† ---
 
-        // §@·~ 1: [ÃöÁä] §ä¨ì³õ´º¤¤ *©Ò¦³* ªº PlayerMovement ¸}¥»¨Ã±j¨î¸T¥Î¥¦­Ì
-        // ³o¥i¥H¨¾¤î¨º¨Ç¡uÁÙ¨S¥[¤J¶¤¥î¡vªºª«¥ó°½Å¥¿é¤J¡C
+        // ä½œæ¥­ 1: [é—œéµ] æ‰¾åˆ°å ´æ™¯ä¸­ *æ‰€æœ‰* çš„ PlayerMovement è…³æœ¬ä¸¦å¼·åˆ¶ç¦ç”¨å®ƒå€‘
+        // é€™å¯ä»¥é˜²æ­¢é‚£äº›ã€Œé‚„æ²’åŠ å…¥éšŠä¼ã€çš„ç‰©ä»¶å·è½è¼¸å…¥ã€‚
         Debug.Log("Start: Finding and disabling all PlayerMovement scripts in scene...");
         var allCharacterScripts = FindObjectsByType<PlayerMovement>(FindObjectsSortMode.None);
 
         foreach (var characterScript in allCharacterScripts)
         {
-            // 1. ª½±µ¸T¥Î¸}¥» (Ä²µo OnDisable Ãö³¬¿é¤J)
+            // 1. ç›´æ¥ç¦ç”¨è…³æœ¬ (è§¸ç™¼ OnDisable é—œé–‰è¼¸å…¥)
             characterScript.enabled = false;
 
-            // 2. ¸T¥Î¥¦¦b PlayerMovement ¤W³sµ²ªºÄá¼v¾÷ (¦pªG¦³ªº¸Ü)
-            // (³o¬O¨Ï¥Î§Ú­Ì¦b¤W¤@°Ê·s¼Wªº myCharacterCamera Äæ¦ì)
+            // 2. ç¦ç”¨å®ƒåœ¨ PlayerMovement ä¸Šé€£çµçš„æ”å½±æ©Ÿ (å¦‚æœæœ‰çš„è©±)
+            // (é€™æ˜¯ä½¿ç”¨æˆ‘å€‘åœ¨ä¸Šä¸€å‹•æ–°å¢çš„ myCharacterCamera æ¬„ä½)
             if (characterScript.myCharacterCamera != null)
             {
                 characterScript.myCharacterCamera.gameObject.SetActive(false);
             }
 
-            // 3. ¸T¥Î°Êµe (¦n²ßºD)
+            // 3. ç¦ç”¨å‹•ç•« (å¥½ç¿’æ…£)
             var animator = characterScript.GetComponent<MovementAnimator>();
             if (animator != null) animator.enabled = false;
         }
         Debug.Log($"Start: Force disabled {allCharacterScripts.Length} characters.");
 
-        // §@·~ 2: [«O¯d] ªì©l¤Æ¥ô¦ó *¤w¸g* ¦b Inspector ¸Ì³]©w¦nªº¶¤¤Í
-        // (¹ï§A¥Ø«eªº¡uªÅ¡v°}¦C¨Ó»¡¡A³o¤@¨B·|¥ş³¡¸õ¹L¡A¬O¥¿±`ªº)
+        // ä½œæ¥­ 2: [ä¿ç•™] åˆå§‹åŒ–ä»»ä½• *å·²ç¶“* åœ¨ Inspector è£¡è¨­å®šå¥½çš„éšŠå‹
+        // (å°ä½ ç›®å‰çš„ã€Œç©ºã€é™£åˆ—ä¾†èªªï¼Œé€™ä¸€æ­¥æœƒå…¨éƒ¨è·³éï¼Œæ˜¯æ­£å¸¸çš„)
         for (int i = 0; i < team.Length; i++)
         {
-            if (team[i].character != null) // ¥u¦³·íÄæ¦ì¯uªº¦³ªF¦è¤~°õ¦æ
+            if (team[i].character != null) // åªæœ‰ç•¶æ¬„ä½çœŸçš„æœ‰æ±è¥¿æ‰åŸ·è¡Œ
             {
                 SetUnitControl(team[i], false, true);
             }
         }
         // ------------------------------------
 
-        // §@·~ 3: [¤£ÅÜ] ¶i¤JÆ[¹îªÌ¼Ò¦¡
+        // ä½œæ¥­ 3: [ä¸è®Š] é€²å…¥è§€å¯Ÿè€…æ¨¡å¼
         EnterSpectatorMode();
     }
 
-    // --- Update (ªÅªº) ---
+    // --- Update (ç©ºçš„) ---
     void Update() { }
 
     // --- PossessCharacter ---
@@ -210,7 +219,7 @@ public class TeamManager : MonoBehaviour
     {
         for (int i = 0; i < team.Length; i++)
         {
-            // !! [­×´_] ÀË¬d .character
+            // !! [ä¿®å¾©] æª¢æŸ¥ .character
             if (team[i].character?.gameObject == characterObject) { EnterPossessingMode(i, SwitchMethod.Sequential); return; }
         }
         TryAddCharacterToTeam(characterObject, true);
@@ -221,7 +230,7 @@ public class TeamManager : MonoBehaviour
     {
         for (int i = 0; i < team.Length; i++)
         {
-            // !! [­×´_] ÀË¬d .character
+            // !! [ä¿®å¾©] æª¢æŸ¥ .character
             if (team[i].character?.gameObject == characterObject)
             {
                 Debug.Log($"{characterObject.name} is already in the team.");
@@ -231,7 +240,7 @@ public class TeamManager : MonoBehaviour
         }
 
         int emptySlotIndex = -1;
-        // !! [­×´_] ÀË¬d .character ¬O§_¬° null ¨Ó§äªÅ¦ì
+        // !! [ä¿®å¾©] æª¢æŸ¥ .character æ˜¯å¦ç‚º null ä¾†æ‰¾ç©ºä½
         for (int i = 0; i < team.Length; i++) { if (team[i].character == null) { emptySlotIndex = i; break; } }
 
         if (emptySlotIndex != -1)
@@ -240,9 +249,9 @@ public class TeamManager : MonoBehaviour
             if (pm == null) { Debug.LogError($"Object {characterObject.name} has no PlayerMovement script!"); return false; }
 
             // =================================================================
-            // !! <-- [®Ö¤ß¸Ñ¨M¤è®×] <-- !!
-            // §Ú­Ì¤£¦A "²q"¡A¦Ó¬Oª½±µ¥h "°İ" PlayerMovement ¥¦ªºÄá¼v¾÷¦b­ş
-            // ³o»İ­n§A¤w§¹¦¨ [¨BÆJ 1] ©M [¨BÆJ 2]
+            // !! <-- [æ ¸å¿ƒè§£æ±ºæ–¹æ¡ˆ] <-- !!
+            // æˆ‘å€‘ä¸å† "çŒœ"ï¼Œè€Œæ˜¯ç›´æ¥å» "å•" PlayerMovement å®ƒçš„æ”å½±æ©Ÿåœ¨å“ª
+            // é€™éœ€è¦ä½ å·²å®Œæˆ [æ­¥é©Ÿ 1] å’Œ [æ­¥é©Ÿ 2]
             CamControl cam = pm.myCharacterCamera;
             Transform followTarget = pm.myFollowTarget;
             // =================================================================
@@ -273,7 +282,7 @@ public class TeamManager : MonoBehaviour
         int foundIndex = -1;
         for (int i = 0; i < team.Length; i++)
         {
-            // !! [­×´_] ÀË¬d .character
+            // !! [ä¿®å¾©] æª¢æŸ¥ .character
             if (team[i].character?.gameObject == characterObject)
             {
                 foundIndex = i;
@@ -293,7 +302,7 @@ public class TeamManager : MonoBehaviour
                 if (skill != null)
                 {
                     skill.enabled = false;
-                    Debug.Log($"[TeamManager] {characterObject.name} ³Q²¾°£¡A§Ş¯à¤w±j¨îÃö³¬¡C");
+                    Debug.Log($"[TeamManager] {characterObject.name} è¢«ç§»é™¤ï¼ŒæŠ€èƒ½å·²å¼·åˆ¶é—œé–‰ã€‚");
                 }
             }
 
@@ -304,7 +313,7 @@ public class TeamManager : MonoBehaviour
                 SwitchToPreviousOrSpectator(foundIndex);
             }
 
-            // !! [­×´_] ¥Î new TeamUnit() ²MªÅ struct
+            // !! [ä¿®å¾©] ç”¨ new TeamUnit() æ¸…ç©º struct
             team[foundIndex] = new TeamUnit();
 
             if (highlightManager != null) highlightManager.ForceHighlightUpdate();
@@ -320,11 +329,11 @@ public class TeamManager : MonoBehaviour
         {
             int checkIndex = (removedIndex - i + team.Length) % team.Length;
             Debug.Log($"SwitchToPreviousOrSpectator: Checking index {checkIndex}. Character is {(team[checkIndex].character == null ? "NULL" : team[checkIndex].character.name)}");
-            // !! [­×´_] ÀË¬d .character
+            // !! [ä¿®å¾©] æª¢æŸ¥ .character
             if (team[checkIndex].character != null)
             {
                 nextAvailableIndex = checkIndex;
-                Debug.Log($"SwitchToPreviousOrSpectator: Found next available character at index {nextAvailableIndex}"); // <-- [·s¼W]
+                Debug.Log($"SwitchToPreviousOrSpectator: Found next available character at index {nextAvailableIndex}"); // <-- [æ–°å¢]
                 break;
             }
         }
@@ -347,13 +356,15 @@ public class TeamManager : MonoBehaviour
         if (isTransitioning)
         {
             Debug.LogWarning("EnterSpectatorMode called while transitioning! Forcing transition flag to false.");
-            isTransitioning = false; // ±j¨î¸Ñ°£
+            isTransitioning = false; // å¼·åˆ¶è§£é™¤
         }
 
         Debug.Log("Entered Spectator Mode...");
         currentState = GameState.Spectator;
 
-        // !! [­×´_] ÀË¬d .character
+        if (levelEnvironment != null) levelEnvironment.ToggleVisuals(false);
+
+        // !! [ä¿®å¾©] æª¢æŸ¥ .character
         if (activeCharacterIndex >= 0 && activeCharacterIndex < team.Length && team[activeCharacterIndex].character != null)
         {
             Debug.Log($"Disabling character {team[activeCharacterIndex].character.name} before entering Spectator.");
@@ -364,16 +375,16 @@ public class TeamManager : MonoBehaviour
 
         if (spectatorCameraObject != null)
         {
-            spectatorCameraObject.SetActive(true); // ±Ò¥Î GO
+            spectatorCameraObject.SetActive(true); // å•Ÿç”¨ GO
             Debug.Log("Spectator Camera GameObject activated.");
             if (spectatorController != null)
             {
-                spectatorController.enabled = true; // ±Ò¥Î±±¨î¾¹¸}¥»
+                spectatorController.enabled = true; // å•Ÿç”¨æ§åˆ¶å™¨è…³æœ¬
                 Debug.Log("Spectator Controller script enabled.");
             }
             if (spectatorCameraComponent != null)
             {
-                spectatorCameraComponent.enabled = true; // <-- [·s¼W] ½T«O Camera ¤¸¥ó±Ò¥Î
+                spectatorCameraComponent.enabled = true; // <-- [æ–°å¢] ç¢ºä¿ Camera å…ƒä»¶å•Ÿç”¨
                 Debug.Log("Spectator Camera component enabled.");
             }
             else { Debug.LogError("Spectator Camera Component is NULL!"); }
@@ -386,35 +397,35 @@ public class TeamManager : MonoBehaviour
     // --- EnterPossessingMode ---
     private void EnterPossessingMode(int newIndex, SwitchMethod method = SwitchMethod.Sequential)
     {
-        Debug.Log($"EnterPossessingMode called for index {newIndex}, method: {method}. isTransitioning={isTransitioning}"); // <-- [·s¼W]
-        if (isTransitioning) { Debug.LogWarning("Already transitioning, ignoring possess request."); return; } // ¨¾¤î­«¤J
-        // !! [­×´_] ÀË¬d .character
+        Debug.Log($"EnterPossessingMode called for index {newIndex}, method: {method}. isTransitioning={isTransitioning}"); // <-- [æ–°å¢]
+        if (isTransitioning) { Debug.LogWarning("Already transitioning, ignoring possess request."); return; } // é˜²æ­¢é‡å…¥
+        // !! [ä¿®å¾©] æª¢æŸ¥ .character
         if (newIndex < 0 || newIndex >= team.Length || team[newIndex].character == null)
         {
             Debug.LogError($"Attempted to possess invalid team index {newIndex}. Switching to Spectator.");
             EnterSpectatorMode();
             return;
         }
-        Debug.Log($"EnterPossessingMode: Index valid. Calling SwitchToCharacterByIndex..."); // <-- [·s¼W]
-        SwitchToCharacterByIndex(newIndex, method); // §â method ¶Ç¤U¥h
+        Debug.Log($"EnterPossessingMode: Index valid. Calling SwitchToCharacterByIndex..."); // <-- [æ–°å¢]
+        SwitchToCharacterByIndex(newIndex, method); // æŠŠ method å‚³ä¸‹å»
     }
 
     // --- SwitchNextCharacter ---
     private void SwitchNextCharacter(SwitchMethod method = SwitchMethod.Sequential)
     {
-        if (isTransitioning) { Debug.LogWarning("Already transitioning, ignoring switch request."); return; } // ¨¾¤î­«¤J
+        if (isTransitioning) { Debug.LogWarning("Already transitioning, ignoring switch request."); return; } // é˜²æ­¢é‡å…¥
         if (currentState != GameState.Possessing || team.Length <= 1) return;
         int teamSize = team.Length;
         int currentValidIndex = activeCharacterIndex;
 
-        for (int i = 1; i < teamSize; i++) // ³Ì¦h¬d§ä teamSize - 1 ¦¸
+        for (int i = 1; i < teamSize; i++) // æœ€å¤šæŸ¥æ‰¾ teamSize - 1 æ¬¡
         {
             int nextIndex = (currentValidIndex + i) % teamSize;
-            if (team[nextIndex].character != null) // §ä¨ì¤F¤U¤@­Ó¦³®Äªº¶¤¤Í
+            if (team[nextIndex].character != null) // æ‰¾åˆ°äº†ä¸‹ä¸€å€‹æœ‰æ•ˆçš„éšŠå‹
             {
                 Debug.Log($"SwitchNextCharacter found target index: {nextIndex}. Calling SwitchToCharacterByIndex...");
-                SwitchToCharacterByIndex(nextIndex, method); // <--- [®Ö¤ß­×§ï] ©I¥s²Î¤@¤J¤f
-                return; // §ä¨ì´Nµ²§ô
+                SwitchToCharacterByIndex(nextIndex, method); // <--- [æ ¸å¿ƒä¿®æ”¹] å‘¼å«çµ±ä¸€å…¥å£
+                return; // æ‰¾åˆ°å°±çµæŸ
             }
         }
     }
@@ -422,19 +433,19 @@ public class TeamManager : MonoBehaviour
     // --- SwitchPreviousCharacter ---
     private void SwitchPreviousCharacter(SwitchMethod method = SwitchMethod.Sequential)
     {
-        if (isTransitioning) { Debug.LogWarning("Already transitioning, ignoring switch request."); return; } // ¨¾¤î­«¤J
+        if (isTransitioning) { Debug.LogWarning("Already transitioning, ignoring switch request."); return; } // é˜²æ­¢é‡å…¥
         if (currentState != GameState.Possessing || team.Length <= 1) return;
         int teamSize = team.Length;
         int currentValidIndex = activeCharacterIndex;
 
-        for (int i = 1; i < teamSize; i++) // ³Ì¦h¬d§ä teamSize - 1 ¦¸
+        for (int i = 1; i < teamSize; i++) // æœ€å¤šæŸ¥æ‰¾ teamSize - 1 æ¬¡
         {
             int prevIndex = (currentValidIndex + i) % teamSize;
-            if (team[prevIndex].character != null) // §ä¨ì¤F¤U¤@­Ó¦³®Äªº¶¤¤Í
+            if (team[prevIndex].character != null) // æ‰¾åˆ°äº†ä¸‹ä¸€å€‹æœ‰æ•ˆçš„éšŠå‹
             {
                 Debug.Log($"SwitchNextCharacter found target index: {prevIndex}. Calling SwitchToCharacterByIndex...");
-                SwitchToCharacterByIndex(prevIndex, method); // <--- [®Ö¤ß­×§ï] ©I¥s²Î¤@¤J¤f
-                return; // §ä¨ì´Nµ²§ô
+                SwitchToCharacterByIndex(prevIndex, method); // <--- [æ ¸å¿ƒä¿®æ”¹] å‘¼å«çµ±ä¸€å…¥å£
+                return; // æ‰¾åˆ°å°±çµæŸ
             }
         }
     }
@@ -442,7 +453,7 @@ public class TeamManager : MonoBehaviour
     // --- SwitchToCharacter ---
     private void SwitchToCharacter(int newIndex, SwitchMethod method = SwitchMethod.Unknown)
     {
-        // !! [­×´_] ÀË¬d .character
+        // !! [ä¿®å¾©] æª¢æŸ¥ .character
         if (activeCharacterIndex != -1 && activeCharacterIndex < team.Length && team[activeCharacterIndex].character != null)
         {
             SetUnitControl(team[activeCharacterIndex], false);
@@ -463,11 +474,11 @@ public class TeamManager : MonoBehaviour
 
     public void SwitchToCharacterByIndex(int index, SwitchMethod method = SwitchMethod.Direct)
     {
-        if (isTransitioning) { Debug.LogWarning("Already transitioning, ignoring switch request."); return; } // ¨¾¤î­«¤J
-        // °ò¥»ªºÃä¬É©M¦³®Ä©ÊÀË¬d
+        if (isTransitioning) { Debug.LogWarning("Already transitioning, ignoring switch request."); return; } // é˜²æ­¢é‡å…¥
+        // åŸºæœ¬çš„é‚Šç•Œå’Œæœ‰æ•ˆæ€§æª¢æŸ¥
         if (index < 0 || index >= team.Length || team[index].character == null)
         {
-            Debug.LogWarning($"SwitchToCharacterByIndex: µL®Äªº¯Á¤Ş {index} ©Î¸Ó¦ì¸mµL¨¤¦â¡C");
+            Debug.LogWarning($"SwitchToCharacterByIndex: ç„¡æ•ˆçš„ç´¢å¼• {index} æˆ–è©²ä½ç½®ç„¡è§’è‰²ã€‚");
             return;
         }
 
@@ -483,13 +494,13 @@ public class TeamManager : MonoBehaviour
             if (index == activeCharacterIndex)
             {
                 Debug.Log($"SwitchToCharacterByIndex: Index {index} is already active.");
-                return; // ¤w¸g¬O·í«e¨¤¦â¡A¤£°µ¨Æ
+                return; // å·²ç¶“æ˜¯ç•¶å‰è§’è‰²ï¼Œä¸åšäº‹
             }
 
-            startTransform = (activeCharacterIndex >= 0 && team[activeCharacterIndex].characterCamera != null) ? team[activeCharacterIndex].characterCamera.transform : spectatorCameraObject.transform; // ±qÂÂ¨¤¦âÄá¼v¾÷¶}©l
+            startTransform = (activeCharacterIndex >= 0 && team[activeCharacterIndex].characterCamera != null) ? team[activeCharacterIndex].characterCamera.transform : spectatorCameraObject.transform; // å¾èˆŠè§’è‰²æ”å½±æ©Ÿé–‹å§‹
             if (activeCharacterIndex >= 0 && activeCharacterIndex < team.Length && team[activeCharacterIndex].character != null)
             {
-                SetUnitControl(team[activeCharacterIndex], false, true); // ±j¨î¸T¥Î
+                SetUnitControl(team[activeCharacterIndex], false, true); // å¼·åˆ¶ç¦ç”¨
             }
         }
         else { /* ... Error Log ... */ return; }
@@ -509,10 +520,10 @@ public class TeamManager : MonoBehaviour
             case SwitchMethod.Direct:
                 clipToPlay = directSwitchSound;
                 break;
-            case SwitchMethod.Unknown: // ¦pªG¤£ª¾¹D¨Ó·½¡A¥i¥H¼½¹w³]©Î¤£¼½
+            case SwitchMethod.Unknown: // å¦‚æœä¸çŸ¥é“ä¾†æºï¼Œå¯ä»¥æ’­é è¨­æˆ–ä¸æ’­
             default:
                 Debug.LogWarning("PlaySwitchSound called with Unknown method.");
-                // clipToPlay = sequentialSwitchSound; // ©ÎªÌ¿ï¤@­Ó¹w³]
+                // clipToPlay = sequentialSwitchSound; // æˆ–è€…é¸ä¸€å€‹é è¨­
                 break;
         }
 
@@ -530,16 +541,16 @@ public class TeamManager : MonoBehaviour
     {
         List<MonoBehaviour> controllers = new List<MonoBehaviour>();
 
-        // 1. ¥[¤J Spectator Controller
+        // 1. åŠ å…¥ Spectator Controller
         if (spectatorController != null)
         {
             controllers.Add(spectatorController);
         }
 
-        // 2. ¥[¤J¶¤¥î¤¤©Ò¦³¨¤¦âªº Camera Controller
+        // 2. åŠ å…¥éšŠä¼ä¸­æ‰€æœ‰è§’è‰²çš„ Camera Controller
         foreach (var unit in team)
         {
-            if (unit.characterCamera != null) // ÀË¬d CamControl ¤Ş¥Î
+            if (unit.characterCamera != null) // æª¢æŸ¥ CamControl å¼•ç”¨
             {
                 controllers.Add(unit.characterCamera);
             }
@@ -550,13 +561,13 @@ public class TeamManager : MonoBehaviour
     // --- SetUnitControl ---
     private void SetUnitControl(TeamUnit unit, bool isActive, bool forceDisable = false)
     {
-        // ÀË¬d¨¤¦â¥»¨­¬O§_¦s¦b
+        // æª¢æŸ¥è§’è‰²æœ¬èº«æ˜¯å¦å­˜åœ¨
         if (unit.character == null)
         {
             return;
         }
 
-        // ÀË¬dÄá¼v¾÷¤Ş¥Î¬O§_¦s¦b
+        // æª¢æŸ¥æ”å½±æ©Ÿå¼•ç”¨æ˜¯å¦å­˜åœ¨
         if (unit.characterCamera == null)
         {
             Debug.LogWarning($"SetUnitControl: {unit.character.name} is missing its CharacterCamera reference!");
@@ -574,11 +585,11 @@ public class TeamManager : MonoBehaviour
 
         if (unit.characterCamera != null)
         {
-            // Coroutine µ²§ô®É isTransitioning À³¬° false, isActive ¬° true
-            // ¸T¥ÎÂÂ¨¤¦â®É isTransitioning ¥i¯à¬° true, isActive ¬° false
-            unit.characterCamera.gameObject.SetActive(isActive); // <-- ±±¨î Camera GO
+            // Coroutine çµæŸæ™‚ isTransitioning æ‡‰ç‚º false, isActive ç‚º true
+            // ç¦ç”¨èˆŠè§’è‰²æ™‚ isTransitioning å¯èƒ½ç‚º true, isActive ç‚º false
+            unit.characterCamera.gameObject.SetActive(isActive); // <-- æ§åˆ¶ Camera GO
 
-            // ±Ò¥Î CamControl ¸}¥» (¦pªG¦³ªº¸Ü)
+            // å•Ÿç”¨ CamControl è…³æœ¬ (å¦‚æœæœ‰çš„è©±)
             CamControl camScript = unit.characterCamera.GetComponent<CamControl>();
             if (camScript != null) camScript.enabled = isActive;
         }
@@ -588,9 +599,9 @@ public class TeamManager : MonoBehaviour
             if (unit.characterCamera != null)
             {
                 unit.characterCamera.gameObject.SetActive(true);
-                // §â³o¥xÄá¼v¾÷ªº Transform ¶Çµ¹ PlayerMovement
+                // æŠŠé€™å°æ”å½±æ©Ÿçš„ Transform å‚³çµ¦ PlayerMovement
                 unit.character.cameraTransform = unit.characterCamera.transform;
-                // !! [­«­n] ½T«O CamControl ¸òÀH¥¿½Tªº¥Ø¼Ğ
+                // !! [é‡è¦] ç¢ºä¿ CamControl è·Ÿéš¨æ­£ç¢ºçš„ç›®æ¨™
                 unit.characterCamera.FollowTarget = unit.cameraFollowTarget;
                 CamControl camScript = unit.characterCamera.GetComponent<CamControl>();
                 if (camScript != null) camScript.FollowTarget = unit.cameraFollowTarget;
@@ -598,13 +609,13 @@ public class TeamManager : MonoBehaviour
             else
             {
                 Debug.LogError($"{unit.character.name} has no camera assigned! Movement will be based on Spectator.");
-                if (spectatorController != null) // !! [­×´_] ÀË¬d
+                if (spectatorController != null) // !! [ä¿®å¾©] æª¢æŸ¥
                 {
                     unit.character.cameraTransform = spectatorController.transform;
                 }
             }
 
-            // (ForceHighlightUpdate ²¾¨ì SwitchToCharacter µ²§À)
+            // (ForceHighlightUpdate ç§»åˆ° SwitchToCharacter çµå°¾)
         }
         else
         {
@@ -628,7 +639,7 @@ public class TeamManager : MonoBehaviour
     }
 
     // --- FindUnitByCharacter ---
-    // !! [­×´_] §ó§ï¦^¶ÇÃş«¬¬° TeamUnit? (nullable struct)
+    // !! [ä¿®å¾©] æ›´æ”¹å›å‚³é¡å‹ç‚º TeamUnit? (nullable struct)
     private TeamUnit? FindUnitByCharacter(GameObject charObject)
     {
         for (int i = 0; i < team.Length; ++i)
@@ -636,8 +647,8 @@ public class TeamManager : MonoBehaviour
             if (team[i].character?.gameObject == charObject) { return team[i]; }
         }
 
-        // !! [­×´_] §R°£ "GetComponent" ÅŞ¿è.
-        // ¦pªG¥¦¤£¦b `team` °}¦C¤¤, ¥¦´N "not found".
+        // !! [ä¿®å¾©] åˆªé™¤ "GetComponent" é‚è¼¯.
+        // å¦‚æœå®ƒä¸åœ¨ `team` é™£åˆ—ä¸­, å®ƒå°± "not found".
 
         return null;
     }
@@ -653,84 +664,86 @@ public class TeamManager : MonoBehaviour
     }
 
     /// <summary>
-    /// ³B²zÄá¼v¾÷¥­·Æ¹L´çªº Coroutine
+    /// è™•ç†æ”å½±æ©Ÿå¹³æ»‘éæ¸¡çš„ Coroutine
     /// </summary>
-    /// <param name="startTransform">°_©l¦ì¸m/±ÛÂà</param>
-    /// <param name="endTransform">¥Ø¼Ğ¦ì¸m/±ÛÂà</param>
-    /// <param name="targetIndex">°Êµeµ²§ô«á­n±Ò¥Îªº¨¤¦â¯Á¤Ş</param>
+    /// <param name="startTransform">èµ·å§‹ä½ç½®/æ—‹è½‰</param>
+    /// <param name="endTransform">ç›®æ¨™ä½ç½®/æ—‹è½‰</param>
+    /// <param name="targetIndex">å‹•ç•«çµæŸå¾Œè¦å•Ÿç”¨çš„è§’è‰²ç´¢å¼•</param>
     private IEnumerator TransitionCameraCoroutine(Transform startTransform, Transform endTransform, int targetIndex, SwitchMethod method = SwitchMethod.Unknown)
     {
-        isTransitioning = true; // ¼Ğ°O¶}©lÂà´«
+        isTransitioning = true; // æ¨™è¨˜é–‹å§‹è½‰æ›
         Debug.Log($"Starting camera transition to index {targetIndex}...");
 
         float duration = (method == SwitchMethod.Sequential) ? sequentialTransitionDuration : directTransitionDuration;
 
-        // --- ·Ç³Æ¶¥¬q ---
-        // 1. ½T«O Spectator Äá¼v¾÷ª«¥ó¬O Active ªº¡A¦ı±±¨î¾¹¬O Inactive ªº
+        // --- æº–å‚™éšæ®µ ---
+        // 1. ç¢ºä¿ Spectator æ”å½±æ©Ÿç‰©ä»¶æ˜¯ Active çš„ï¼Œä½†æ§åˆ¶å™¨æ˜¯ Inactive çš„
         if (spectatorController != null) spectatorController.enabled = false;
         if (spectatorCameraObject != null) spectatorCameraObject.SetActive(true);
-        if (spectatorCameraComponent != null) spectatorCameraComponent.enabled = true; // ½T«O Camera ¤¸¥ó±Ò¥Î
+        if (spectatorCameraComponent != null) spectatorCameraComponent.enabled = true; // ç¢ºä¿ Camera å…ƒä»¶å•Ÿç”¨
 
-        // 2. ½T«O¥Ø¼Ğ¨¤¦âªº©Ò¦³ªF¦è (¸}¥», Camera GO) ³£¬O Inactive
+        // 2. ç¢ºä¿ç›®æ¨™è§’è‰²çš„æ‰€æœ‰æ±è¥¿ (è…³æœ¬, Camera GO) éƒ½æ˜¯ Inactive
         if (targetIndex >= 0 && targetIndex < team.Length && team[targetIndex].character != null)
         {
-            SetUnitControl(team[targetIndex], false, true); // ±j¨î¸T¥Î¥Ø¼Ğ
+            SetUnitControl(team[targetIndex], false, true); // å¼·åˆ¶ç¦ç”¨ç›®æ¨™
         }
         else { Debug.LogError($"Transition target index {targetIndex} is invalid!"); isTransitioning = false; yield break; }
 
 
-        // 3. §â Spectator Äá¼v¾÷¥ß¨è"Àş²¾"¨ì°_©l¦ì¸m
+        // 3. æŠŠ Spectator æ”å½±æ©Ÿç«‹åˆ»"ç¬ç§»"åˆ°èµ·å§‹ä½ç½®
         Transform transitionCamTransform = spectatorCameraObject.transform;
         transitionCamTransform.position = startTransform.position;
         transitionCamTransform.rotation = startTransform.rotation;
 
-        // --- °Êµe¶¥¬q ---
+        // --- å‹•ç•«éšæ®µ ---
         float elapsedTime = 0f;
         PlaySwitchSound(method);
         while (elapsedTime < duration)
         {
-            // ¦pªG¥Ø¼Ğª«¥ó¦b°Êµe¤¤³~³QºR·´¤F¡A²×¤î°Êµe
+            // å¦‚æœç›®æ¨™ç‰©ä»¶åœ¨å‹•ç•«ä¸­é€”è¢«æ‘§æ¯€äº†ï¼Œçµ‚æ­¢å‹•ç•«
             if (endTransform == null || team[targetIndex].characterCamera == null)
             {
                 Debug.LogWarning("Camera transition target destroyed mid-animation. Aborting.");
-                // ¥i¯à»İ­n¨M©w¦^¨ì Spectator ¼Ò¦¡©Î°µ¨ä¥L³B²z
-                EnterSpectatorMode(); // ¦^¨ì Spectator ¤ñ¸û¦w¥ş
+                // å¯èƒ½éœ€è¦æ±ºå®šå›åˆ° Spectator æ¨¡å¼æˆ–åšå…¶ä»–è™•ç†
+                EnterSpectatorMode(); // å›åˆ° Spectator æ¯”è¼ƒå®‰å…¨
                 isTransitioning = false;
                 yield break;
             }
 
-            elapsedTime += Time.unscaledDeltaTime; // ¨Ï¥Î unscaledDeltaTime Á×§K¨ü TimeScale ¼vÅT
+            elapsedTime += Time.unscaledDeltaTime; // ä½¿ç”¨ unscaledDeltaTime é¿å…å— TimeScale å½±éŸ¿
             float t = Mathf.Clamp01(elapsedTime / duration);
-            float curvedT = transitionCurve.Evaluate(t); // ¨Ï¥Î¦±½u
+            float curvedT = transitionCurve.Evaluate(t); // ä½¿ç”¨æ›²ç·š
 
             transitionCamTransform.position = Vector3.Lerp(startTransform.position, endTransform.position, curvedT);
             transitionCamTransform.rotation = Quaternion.Slerp(startTransform.rotation, endTransform.rotation, curvedT);
 
-            yield return null; // µ¥«İ¤U¤@´V
+            yield return null; // ç­‰å¾…ä¸‹ä¸€å¹€
         }
 
-        // --- µ²§ô¶¥¬q ---
+        // --- çµæŸéšæ®µ ---
         Debug.Log($"Camera transition to index {targetIndex} finished.");
-        // 1. ºë½T³]©w¨ì³Ì²×¦ì¸m/±ÛÂà
+        // 1. ç²¾ç¢ºè¨­å®šåˆ°æœ€çµ‚ä½ç½®/æ—‹è½‰
         transitionCamTransform.position = endTransform.position;
         transitionCamTransform.rotation = endTransform.rotation;
 
-        // 2. °±¥Î Spectator Äá¼v¾÷ª«¥ó
+        // 2. åœç”¨ Spectator æ”å½±æ©Ÿç‰©ä»¶
         if (spectatorCameraObject != null) spectatorCameraObject.SetActive(false);
         if (spectatorCameraComponent != null) spectatorCameraComponent.enabled = false;
 
-        // 3. §ó·sª¬ºA (¥²¶·¦b±Ò¥Î·s¨¤¦â¤§«e¡I)
+        // 3. æ›´æ–°ç‹€æ…‹ (å¿…é ˆåœ¨å•Ÿç”¨æ–°è§’è‰²ä¹‹å‰ï¼)
         currentState = GameState.Possessing;
         activeCharacterIndex = targetIndex;
 
-        // 4. ±Ò¥Î¥Ø¼Ğ¨¤¦â (SetUnitControl ·|±Ò¥Î PlayerMovement, CamControl ©M Camera GO)
+        if (levelEnvironment != null) levelEnvironment.ToggleVisuals(true);
+
+        // 4. å•Ÿç”¨ç›®æ¨™è§’è‰² (SetUnitControl æœƒå•Ÿç”¨ PlayerMovement, CamControl å’Œ Camera GO)
         SetUnitControl(team[targetIndex], true);
 
-        // 5. ¸Ñ°£Âà´«¼Ğ°O
+        // 5. è§£é™¤è½‰æ›æ¨™è¨˜
         isTransitioning = false;
         Debug.Log($"Now possessing {team[targetIndex].character.name}");
 
-        // 6. (¥i¿ï) ±j¨î§ó·s°ª«G¡HSetUnitControl ¸Ì­±À³¸Ó·|°µ¤F
+        // 6. (å¯é¸) å¼·åˆ¶æ›´æ–°é«˜äº®ï¼ŸSetUnitControl è£¡é¢æ‡‰è©²æœƒåšäº†
         // if (highlightManager != null) highlightManager.ForceHighlightUpdate();
     }
 }
