@@ -5623,7 +5623,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &278519259
 Transform:
   m_ObjectHideFlags: 0
@@ -30578,7 +30578,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &1319305756
 Transform:
   m_ObjectHideFlags: 0
@@ -33740,6 +33740,7 @@ GameObject:
   - component: {fileID: 1464291470}
   - component: {fileID: 1464291471}
   - component: {fileID: 1464291472}
+  - component: {fileID: 1464291473}
   m_Layer: 0
   m_Name: _GameManagers
   m_TagString: Untagged
@@ -34017,6 +34018,22 @@ MonoBehaviour:
   targetFrameRate: -1
   useVSync: 0
   cameraScript: {fileID: 0}
+--- !u!114 &1464291473
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1464291463}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 34416a8d016fabe4b853fe081e7227b0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::AutoEnableObjects
+  visualsToEnable:
+  - {fileID: 1319305755}
+  - {fileID: 278519258}
+  enableOnAwake: 0
 --- !u!1 &1465795877
 GameObject:
   m_ObjectHideFlags: 0
