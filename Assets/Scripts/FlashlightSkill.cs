@@ -25,7 +25,6 @@ public class FlashlightSkill : BaseSkill
     private float holdTimer = 0f;
     private Quaternion defaultRotation; // 用來復原角度
     private TeamManager teamManager;    // 用來取得攝影機
-    private float checkTimer = 0f;
     private float timer = 0f;
 
     public override void OnInput(InputAction.CallbackContext context)

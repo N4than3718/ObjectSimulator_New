@@ -56,10 +56,6 @@ public class PlayerMovement : MonoBehaviour
     [SerializeField] private Color gizmoColor = new Color(1, 1, 0, 0.5f); // 黃色半透明
     [SerializeField] private float gizmoDuration = 1.0f;
 
-    [Header("Animation Settings")]
-    [Tooltip("動畫在 1x 速度播放時，對應的玩家移動速度 (m/s)")]
-    [SerializeField] private float animationBaseSpeed = 5.0f;
-
     [Header("物理設定")]
     [Tooltip("未操控時的物理角阻力 (預設 0.05)")]
     [SerializeField] private float uncontrolledAngularDrag = 0.05f;
@@ -78,8 +74,6 @@ public class PlayerMovement : MonoBehaviour
     [Header("地面檢測")]
     [Tooltip("檢測球的半徑 (越小的物件應該設越小)")]
     [SerializeField] private float groundCheckRadius = 0.2f;
-    [Tooltip("檢測距離 (越不規則的物件可能需要長一點的緩衝)")]
-    [SerializeField] private float groundCheckLeeway = 0.1f;
     [Tooltip("手動修正起點高度")]
     [SerializeField] private float sinkAmount = 0.15f; // [新增] 手動修正起點高度
     [SerializeField] private LayerMask groundLayer;
@@ -498,6 +492,9 @@ public class PlayerMovement : MonoBehaviour
             if (hitColl.transform.IsChildOf(transform)) continue;
             if (hitColl.attachedRigidbody == rb) continue;
 
+            if (hitColl is MeshCollider meshColl && !meshColl.convex) continue;
+            if (hitColl is TerrainCollider) continue;
+
             // B. 【關鍵修改】計算碰撞點與角度
             // 找出這個牆壁/地板上，離我最近的那個點
             Vector3 closestPoint = hitColl.ClosestPoint(objectCenter);
@@ -754,6 +751,11 @@ public class PlayerMovement : MonoBehaviour
         foreach (var hitColl in hits)
         {
             if (hitColl.transform.root == transform.root) continue; // 忽略自己
+
+            // 1. 如果是 MeshCollider 且不是 Convex (凸面)，跳過
+            if (hitColl is MeshCollider meshColl && !meshColl.convex) continue;
+            // 2. 如果是 TerrainCollider (地形)，ClosestPoint 也不支援，跳過
+            if (hitColl is TerrainCollider) continue;
 
             // 找出最近點
             Vector3 closestPoint = hitColl.ClosestPoint(objectCenter);

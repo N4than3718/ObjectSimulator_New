@@ -91,8 +91,6 @@ public class NpcAI : MonoBehaviour
     // 調查相關
     private Vector3? noiseInvestigationTarget = null;
     private float investigationTimer = 0f;
-    private Quaternion investigationStartRotation; // 用於紀錄到達時的朝向
-    private float lookAroundTimer = 0f; // 用於控制轉頭節奏
 
     // IK & Grab 相關
     private Transform ikTargetPoint = null;     // IK 伸手瞄準的目標點 (GrabPoint 或物件 Root)

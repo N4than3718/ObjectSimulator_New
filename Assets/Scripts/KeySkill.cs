@@ -77,16 +77,33 @@ public class KeySkill : BaseSkill
 
     private void ConsumeKey()
     {
-        // 🚨 注意：這是在銷毀玩家當前控制的角色！
-        // 你的 TeamManager 需要知道這件事，不然 Camera 可能會報錯或找不到目標
+        Debug.Log("👋 鑰匙任務完成，啟動銷毀程序...");
 
-        Debug.Log("👋 鑰匙斷了/任務完成，自我銷毀中...");
+        // 1. 先確認 TeamManager 活著
+        if (TeamManager.Instance != null)
+        {
+            // 2. 通知經紀人：我要退團了，請把鏡頭轉給別人
+            // 這裡很重要！Manager 內部必須處理 "如果移除的是當前操控角色，要切換鏡頭"
+            TeamManager.Instance.RemoveCharacterFromTeam(this.gameObject);
+        }
+        else
+        {
+            Debug.LogWarning("⚠️ 找不到 TeamManager！將直接強制銷毀。");
+        }
 
-        // 如果你有 TeamManager，最好先呼叫它移除成員，例如：
-        TeamManager.Instance.RemoveCharacterFromTeam(this.gameObject);
+        // 3. 卸載這把鑰匙身上的所有物理和控制，避免在銷毀前的一瞬間出錯
+        // 關閉移動控制
+        var movement = GetComponent<PlayerMovement>();
+        if (movement != null) movement.enabled = false;
 
-        // 簡單暴力法
-        Destroy(this.gameObject);
+        // 關閉碰撞 (避免銷毀瞬間還被物理引擎運算)
+        var coll = GetComponent<Collider>();
+        if (coll != null) coll.enabled = false;
+
+        // 4. 🔥 延遲銷毀 (关键！)
+        // 給 Unity 一點時間 (0.1秒) 去處理 TeamManager 的鏡頭切換和 List 更新
+        // 這樣可以避免 Null Reference 錯誤導致銷毀失敗
+        Destroy(this.gameObject, 0.1f);
     }
 
     // 畫出偵測範圍 (Debug用)
