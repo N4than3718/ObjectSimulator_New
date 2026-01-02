@@ -17,17 +17,16 @@ public class SkillManager : MonoBehaviour
     private void OnEnable()
     {
         playerActions.Player.Enable();
-        // 綁定 F 鍵 (假設你的 Action 叫 Interact 或 Skill)
-        playerActions.Player.Interact.started += OnSkillInput;
-        playerActions.Player.Interact.performed += OnSkillInput;
-        playerActions.Player.Interact.canceled += OnSkillInput;
+        playerActions.Player.Attack.started += OnSkillInput;
+        playerActions.Player.Attack.performed += OnSkillInput;
+        playerActions.Player.Attack.canceled += OnSkillInput;
     }
 
     private void OnDisable()
     {
-        playerActions.Player.Interact.started -= OnSkillInput;
-        playerActions.Player.Interact.performed -= OnSkillInput;
-        playerActions.Player.Interact.canceled -= OnSkillInput;
+        playerActions.Player.Attack.started -= OnSkillInput;
+        playerActions.Player.Attack.performed -= OnSkillInput;
+        playerActions.Player.Attack.canceled -= OnSkillInput;
         playerActions.Player.Disable();
     }
 
