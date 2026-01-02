@@ -80,11 +80,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::FakePhysics
   doorVisuals: {fileID: 860836350707724103}
+  interactionPoint: {fileID: 4825214288381564970}
   openSpeed: 2
   maxAngle: 90
   minAngle: -90
   autoClose: 1
-  activationDistance: 0.5
+  activationDistance: 0.6
   reverseDirection: 1
   showDebugLine: 1
 --- !u!65 &269483119357640962
