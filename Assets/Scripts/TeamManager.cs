@@ -290,15 +290,15 @@ public class TeamManager : MonoBehaviour
                 }
             }
 
-            // !! [修復] 用 new TeamUnit() 清空 struct
-            team[foundIndex] = new TeamUnit();
-
             Debug.Log($"RemoveCharacter: FoundIndex={foundIndex}, CurrentActiveIndex={activeCharacterIndex}, CurrentState={currentState}");
             if (currentState == GameState.Possessing && activeCharacterIndex == foundIndex)
             {
                 Debug.Log("Caught character was the active one. Attempting to switch...");
                 SwitchToPreviousOrSpectator(foundIndex);
             }
+
+            // !! [修復] 用 new TeamUnit() 清空 struct
+            team[foundIndex] = new TeamUnit();
 
             if (highlightManager != null) highlightManager.ForceHighlightUpdate();
         }
