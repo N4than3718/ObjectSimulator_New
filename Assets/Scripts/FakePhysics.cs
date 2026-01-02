@@ -5,6 +5,10 @@ public class FakePhysics : MonoBehaviour
     [Header("必填！請把門的模型拖進來")]
     public Transform doorVisuals; // 🔥 新增：這是我們要轉動的兒子 (門板)
 
+    [Header("自訂感應中心 (選填)")]
+    [Tooltip("如果不填，預設會使用這個物件的位置。你可以建一個空物件放在門中間，然後拖進來。")]
+    public Transform interactionPoint; // 🔥 新增：自訂感應點
+
     [Header("設定")]
     public float openSpeed = 5.0f;     // 開門速度
     public float maxAngle = 90f;       // 最大開門角度
@@ -37,6 +41,10 @@ public class FakePhysics : MonoBehaviour
 
         // 🔥 關鍵修正：遊戲開始時，記住現在的旋轉角度當作「0度（關閉）」
         initialRotation = Quaternion.identity;
+
+        // 🔥 防呆：如果你沒設感應點，我就用我自己 (Root) 當作感應點
+        if (interactionPoint == null)
+            interactionPoint = transform;
     }
 
     void Update()
@@ -91,7 +99,7 @@ public class FakePhysics : MonoBehaviour
             bool isClosed = Mathf.Abs(currentAngle) < 5.0f;
 
             // --- 🔥 關鍵邏輯：距離判斷 ---
-            float dist = Vector3.Distance(transform.position, other.transform.position);
+            float dist = Vector3.Distance(interactionPoint.position, other.transform.position);
 
             // 如果門是「關著」的，且玩家還「太遠」，就什麼都不做 (保持關閉)
             // 這就是為什麼你的 Collider 可以設很大，但門不會亂開的原因
@@ -108,14 +116,7 @@ public class FakePhysics : MonoBehaviour
             bool isInFront = dot > 0;
             if (reverseDirection) isInFront = !isInFront;
 
-            if (isInFront)
-            {
-                targetAngle = minAngle;
-            }
-            else
-            {
-                targetAngle = maxAngle;
-            }
+            targetAngle = isInFront ? minAngle : maxAngle;
         }
     }
 
@@ -124,14 +125,15 @@ public class FakePhysics : MonoBehaviour
         if (showDebugLine)
         {
             Gizmos.color = Color.red;
-            // 讓 Gizmos 跟隨物體當前的旋轉顯示，方便除錯
             Vector3 direction = reverseDirection ? -transform.forward : transform.forward;
             Gizmos.DrawRay(transform.position, direction * 2.0f);
-            Gizmos.DrawSphere(transform.position + direction * 2.0f, 0.1f);
 
-            // 🔥 畫出感應距離的圈圈 (黃色)
+            // 🔥 讓 Gizmos 畫在新的感應點上，方便你調整
+            // 如果遊戲還沒開始 (interactionPoint 可能是 null)，暫時用 transform 畫
+            Vector3 center = interactionPoint != null ? interactionPoint.position : transform.position;
+
             Gizmos.color = Color.yellow;
-            Gizmos.DrawWireSphere(transform.position, activationDistance);
+            Gizmos.DrawWireSphere(center, activationDistance);
         }
     }
 }
