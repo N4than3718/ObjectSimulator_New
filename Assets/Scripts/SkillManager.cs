@@ -30,6 +30,11 @@ public class SkillManager : MonoBehaviour
 
     private void OnSkillInput(InputAction.CallbackContext context)
     {
+        if (GameDirector.Instance != null && GameDirector.Instance.IsPaused)
+        {
+            return;
+        }
+
         if (context.started)
         {
             if (EventSystem.current != null && EventSystem.current.IsPointerOverGameObject())
