@@ -11538,7 +11538,7 @@ MonoBehaviour:
   fastSpeed: 2.5
   rotationSpeed: 10
   walkNoiseRange: 5
-  sprintNoiseRange: 7.5
+  sprintNoiseRange: 9
   jumpNoiseRange: 8
   noiseFrequency: 0.3
   showDebugGizmos: 1
@@ -11546,12 +11546,12 @@ MonoBehaviour:
   gizmoDuration: 1
   uncontrolledAngularDrag: 1
   moveDrag: 0
-  stopDrag: 10
+  stopDrag: 2
   jumpHeight: 0.65
   gravityMultiplier: 2.5
-  jumpCooldown: 0.3
+  jumpCooldown: 0.5
   jumpCutMultiplier: 0.5
-  airControl: 0.5
+  airControl: 0.3
   groundCheckRadius: 0.1
   sinkAmount: 0.15
   groundLayer:
@@ -11560,10 +11560,13 @@ MonoBehaviour:
   platformLayer:
     serializedVersion: 2
     m_Bits: 64
-  interactionDistance: 5
+  interactionDistance: 2.5
   minOutlineWidth: 0.003
   maxOutlineWidth: 0.04
   maxDistanceForOutline: 50
+  interactionLayer:
+    serializedVersion: 2
+    m_Bits: 577
 --- !u!54 &340754704
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -11572,7 +11575,7 @@ Rigidbody:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 340754700}
   serializedVersion: 5
-  m_Mass: 1
+  m_Mass: 0.3
   m_LinearDamping: 0
   m_AngularDamping: 0.05
   m_CenterOfMass: {x: 0, y: 0.3, z: 0}
@@ -11733,9 +11736,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 73c30630d28fa4c49b5d404f5e35a6f2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ObjectStats
-  weight: 1
-  noiseMultiplier: 1
+  weight: 0.3
+  materialType: 3
+  noiseMultiplier: 1.2
+  isFragile: 0
   isInsideContainer: 0
+  _lastMaterialType: 3
 --- !u!114 &340754709
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -11749,10 +11755,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ImpactSoundEmitter
   impactThreshold: 2
-  noiseRangeMultiplier: 2
+  soundCooldown: 0.2
   showDebugGizmos: 1
-  gizmoColor: {r: 1, g: 0, b: 0, a: 0.5}
-  gizmoDuration: 1
 --- !u!114 &340754710
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -13165,11 +13169,11 @@ MonoBehaviour:
   footstepSounds: []
   minPitch: 0.9
   maxPitch: 1.1
-  playerSpeed: 1.5
-  fastSpeed: 2.5
+  playerSpeed: 1.4
+  fastSpeed: 2.2
   rotationSpeed: 10
-  walkNoiseRange: 5
-  sprintNoiseRange: 7.5
+  walkNoiseRange: 5.5
+  sprintNoiseRange: 10
   jumpNoiseRange: 8
   noiseFrequency: 0.3
   showDebugGizmos: 1
@@ -13177,7 +13181,7 @@ MonoBehaviour:
   gizmoDuration: 1
   uncontrolledAngularDrag: 0.05
   moveDrag: 0
-  stopDrag: 10
+  stopDrag: 4
   jumpHeight: 0.65
   gravityMultiplier: 2.5
   jumpCooldown: 0.2
@@ -13191,10 +13195,13 @@ MonoBehaviour:
   platformLayer:
     serializedVersion: 2
     m_Bits: 64
-  interactionDistance: 5
+  interactionDistance: 2.5
   minOutlineWidth: 0.003
   maxOutlineWidth: 0.04
   maxDistanceForOutline: 50
+  interactionLayer:
+    serializedVersion: 2
+    m_Bits: 577
 --- !u!114 &400415118
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -13207,9 +13214,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 73c30630d28fa4c49b5d404f5e35a6f2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ObjectStats
-  weight: 1
-  noiseMultiplier: 1
+  weight: 0.5
+  materialType: 1
+  noiseMultiplier: 1.3
+  isFragile: 0
   isInsideContainer: 0
+  _lastMaterialType: 1
 --- !u!82 &400415119
 AudioSource:
   m_ObjectHideFlags: 0
@@ -13315,7 +13325,7 @@ Rigidbody:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 400415114}
   serializedVersion: 5
-  m_Mass: 1
+  m_Mass: 0.5
   m_LinearDamping: 0
   m_AngularDamping: 0.05
   m_CenterOfMass: {x: 0, y: 0.075, z: 0.0125}
@@ -16476,6 +16486,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::FieldOfView
   viewRadius: 7.5
   viewAngle: 120
+  eyeOffset: {x: 0, y: 1.6, z: 0}
   targetMask:
     serializedVersion: 2
     m_Bits: 64
@@ -21318,24 +21329,24 @@ MonoBehaviour:
   footstepSounds: []
   minPitch: 0.9
   maxPitch: 1.1
-  playerSpeed: 1.3
+  playerSpeed: 1.5
   fastSpeed: 2.5
   rotationSpeed: 10
-  walkNoiseRange: 6.5
+  walkNoiseRange: 4
   sprintNoiseRange: 8
-  jumpNoiseRange: 12
-  noiseFrequency: 0.3
+  jumpNoiseRange: 6
+  noiseFrequency: 0.35
   showDebugGizmos: 1
   gizmoColor: {r: 1, g: 1, b: 0, a: 0.5}
   gizmoDuration: 1
   uncontrolledAngularDrag: 0.05
   moveDrag: 0
-  stopDrag: 10
-  jumpHeight: 0.5
-  gravityMultiplier: 2.5
-  jumpCooldown: 0.2
+  stopDrag: 5
+  jumpHeight: 0.8
+  gravityMultiplier: 2
+  jumpCooldown: 0.5
   jumpCutMultiplier: 0.5
-  airControl: 0.5
+  airControl: 0.4
   groundCheckRadius: 0.1
   sinkAmount: 0.15
   groundLayer:
@@ -21344,10 +21355,13 @@ MonoBehaviour:
   platformLayer:
     serializedVersion: 2
     m_Bits: 64
-  interactionDistance: 5
+  interactionDistance: 2.5
   minOutlineWidth: 0.003
   maxOutlineWidth: 0.04
   maxDistanceForOutline: 50
+  interactionLayer:
+    serializedVersion: 2
+    m_Bits: 577
 --- !u!82 &869523640
 AudioSource:
   m_ObjectHideFlags: 0
@@ -21453,7 +21467,7 @@ Rigidbody:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 869523636}
   serializedVersion: 5
-  m_Mass: 1
+  m_Mass: 0.5
   m_LinearDamping: 0
   m_AngularDamping: 0.05
   m_CenterOfMass: {x: 0, y: 0, z: 0}
@@ -21487,10 +21501,10 @@ MonoBehaviour:
   skillName: "\u672A\u547D\u540D\u6280\u80FD"
   cooldownTime: 2
   skillIcon: {fileID: 21300000, guid: 1fa10a85b0ccbe74b9ff54e3e7eaae55, type: 3}
-  weightThreshold: 5
+  weightThreshold: 2
   heavyPushForce: 8
   pushInterval: 1
-  animationBaseSpeed: 5
+  animationBaseSpeed: 1.5
   maxStorage: 3
   possessableLayer:
     serializedVersion: 2
@@ -21509,9 +21523,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 73c30630d28fa4c49b5d404f5e35a6f2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ObjectStats
-  weight: 1
-  noiseMultiplier: 1
+  weight: 0.5
+  materialType: 5
+  noiseMultiplier: 0.5
+  isFragile: 0
   isInsideContainer: 0
+  _lastMaterialType: 5
 --- !u!95 &869523645
 Animator:
   serializedVersion: 7
@@ -21547,10 +21564,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ImpactSoundEmitter
   impactThreshold: 2
-  noiseRangeMultiplier: 2
+  soundCooldown: 0.2
   showDebugGizmos: 1
-  gizmoColor: {r: 1, g: 0, b: 0, a: 0.5}
-  gizmoDuration: 1
 --- !u!65 &869523647
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -28233,22 +28248,22 @@ MonoBehaviour:
   footstepSounds: []
   minPitch: 0.9
   maxPitch: 1.1
-  playerSpeed: 1.5
-  fastSpeed: 2.5
+  playerSpeed: 0.8
+  fastSpeed: 1.5
   rotationSpeed: 10
-  walkNoiseRange: 5
-  sprintNoiseRange: 7.5
-  jumpNoiseRange: 8
-  noiseFrequency: 0.3
+  walkNoiseRange: 7
+  sprintNoiseRange: 12
+  jumpNoiseRange: 10
+  noiseFrequency: 0.45
   showDebugGizmos: 1
   gizmoColor: {r: 1, g: 1, b: 0, a: 0.5}
   gizmoDuration: 1
   uncontrolledAngularDrag: 1
-  moveDrag: 0
-  stopDrag: 10
-  jumpHeight: 0.65
-  gravityMultiplier: 2.5
-  jumpCooldown: 0.3
+  moveDrag: 1
+  stopDrag: 8
+  jumpHeight: 0.3
+  gravityMultiplier: 3.5
+  jumpCooldown: 0.8
   jumpCutMultiplier: 0.5
   airControl: 0.5
   groundCheckRadius: 0.1
@@ -28259,10 +28274,13 @@ MonoBehaviour:
   platformLayer:
     serializedVersion: 2
     m_Bits: 64
-  interactionDistance: 5
+  interactionDistance: 2.5
   minOutlineWidth: 0.003
   maxOutlineWidth: 0.04
   maxDistanceForOutline: 50
+  interactionLayer:
+    serializedVersion: 2
+    m_Bits: 577
 --- !u!54 &1190774501
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -28271,7 +28289,7 @@ Rigidbody:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1190774497}
   serializedVersion: 5
-  m_Mass: 1
+  m_Mass: 2.5
   m_LinearDamping: 10
   m_AngularDamping: 0.05
   m_CenterOfMass: {x: 0, y: 0.4, z: 0.01}
@@ -28432,9 +28450,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 73c30630d28fa4c49b5d404f5e35a6f2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ObjectStats
-  weight: 3
-  noiseMultiplier: 1
+  weight: 2.5
+  materialType: 1
+  noiseMultiplier: 1.5
+  isFragile: 0
   isInsideContainer: 0
+  _lastMaterialType: 1
 --- !u!114 &1190774506
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -28448,10 +28469,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ImpactSoundEmitter
   impactThreshold: 2
-  noiseRangeMultiplier: 2
+  soundCooldown: 0.2
   showDebugGizmos: 1
-  gizmoColor: {r: 1, g: 0, b: 0, a: 0.5}
-  gizmoDuration: 1
 --- !u!65 &1190774507
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -34072,10 +34091,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ImpactSoundEmitter
   impactThreshold: 2
-  noiseRangeMultiplier: 2
+  soundCooldown: 0.2
   showDebugGizmos: 1
-  gizmoColor: {r: 1, g: 0, b: 0, a: 0.5}
-  gizmoDuration: 1
 --- !u!114 &1465795881
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -34130,24 +34147,24 @@ MonoBehaviour:
   footstepSounds: []
   minPitch: 0.9
   maxPitch: 1.1
-  playerSpeed: 1.5
-  fastSpeed: 2.5
+  playerSpeed: 1.8
+  fastSpeed: 3
   rotationSpeed: 10
   walkNoiseRange: 5
-  sprintNoiseRange: 7.5
-  jumpNoiseRange: 8
+  sprintNoiseRange: 9
+  jumpNoiseRange: 7
   noiseFrequency: 0.3
   showDebugGizmos: 1
   gizmoColor: {r: 1, g: 1, b: 0, a: 0.5}
   gizmoDuration: 1
   uncontrolledAngularDrag: 0.05
-  moveDrag: 0
-  stopDrag: 50
-  jumpHeight: 0.65
+  moveDrag: 0.5
+  stopDrag: 5
+  jumpHeight: 0.7
   gravityMultiplier: 2.5
   jumpCooldown: 0.2
   jumpCutMultiplier: 0.5
-  airControl: 0.5
+  airControl: 0.4
   groundCheckRadius: 0.1
   sinkAmount: 0.15
   groundLayer:
@@ -34156,10 +34173,13 @@ MonoBehaviour:
   platformLayer:
     serializedVersion: 2
     m_Bits: 64
-  interactionDistance: 5
+  interactionDistance: 2.5
   minOutlineWidth: 0.003
   maxOutlineWidth: 0.04
   maxDistanceForOutline: 50
+  interactionLayer:
+    serializedVersion: 2
+    m_Bits: 577
 --- !u!114 &1465795883
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -34172,9 +34192,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 73c30630d28fa4c49b5d404f5e35a6f2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ObjectStats
-  weight: 1
-  noiseMultiplier: 1
+  weight: 0.6
+  materialType: 4
+  noiseMultiplier: 0.8
+  isFragile: 0
   isInsideContainer: 0
+  _lastMaterialType: 4
 --- !u!82 &1465795884
 AudioSource:
   m_ObjectHideFlags: 0
@@ -34280,7 +34303,7 @@ Rigidbody:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1465795877}
   serializedVersion: 5
-  m_Mass: 1
+  m_Mass: 0.6
   m_LinearDamping: 10
   m_AngularDamping: 0.05
   m_CenterOfMass: {x: 0, y: 0, z: 0}
@@ -42889,24 +42912,24 @@ MonoBehaviour:
   footstepSounds: []
   minPitch: 0.9
   maxPitch: 1.1
-  playerSpeed: 1.5
-  fastSpeed: 2.5
+  playerSpeed: 2
+  fastSpeed: 3.5
   rotationSpeed: 10
-  walkNoiseRange: 5
-  sprintNoiseRange: 7.5
-  jumpNoiseRange: 8
-  noiseFrequency: 0.3
+  walkNoiseRange: 4
+  sprintNoiseRange: 7
+  jumpNoiseRange: 5
+  noiseFrequency: 0.2
   showDebugGizmos: 1
   gizmoColor: {r: 1, g: 1, b: 0, a: 0.5}
   gizmoDuration: 1
   uncontrolledAngularDrag: 0.05
   moveDrag: 0
-  stopDrag: 10
-  jumpHeight: 0.65
+  stopDrag: 20
+  jumpHeight: 0.55
   gravityMultiplier: 2.5
-  jumpCooldown: 0.5
+  jumpCooldown: 0.2
   jumpCutMultiplier: 0.5
-  airControl: 0.5
+  airControl: 1
   groundCheckRadius: 0.1
   sinkAmount: 0.15
   groundLayer:
@@ -42915,10 +42938,13 @@ MonoBehaviour:
   platformLayer:
     serializedVersion: 2
     m_Bits: 64
-  interactionDistance: 5
+  interactionDistance: 2.5
   minOutlineWidth: 0.003
   maxOutlineWidth: 0.04
   maxDistanceForOutline: 50
+  interactionLayer:
+    serializedVersion: 2
+    m_Bits: 577
 --- !u!114 &1932049457
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -42931,9 +42957,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 73c30630d28fa4c49b5d404f5e35a6f2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ObjectStats
-  weight: 1
-  noiseMultiplier: 1
+  weight: 0.1
+  materialType: 1
+  noiseMultiplier: 1.1
+  isFragile: 0
   isInsideContainer: 0
+  _lastMaterialType: 1
 --- !u!82 &1932049458
 AudioSource:
   m_ObjectHideFlags: 0
@@ -43060,7 +43089,7 @@ Rigidbody:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1932049451}
   serializedVersion: 5
-  m_Mass: 1
+  m_Mass: 0.1
   m_LinearDamping: 0
   m_AngularDamping: 0.05
   m_CenterOfMass: {x: 0, y: 0, z: 0}
@@ -46177,24 +46206,24 @@ MonoBehaviour:
   footstepSounds: []
   minPitch: 0.9
   maxPitch: 1.1
-  playerSpeed: 2
-  fastSpeed: 3.5
+  playerSpeed: 2.5
+  fastSpeed: 4.5
   rotationSpeed: 10
-  walkNoiseRange: 7.5
-  sprintNoiseRange: 10
-  jumpNoiseRange: 12
+  walkNoiseRange: 2.5
+  sprintNoiseRange: 5
+  jumpNoiseRange: 4
   noiseFrequency: 0.3
   showDebugGizmos: 1
   gizmoColor: {r: 1, g: 1, b: 0, a: 0.5}
   gizmoDuration: 1
   uncontrolledAngularDrag: 0.05
   moveDrag: 0
-  stopDrag: 10
-  jumpHeight: 1
+  stopDrag: 15
+  jumpHeight: 1.4
   gravityMultiplier: 2.5
-  jumpCooldown: 0.2
+  jumpCooldown: 0.3
   jumpCutMultiplier: 0.5
-  airControl: 0.5
+  airControl: 0.8
   groundCheckRadius: 0.1
   sinkAmount: 0.15
   groundLayer:
@@ -46203,10 +46232,13 @@ MonoBehaviour:
   platformLayer:
     serializedVersion: 2
     m_Bits: 64
-  interactionDistance: 5
+  interactionDistance: 2.5
   minOutlineWidth: 0.003
   maxOutlineWidth: 0.04
   maxDistanceForOutline: 50
+  interactionLayer:
+    serializedVersion: 2
+    m_Bits: 577
 --- !u!82 &2128674179
 AudioSource:
   m_ObjectHideFlags: 0
@@ -46312,7 +46344,7 @@ Rigidbody:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2128674175}
   serializedVersion: 5
-  m_Mass: 1
+  m_Mass: 0.4
   m_LinearDamping: 10
   m_AngularDamping: 0.05
   m_CenterOfMass: {x: 0, y: 0, z: 0}
@@ -46365,9 +46397,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 73c30630d28fa4c49b5d404f5e35a6f2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ObjectStats
-  weight: 1
-  noiseMultiplier: 1
+  weight: 0.4
+  materialType: 5
+  noiseMultiplier: 0.3
+  isFragile: 0
   isInsideContainer: 0
+  _lastMaterialType: 5
 --- !u!114 &2128674184
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -46381,10 +46416,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ImpactSoundEmitter
   impactThreshold: 2
-  noiseRangeMultiplier: 2
+  soundCooldown: 0.2
   showDebugGizmos: 1
-  gizmoColor: {r: 1, g: 0, b: 0, a: 0.5}
-  gizmoDuration: 1
 --- !u!65 &2128674185
 BoxCollider:
   m_ObjectHideFlags: 0
