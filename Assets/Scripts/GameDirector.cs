@@ -196,16 +196,4 @@ public class GameDirector : MonoBehaviour
         Time.timeScale = 1f;
         SceneManager.LoadScene("MainMenu"); // 請確保你的場景命名一致
     }
-
-    // 💾 存檔邏輯 
-    public void SaveLevelProgress(int levelIndex)
-    {
-        int currentReached = PlayerPrefs.GetInt("ReachedLevel", 0);
-        if (levelIndex > currentReached)
-        {
-            PlayerPrefs.SetInt("ReachedLevel", levelIndex);
-            PlayerPrefs.Save();
-            Debug.Log($"進度已儲存：解鎖關卡 {levelIndex}");
-        }
-    }
 }
