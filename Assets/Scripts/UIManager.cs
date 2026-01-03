@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -8,6 +9,7 @@ public class UIManager : MonoBehaviour
     [Header("UI 綁定")]
     [Tooltip("顯示技能圖示的 Image (中間那個圓)")]
     [SerializeField] private Image iconImage;
+    public Image saveIcon; // 存檔成功的小圖示 (例如一個小磁碟或勾勾)
 
     [Tooltip("顯示冷卻遮罩的 Image (外圈或覆蓋層)")]
     [SerializeField] private Image cooldownFillImage;
@@ -17,6 +19,7 @@ public class UIManager : MonoBehaviour
 
     private BaseSkill currentSkill;
     private GameObject lastPlayerObj;
+    public float fillSpeed = 2f;
 
     private void Awake()
     {
@@ -85,5 +88,24 @@ public class UIManager : MonoBehaviour
     public void ForceUpdateUI()
     {
         lastPlayerObj = null; // 強制觸發下一次 Update 的偵測
+    }
+
+    public IEnumerator ShowSaveNotification()
+    {
+        saveIcon.gameObject.SetActive(true);
+        saveIcon.fillAmount = 0f;
+
+        float targetProgress = 0.9f;
+        while (saveIcon.fillAmount < targetProgress)
+        {
+            saveIcon.fillAmount = Mathf.MoveTowards(saveIcon.fillAmount, targetProgress, Time.unscaledDeltaTime * fillSpeed);
+            yield return null;
+        }
+
+        saveIcon.fillAmount = 1f;
+
+        yield return new WaitForSecondsRealtime(0.5f);
+        saveIcon.gameObject.SetActive(false);
+        Debug.Log("[System] 存檔成功！");
     }
 }

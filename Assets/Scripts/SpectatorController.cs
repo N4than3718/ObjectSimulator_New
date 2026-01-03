@@ -36,7 +36,15 @@ public class SpectatorController : MonoBehaviour
 
     void Awake()
     {
-        inputActions = new InputSystem_Actions();
+        if (GameDirector.Instance != null)
+        {
+            inputActions = GameDirector.Instance.playerActions;
+        }
+        else
+        {
+            inputActions = new InputSystem_Actions();
+        }
+
         spectatorCamera = GetComponent<Camera>();
         Debug.Log("[Spectator] Awake called.");
     }
@@ -52,8 +60,12 @@ public class SpectatorController : MonoBehaviour
 
     private void OnDisable()
     {
-        inputActions.Spectator.Disable();
-        inputActions.Spectator.Select.performed -= OnSelectPerformed;
+        if (inputActions != null)
+        {
+            inputActions.Spectator.Select.performed -= OnSelectPerformed;
+            inputActions.Spectator.Disable();
+        }
+
         // Ensure highlight is cleared when disabled
         if (currentlyTargetedObject != null)
         {
@@ -150,6 +162,8 @@ public class SpectatorController : MonoBehaviour
 
     private void OnSelectPerformed(InputAction.CallbackContext context)
     {
+        if (this == null || teamManager == null) return;
+
         if (currentlyTargetedObject != null)
         {
             // 嘗試往上找，直到找到掛有 PlayerMovement 的那個物件
@@ -159,7 +173,8 @@ public class SpectatorController : MonoBehaviour
             {
                 Debug.Log($"[Spectator] Select Fired! Target: {targetMovement.name}");
                 // 傳入找到腳本的那個 GameObject
-                teamManager.PossessCharacter(targetMovement.gameObject);
+                TeamManager activeManager = TeamManager.Instance != null ? TeamManager.Instance : teamManager;
+                activeManager.PossessCharacter(targetMovement.gameObject);
             }
             else
             {

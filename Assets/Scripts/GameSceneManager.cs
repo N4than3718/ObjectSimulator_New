@@ -1,4 +1,4 @@
-using UnityEngine;
+ï»¿using UnityEngine;
 using UnityEngine.SceneManagement;
 using System.Collections;
 using UnityEngine.UI;
@@ -7,37 +7,39 @@ public class GameSceneManager : MonoBehaviour
 {
     public static GameSceneManager Instance { get; private set; }
 
-    [Header("¹L´ç®ÄªG")]
-    [Tooltip("½Ğ©ì¤J¤@­ÓÂĞ»\¥ş¿Ã¹õªº¶Â¦â Panel ªº CanvasGroup")]
+    [Header("éæ¸¡æ•ˆæœ")]
+    [Tooltip("è«‹æ‹–å…¥ä¸€å€‹è¦†è“‹å…¨è¢å¹•çš„é»‘è‰² Panel çš„ CanvasGroup")]
     [SerializeField] private CanvasGroup fadeCanvasGroup;
     [SerializeField] private float fadeDuration = 0.5f;
 
     private void Awake()
     {
-        // --- 1. µ´¹ï³æ¨Ò¼Ò¦¡ (¸ó³õ´º¦s¬¡) ---
+        // --- 1. çµ•å°å–®ä¾‹æ¨¡å¼ (è·¨å ´æ™¯å­˜æ´») ---
         if (Instance != null && Instance != this)
         {
-            Destroy(gameObject); // ¦pªG¤w¸g¦³¤@­Ó¸g²z¤F¡A·s¨Óªº¦Û±ş
+            Destroy(gameObject); // å¦‚æœå·²ç¶“æœ‰ä¸€å€‹ç¶“ç†äº†ï¼Œæ–°ä¾†çš„è‡ªæ®º
             return;
         }
 
         Instance = this;
-        DontDestroyOnLoad(gameObject); // ¡iÃöÁä¡j¤Á´«³õ´º®É¡A¤£­n¾P·´§Ú
+        DontDestroyOnLoad(gameObject); // ã€é—œéµã€‘åˆ‡æ›å ´æ™¯æ™‚ï¼Œä¸è¦éŠ·æ¯€æˆ‘
     }
 
     private void Start()
     {
-        // ¹CÀ¸¶}©l®É¡A¦pªG¦³³]©w CanvasGroup¡A°õ¦æ²H¤J (ÅÜ³z©ú)
+        // éŠæˆ²é–‹å§‹æ™‚ï¼Œå¦‚æœæœ‰è¨­å®š CanvasGroupï¼ŒåŸ·è¡Œæ·¡å…¥ (è®Šé€æ˜)
         if (fadeCanvasGroup != null)
         {
             fadeCanvasGroup.alpha = 1f;
-            fadeCanvasGroup.blocksRaycasts = false; // ¤¹³\ÂIÀ»
-            StartCoroutine(FadeRoutine(0f)); // 1 -> 0 (²H¤J)
+            fadeCanvasGroup.blocksRaycasts = false; // å…è¨±é»æ“Š
+            StartCoroutine(FadeRoutine(0f)); // 1 -> 0 (æ·¡å…¥)
         }
     }
 
     public void ReloadCurrentScene()
     {
+        if (fadeCanvasGroup != null && fadeCanvasGroup.alpha > 0.9f) return;
+
         string currentScene = SceneManager.GetActiveScene().name;
         StartCoroutine(LoadSceneRoutine(currentScene));
     }
@@ -46,15 +48,15 @@ public class GameSceneManager : MonoBehaviour
     {
         int nextIndex = SceneManager.GetActiveScene().buildIndex + 1;
 
-        // ÀË¬d¬O§_ÁÙ¦³¤U¤@Ãö
+        // æª¢æŸ¥æ˜¯å¦é‚„æœ‰ä¸‹ä¸€é—œ
         if (nextIndex < SceneManager.sceneCountInBuildSettings)
         {
             StartCoroutine(LoadSceneRoutine(nextIndex));
         }
         else
         {
-            Debug.LogWarning("¤w¸g¬O³Ì«á¤@Ãö¤F¡I¦^¨ì¥D¿ï³æ (index 0)");
-            StartCoroutine(LoadSceneRoutine(0)); // ©Î¦^¨ì¥D¿ï³æ
+            Debug.LogWarning("å·²ç¶“æ˜¯æœ€å¾Œä¸€é—œäº†ï¼å›åˆ°ä¸»é¸å–® (index 0)");
+            StartCoroutine(LoadSceneRoutine(0)); // æˆ–å›åˆ°ä¸»é¸å–®
         }
     }
 
@@ -68,54 +70,83 @@ public class GameSceneManager : MonoBehaviour
         StartCoroutine(LoadSceneRoutine(sceneIndex));
     }
 
-    // ¤ä´©¦r¦ê¦WºÙ¸ü¤J
+    // æ”¯æ´å­—ä¸²åç¨±è¼‰å…¥
     private IEnumerator LoadSceneRoutine(string sceneName)
     {
-        yield return StartCoroutine(TransitionOut()); // 1. ÅÜ¶Â
+        yield return StartCoroutine(TransitionOut()); // è®Šé»‘
 
-        AsyncOperation op = SceneManager.LoadSceneAsync(sceneName); // 2. ¸ü¤J
+        // ğŸ’€ ä¸è¦åœ¨é€™è£¡æ‰¾ Spectator æˆ– TeamManagerï¼Œå› ç‚ºå®ƒå€‘å³å°‡è¢«æ¯€æ‰
+        AsyncOperation op = SceneManager.LoadSceneAsync(sceneName);
         while (!op.isDone) yield return null;
 
-        yield return StartCoroutine(TransitionIn()); // 3. ÅÜ«G
+        // ğŸ’€ ç­‰å¾…ä¸€å¹€ç¢ºä¿æ–°å ´æ™¯çš„ Awake/Start å…¨éƒ¨è·‘å®Œ
+        yield return new WaitForEndOfFrame();
+
+        yield return StartCoroutine(TransitionIn()); // è®Šäº®
     }
 
-    // ¤ä´© Index ¸ü¤J (¤ñ¸û§Ö)
+    // æ”¯æ´ Index è¼‰å…¥ (æ¯”è¼ƒå¿«)
     private IEnumerator LoadSceneRoutine(int sceneIndex)
     {
-        yield return StartCoroutine(TransitionOut());
+        yield return StartCoroutine(TransitionOut()); // è®Šé»‘
 
+        // ğŸ’€ ä¸è¦åœ¨é€™è£¡æ‰¾ Spectator æˆ– TeamManagerï¼Œå› ç‚ºå®ƒå€‘å³å°‡è¢«æ¯€æ‰
         AsyncOperation op = SceneManager.LoadSceneAsync(sceneIndex);
         while (!op.isDone) yield return null;
 
-        yield return StartCoroutine(TransitionIn());
+        // ğŸ’€ ç­‰å¾…ä¸€å¹€ç¢ºä¿æ–°å ´æ™¯çš„ Awake/Start å…¨éƒ¨è·‘å®Œ
+        yield return new WaitForEndOfFrame();
+
+        yield return StartCoroutine(TransitionIn()); // è®Šäº®
     }
 
-    // --- ¹L´ç°Êµe ---
+    // --- éæ¸¡å‹•ç•« ---
 
-    private IEnumerator TransitionOut() // ÅÜ¶Â (Loading ¶}©l)
+    private IEnumerator TransitionOut() // è®Šé»‘ (Loading é–‹å§‹)
     {
-        // Âê©w®É¶¡¡AÁ×§KÂà³õ®É¹CÀ¸ÁÙ¦b¶]
-        Time.timeScale = 1f; // ½T«O°Êµe¯à¼½
+        // é–å®šæ™‚é–“ï¼Œé¿å…è½‰å ´æ™‚éŠæˆ²é‚„åœ¨è·‘
+        Time.timeScale = 1f; // ç¢ºä¿å‹•ç•«èƒ½æ’­
 
-        // Âê¦í¥D¨¤¾Ş§@ (¦pªG¦³¦h¥D¨¤¨t²Î)
+        if (GameDirector.Instance != null && GameDirector.Instance.playerActions != null)
+        {
+            GameDirector.Instance.playerActions.Player.Disable();
+            Debug.Log("TransitionOut: Input System Disabled.");
+        }
+
+        var allRbs = FindObjectsByType<Rigidbody>(FindObjectsSortMode.None);
+        foreach (var rb in allRbs)
+        {
+            rb.linearVelocity = Vector3.zero;
+            rb.angularVelocity = Vector3.zero;
+            rb.isKinematic = true;
+        }
+
+        // é–ä½ä¸»è§’æ“ä½œ (å¦‚æœæœ‰å¤šä¸»è§’ç³»çµ±)
         if (PlayerMovement.Current != null) PlayerMovement.Current.enabled = false;
 
         if (fadeCanvasGroup != null)
         {
-            fadeCanvasGroup.blocksRaycasts = true; // ªı¾×·Æ¹«ÂIÀ»
+            fadeCanvasGroup.blocksRaycasts = true; // é˜»æ“‹æ»‘é¼ é»æ“Š
             yield return StartCoroutine(FadeRoutine(1f));
         }
     }
 
-    private IEnumerator TransitionIn() // ÅÜ³z©ú (Loading µ²§ô)
+    private IEnumerator TransitionIn() // è®Šé€æ˜ (Loading çµæŸ)
     {
-        // ½T«O®É¶¡«ì´_¬y°Ê
+        // ç¢ºä¿æ™‚é–“æ¢å¾©æµå‹•
         Time.timeScale = 1f;
 
         if (fadeCanvasGroup != null)
         {
             yield return StartCoroutine(FadeRoutine(0f));
-            fadeCanvasGroup.blocksRaycasts = false; // «ì´_·Æ¹«ÂIÀ»
+            fadeCanvasGroup.blocksRaycasts = false;
+        }
+
+        // ğŸ’€ [æ–°å¢] ç•«é¢å®Œå…¨è®Šäº®å¾Œï¼Œæ‰å‡†è¨±è¼¸å…¥ç³»çµ±é‡æ–°å•Ÿç”¨
+        if (GameDirector.Instance != null && GameDirector.Instance.playerActions != null)
+        {
+            GameDirector.Instance.playerActions.Player.Enable();
+            Debug.Log("TransitionIn: Input System Re-enabled.");
         }
     }
 
@@ -126,7 +157,7 @@ public class GameSceneManager : MonoBehaviour
 
         while (time < fadeDuration)
         {
-            time += Time.unscaledDeltaTime; // ¨Ï¥Î unscaled ½T«O¤£¨ü TimeScale ¼vÅT
+            time += Time.unscaledDeltaTime; // ä½¿ç”¨ unscaled ç¢ºä¿ä¸å— TimeScale å½±éŸ¿
             fadeCanvasGroup.alpha = Mathf.Lerp(startAlpha, targetAlpha, time / fadeDuration);
             yield return null;
         }

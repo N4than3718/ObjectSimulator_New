@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -19,7 +20,7 @@ public class TeamManager : MonoBehaviour
     public enum GameState { Spectator, Possessing }
     public enum SwitchMethod { Sequential, Direct, Unknown }
 
-    public static TeamManager Instance { get; private set; }
+    public static TeamManager Instance { get; set; }
 
     [Header("Game State")]
     [SerializeField] private GameState currentState = GameState.Spectator;
@@ -51,7 +52,7 @@ public class TeamManager : MonoBehaviour
     [SerializeField] private float sequentialTransitionDuration = 0.2f;
     [SerializeField] private AnimationCurve transitionCurve = AnimationCurve.EaseInOut(0, 0, 1, 1); // 動畫曲線 (可選)
 
-    private int activeCharacterIndex = -1;
+    public int activeCharacterIndex = -1;
     private InputSystem_Actions playerActions;
     public GameState CurrentGameState => currentState;
     private Camera spectatorCameraComponent; // <--- [新增] 存 Spectator 的 Camera 元件
@@ -94,19 +95,25 @@ public class TeamManager : MonoBehaviour
     // --- Awake ---
     void Awake()
     {
-        if (Instance != null && Instance != this)
-        {
-            Destroy(this.gameObject); // 防止場景有兩個 Manager
-            return;
-        }
         Instance = this;
+        isTransitioning = false; // 💀 強制解鎖狀態
+
+        Camera[] allSceneCams = FindObjectsByType<Camera>(FindObjectsSortMode.None);
+        foreach (Camera cam in allSceneCams)
+        {
+            if (cam.gameObject != spectatorCameraObject)
+            {
+                cam.enabled = false; // 關閉元件
+                cam.gameObject.SetActive(false); // 關閉物件
+            }
+        }
 
         if (levelEnvironment == null)
         {
             levelEnvironment = FindAnyObjectByType<AutoEnableObjects>();
         }
 
-        playerActions = new InputSystem_Actions();
+        playerActions = GameDirector.Instance.playerActions;
 
         audioSource = GetComponent<AudioSource>(); // <-- [新增]
         if (audioSource == null) Debug.LogError("TeamManager 缺少 AudioSource 元件!", this.gameObject); // <-- [新增]
@@ -129,6 +136,8 @@ public class TeamManager : MonoBehaviour
     // --- OnEnable ---
     private void OnEnable()
     {
+        UnityEngine.SceneManagement.SceneManager.sceneLoaded += OnSceneLoaded;
+
         if (playerActions == null) playerActions = new InputSystem_Actions();
         playerActions.Player.Enable();
 
@@ -148,6 +157,8 @@ public class TeamManager : MonoBehaviour
     // --- OnDisable ---
     private void OnDisable()
     {
+        UnityEngine.SceneManagement.SceneManager.sceneLoaded -= OnSceneLoaded;
+
         if (playerActions != null)
         {
             playerActions.Player.Disable();
@@ -161,9 +172,58 @@ public class TeamManager : MonoBehaviour
         }
     }
 
+    private void OnSceneLoaded(UnityEngine.SceneManagement.Scene scene, UnityEngine.SceneManagement.LoadSceneMode mode)
+    {
+        Debug.Log($"[TeamManager] 偵測到新場景: {scene.name}，正在執行全域重置...");
+
+        // 1. 強制清空舊的狀態
+        activeCharacterIndex = -1;
+        isTransitioning = false;
+
+        // 2. 重新尋找新場景的必要參考 (因為舊的引用在載入後會變成 Missing)
+        FindNewSceneReferences();
+
+        if (levelEnvironment != null)
+        {
+            levelEnvironment.ReScanEnvironment();
+            levelEnvironment.ToggleVisuals(false); // 重啟後預設為 Spectator 模式 (隱藏)
+        }
+
+        // 3. 執行你原本的初始化邏輯
+        InitializeTeamState();
+    }
+
+    private void FindNewSceneReferences()
+    {
+        levelEnvironment = UnityEngine.Object.FindFirstObjectByType<AutoEnableObjects>();
+
+        // 建議透過 Tag 尋找，這樣最準確
+        GameObject specCam = GameObject.FindGameObjectWithTag("MainCamera");
+        // 或者如果你原本有名稱：
+        if (specCam == null) specCam = GameObject.Find("Spectator Camera");
+
+        if (specCam != null)
+        {
+            spectatorCameraObject = specCam;
+            spectatorCameraComponent = specCam.GetComponent<Camera>();
+            spectatorController = specCam.GetComponent<SpectatorController>();
+            Debug.Log("[TeamManager] 成功連結新場景 Spectator Camera。");
+        }
+    }
+
     // --- Start ---
     void Start()
     {
+        InitializeTeamState();
+    }
+
+    public void InitializeTeamState()
+    {
+        Debug.Log("--- TeamManager: Initiating Full Reset Protocol ---");
+        isTransitioning = false; // 💀 再次強制解鎖
+        activeCharacterIndex = -1;
+        this.enabled = true; // 💀 確保腳本是啟用的
+
         // 檢查 Spectator 和 HighlightManager 是否存在
         if (spectatorController == null || highlightManager == null)
         {
@@ -171,11 +231,23 @@ public class TeamManager : MonoBehaviour
             return;
         }
 
-        // --- 解決方案：把「強制禁用」邏輯加回來 ---
+        if (team != null)
+        {
+            // 如果你的 team 是 Array，就設為新陣列；如果是 List，就 Clear
+            // 假設是 List<TeamUnit>:
+            // team.Clear(); 
+
+            // 如果是固定長度的 Array，請重新初始化 (依據你的 Inspector 設定)
+            for (int i = 0; i < team.Length; i++)
+            {
+                team[i].character = null;
+                team[i].characterCamera = null;
+                team[i].cameraFollowTarget = null;
+            }
+        }
 
         // 作業 1: [關鍵] 找到場景中 *所有* 的 PlayerMovement 腳本並強制禁用它們
         // 這可以防止那些「還沒加入隊伍」的物件偷聽輸入。
-        Debug.Log("Start: Finding and disabling all PlayerMovement scripts in scene...");
         var allCharacterScripts = FindObjectsByType<PlayerMovement>(FindObjectsSortMode.None);
 
         foreach (var characterScript in allCharacterScripts)
@@ -194,7 +266,6 @@ public class TeamManager : MonoBehaviour
             var animator = characterScript.GetComponent<MovementAnimator>();
             if (animator != null) animator.enabled = false;
         }
-        Debug.Log($"Start: Force disabled {allCharacterScripts.Length} characters.");
 
         // 作業 2: [保留] 初始化任何 *已經* 在 Inspector 裡設定好的隊友
         // (對你目前的「空」陣列來說，這一步會全部跳過，是正常的)
@@ -209,10 +280,8 @@ public class TeamManager : MonoBehaviour
 
         // 作業 3: [不變] 進入觀察者模式
         EnterSpectatorMode();
+        Debug.Log("--- TeamManager: Reset Complete, Spectator Mode Active ---");
     }
-
-    // --- Update (空的) ---
-    void Update() { }
 
     // --- PossessCharacter ---
     public void PossessCharacter(GameObject characterObject)
@@ -474,38 +543,48 @@ public class TeamManager : MonoBehaviour
 
     public void SwitchToCharacterByIndex(int index, SwitchMethod method = SwitchMethod.Direct)
     {
-        if (isTransitioning) { Debug.LogWarning("Already transitioning, ignoring switch request."); return; } // 防止重入
-        // 基本的邊界和有效性檢查
-        if (index < 0 || index >= team.Length || team[index].character == null)
+        if (this == null) return;
+
+        // 💀 1. 這是第一道 Log，如果這行沒出現，代表連這方法都沒進來
+        Debug.Log($"[TeamManager] {gameObject.name} 執行附身請求。");
+
+        if (spectatorCameraObject == null)
         {
-            Debug.LogWarning($"SwitchToCharacterByIndex: 無效的索引 {index} 或該位置無角色。");
-            return;
+            Debug.LogWarning("[TeamManager] Spectator Camera 遺失，嘗試重新尋找...");
+            spectatorCameraObject = GameObject.Find("Spectator Camera");
         }
 
-        Transform startTransform = null;
+        // 💀 [核心修正]：暫時移除 activeInHierarchy 的檢查，改為強制啟用
+        this.enabled = true;
+        gameObject.SetActive(true);
+
+        // 💀 [核心修正]：確保重啟後標記不會卡住
+        if (activeCharacterIndex == -1) isTransitioning = false;
+        if (isTransitioning)
+        {
+            Debug.LogWarning("[TeamManager] 轉換中被攔截，強制解鎖進行測試。");
+            isTransitioning = false;
+        }
+
+        if (index < 0 || index >= team.Length || team[index].character == null) return;
+
+        if (team[index].characterCamera == null)
+        {
+            // 從 PlayerMovement 腳本重新抓取
+            team[index].characterCamera = team[index].character.myCharacterCamera;
+        }
+
+        // --- 取得攝影機參考 ---
         Transform endTransform = team[index].characterCamera.transform;
+        Transform startTransform = (currentState == GameState.Spectator) ? spectatorCameraObject.transform : CurrentCameraTransform;
 
-        if (currentState == GameState.Spectator)
-        {
-            startTransform = (spectatorCameraObject != null) ? spectatorCameraObject.transform : this.transform;
-        }
-        else if (currentState == GameState.Possessing)
-        {
-            if (index == activeCharacterIndex)
-            {
-                Debug.Log($"SwitchToCharacterByIndex: Index {index} is already active.");
-                return; // 已經是當前角色，不做事
-            }
+        if (startTransform == null) { Debug.LogError("❌ startTransform 為空！"); return; }
+        if (endTransform == null) { Debug.LogError("❌ endTransform 為空！"); return; }
 
-            startTransform = (activeCharacterIndex >= 0 && team[activeCharacterIndex].characterCamera != null) ? team[activeCharacterIndex].characterCamera.transform : spectatorCameraObject.transform; // 從舊角色攝影機開始
-            if (activeCharacterIndex >= 0 && activeCharacterIndex < team.Length && team[activeCharacterIndex].character != null)
-            {
-                SetUnitControl(team[activeCharacterIndex], false, true); // 強制禁用
-            }
-        }
-        else { /* ... Error Log ... */ return; }
+        // 💀 2. 這是啟動協程前的最後一道 Log
+        Debug.Log($"[TeamManager] 🚀 即將執行 StartCoroutine...");
 
-        if (startTransform == null || endTransform == null) { Debug.LogError("SwitchToCharacterByIndex: Start or End Transform is null!"); return; }
+        StopAllCoroutines();
         StartCoroutine(TransitionCameraCoroutine(startTransform, endTransform, index, method));
     }
 
@@ -559,71 +638,63 @@ public class TeamManager : MonoBehaviour
     }
 
     // --- SetUnitControl ---
-    private void SetUnitControl(TeamUnit unit, bool isActive, bool forceDisable = false)
+    private void SetUnitControl(TeamUnit member, bool isControlled, bool forceDisable = false)
     {
-        // 檢查角色本身是否存在
-        if (unit.character == null)
+        if (member.character == null) return;
+
+        // 💀 [核心修正] 1. 如果是要「開啟」某人，先暴力關閉「所有人」的腳本與攝影機
+        if (isControlled)
         {
-            return;
-        }
-
-        // 檢查攝影機引用是否存在
-        if (unit.characterCamera == null)
-        {
-            Debug.LogWarning($"SetUnitControl: {unit.character.name} is missing its CharacterCamera reference!");
-        }
-
-        unit.character.enabled = isActive;
-        var animator = unit.character.GetComponent<MovementAnimator>();
-        if (animator != null) animator.enabled = isActive;
-
-        var cardboardSkill = unit.character.GetComponent<CardboardSkill>();
-        if (cardboardSkill != null)
-        {
-            cardboardSkill.enabled = isActive;
-        }
-
-        if (unit.characterCamera != null)
-        {
-            // Coroutine 結束時 isTransitioning 應為 false, isActive 為 true
-            // 禁用舊角色時 isTransitioning 可能為 true, isActive 為 false
-            unit.characterCamera.gameObject.SetActive(isActive); // <-- 控制 Camera GO
-
-            // 啟用 CamControl 腳本 (如果有的話)
-            CamControl camScript = unit.characterCamera.GetComponent<CamControl>();
-            if (camScript != null) camScript.enabled = isActive;
-        }
-
-        if (isActive)
-        {
-            if (unit.characterCamera != null)
+            foreach (var otherMember in team)
             {
-                unit.characterCamera.gameObject.SetActive(true);
-                // 把這台攝影機的 Transform 傳給 PlayerMovement
-                unit.character.cameraTransform = unit.characterCamera.transform;
-                // !! [重要] 確保 CamControl 跟隨正確的目標
-                unit.characterCamera.FollowTarget = unit.cameraFollowTarget;
-                CamControl camScript = unit.characterCamera.GetComponent<CamControl>();
-                if (camScript != null) camScript.FollowTarget = unit.cameraFollowTarget;
-            }
-            else
-            {
-                Debug.LogError($"{unit.character.name} has no camera assigned! Movement will be based on Spectator.");
-                if (spectatorController != null) // !! [修復] 檢查
+                if (otherMember.character != null)
                 {
-                    unit.character.cameraTransform = spectatorController.transform;
+                    otherMember.character.enabled = false;
+                    var otherRb = otherMember.character.GetComponent<Rigidbody>();
+                    if (otherRb != null) otherRb.isKinematic = true; // 確保舊角色物理鎖定
+                }
+
+                if (otherMember.characterCamera != null)
+                {
+                    // 🔥 這裡必須是 false！確保舊的被關掉
+                    otherMember.characterCamera.gameObject.SetActive(false);
+                    otherMember.characterCamera.enabled = false;
                 }
             }
-
-            // (ForceHighlightUpdate 移到 SwitchToCharacter 結尾)
         }
-        else
+
+        // 💀 2. 設定目標角色的狀態
+        member.character.enabled = isControlled;
+
+        var rb = member.character.GetComponent<Rigidbody>();
+        if (rb != null) rb.isKinematic = !isControlled;
+
+        var animator = member.character.GetComponent<MovementAnimator>();
+        if (animator != null) animator.enabled = isControlled;
+
+        var cardboardSkill = member.character.GetComponent<CardboardSkill>();
+        if (cardboardSkill != null) cardboardSkill.enabled = isControlled;
+
+        // 💀 3. 處理攝影機物件的開啟或關閉
+        if (member.characterCamera != null)
         {
-            if (unit.characterCamera != null)
+            member.characterCamera.gameObject.SetActive(isControlled);
+            member.characterCamera.enabled = isControlled;
+
+            Camera physicalCam = member.characterCamera.GetComponent<Camera>();
+            if (physicalCam != null) physicalCam.enabled = isControlled;
+
+            if (isControlled)
             {
-                unit.characterCamera.gameObject.SetActive(false);
+                member.character.cameraTransform = member.characterCamera.transform;
+                member.characterCamera.FollowTarget = member.cameraFollowTarget;
+
+                CamControl camScript = member.characterCamera.GetComponent<CamControl>();
+                if (camScript != null) camScript.FollowTarget = member.cameraFollowTarget;
             }
         }
+
+        Debug.Log($"[TeamManager] 控制權切換完成：{member.character.name}, 狀態: {isControlled}");
     }
 
     // --- FindInChildren ---
@@ -658,6 +729,7 @@ public class TeamManager : MonoBehaviour
     {
         for (int i = 0; i < team.Length; i++)
         {
+            if (team[i].character == null) continue;
             if (team[i].character?.gameObject == characterObject) { return true; }
         }
         return false;
@@ -672,7 +744,12 @@ public class TeamManager : MonoBehaviour
     private IEnumerator TransitionCameraCoroutine(Transform startTransform, Transform endTransform, int targetIndex, SwitchMethod method = SwitchMethod.Unknown)
     {
         isTransitioning = true; // 標記開始轉換
-        Debug.Log($"Starting camera transition to index {targetIndex}...");
+        Debug.Log("--- [Coroutine] 進入協程內部，開始 Lerp ---");
+
+        foreach (var m in team)
+        {
+            if (m.character != null) m.character.enabled = false;
+        }
 
         float duration = (method == SwitchMethod.Sequential) ? sequentialTransitionDuration : directTransitionDuration;
 
@@ -701,11 +778,16 @@ public class TeamManager : MonoBehaviour
         while (elapsedTime < duration)
         {
             // 如果目標物件在動畫中途被摧毀了，終止動畫
-            if (endTransform == null || team[targetIndex].characterCamera == null)
+            if (endTransform == null)
             {
-                Debug.LogWarning("Camera transition target destroyed mid-animation. Aborting.");
-                // 可能需要決定回到 Spectator 模式或做其他處理
-                EnterSpectatorMode(); // 回到 Spectator 比較安全
+                yield return null;
+                if (team[targetIndex].characterCamera != null)
+                    endTransform = team[targetIndex].characterCamera.transform;
+            }
+
+            if (endTransform == null)
+            {
+                Debug.LogError("Transition aborted: EndTransform is still null.");
                 isTransitioning = false;
                 yield break;
             }
@@ -726,24 +808,32 @@ public class TeamManager : MonoBehaviour
         transitionCamTransform.position = endTransform.position;
         transitionCamTransform.rotation = endTransform.rotation;
 
-        // 2. 停用 Spectator 攝影機物件
         if (spectatorCameraObject != null) spectatorCameraObject.SetActive(false);
-        if (spectatorCameraComponent != null) spectatorCameraComponent.enabled = false;
 
-        // 3. 更新狀態 (必須在啟用新角色之前！)
         currentState = GameState.Possessing;
         activeCharacterIndex = targetIndex;
 
-        if (levelEnvironment != null) levelEnvironment.ToggleVisuals(true);
+        if (levelEnvironment == null)
+        {
+            levelEnvironment = UnityEngine.Object.FindFirstObjectByType<AutoEnableObjects>();
+        }
 
-        // 4. 啟用目標角色 (SetUnitControl 會啟用 PlayerMovement, CamControl 和 Camera GO)
+        if (levelEnvironment != null)
+        {
+            Debug.Log("[TeamManager] 正在切換環境為：實體顯示 (Possess)");
+            levelEnvironment.ToggleVisuals(true);
+        }
+        else
+        {
+            Debug.LogWarning("[TeamManager] 找不到 AutoEnableObjects，無法切換視覺模式！");
+        }
+
         SetUnitControl(team[targetIndex], true);
 
-        // 5. 解除轉換標記
-        isTransitioning = false;
-        Debug.Log($"Now possessing {team[targetIndex].character.name}");
+        if (levelEnvironment != null) levelEnvironment.ToggleVisuals(true);
 
-        // 6. (可選) 強制更新高亮？SetUnitControl 裡面應該會做了
-        // if (highlightManager != null) highlightManager.ForceHighlightUpdate();
+        activeCharacterIndex = targetIndex;
+
+        isTransitioning = false;
     }
 }

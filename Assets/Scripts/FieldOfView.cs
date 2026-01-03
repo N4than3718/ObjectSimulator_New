@@ -1,28 +1,28 @@
-using UnityEngine;
+ï»¿using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
 
 public class FieldOfView : MonoBehaviour
 {
-    [Header("µø³¥°Ñ¼Æ")]
+    [Header("è¦–é‡åƒæ•¸")]
     public float viewRadius = 10f;
     [Range(0, 360)]
     public float viewAngle = 90f;
-    [Tooltip("²´·úªº°ª«×°¾²¾¶q (Á×§K±q¸}©³µo®g®g½u)")]
-    public Vector3 eyeOffset = new Vector3(0, 1.6f, 0); // ¹w³] 1.6¦Ì°ª«×
+    [Tooltip("çœ¼ç›çš„é«˜åº¦åç§»é‡ (é¿å…å¾è…³åº•ç™¼å°„å°„ç·š)")]
+    public Vector3 eyeOffset = new Vector3(0, 1.6f, 0); // é è¨­ 1.6ç±³é«˜åº¦
 
-    [Header("¹Ï¼h¾B¸n")]
+    [Header("åœ–å±¤é®ç½©")]
     public LayerMask targetMask;
     public LayerMask obstacleMask;
 
     [HideInInspector]
     public List<Transform> visibleTargets = new List<Transform>();
 
-    private Collider[] _targetBuffer = new Collider[10]; // ³Ì¦h°»´ú 10 ­Ó¥Ø¼Ğ¡A°÷¥Î¤F
+    private Collider[] _targetBuffer = new Collider[10]; // æœ€å¤šåµæ¸¬ 10 å€‹ç›®æ¨™ï¼Œå¤ ç”¨äº†
 
     void Start()
     {
-        StartCoroutine(FindTargetsWithDelay(0.2f)); // ¨C 0.2 ¬íÀË¬d¤@¦¸
+        StartCoroutine(FindTargetsWithDelay(0.2f)); // æ¯ 0.2 ç§’æª¢æŸ¥ä¸€æ¬¡
     }
 
     IEnumerator FindTargetsWithDelay(float delay)
@@ -39,7 +39,7 @@ public class FieldOfView : MonoBehaviour
         visibleTargets.Clear();
         int count = Physics.OverlapSphereNonAlloc(transform.position, viewRadius, _targetBuffer, targetMask);
 
-        Vector3 eyePos = transform.position + transform.rotation * eyeOffset; // ¦Ò¼{±ÛÂà (¦pªG NPC ·|­w¤U)
+        Vector3 eyePos = transform.position + transform.rotation * eyeOffset; // è€ƒæ…®æ—‹è½‰ (å¦‚æœ NPC æœƒè¶´ä¸‹)
 
         for (int i = 0; i < count; i++)
         {
@@ -47,7 +47,7 @@ public class FieldOfView : MonoBehaviour
 
             if (target.root == transform.root) continue;
 
-            Vector3 targetCenter = target.position + Vector3.up * 0.5f; // °²³]¥Ø¼Ğ¤¤¤ß°ª 0.5
+            Vector3 targetCenter = target.position + Vector3.up * 0.5f; // å‡è¨­ç›®æ¨™ä¸­å¿ƒé«˜ 0.5
             Vector3 dirToTarget = (targetCenter - eyePos).normalized;
 
             if (Vector3.Angle(transform.forward, dirToTarget) < viewAngle / 2)
@@ -63,7 +63,7 @@ public class FieldOfView : MonoBehaviour
 
     void OnDrawGizmosSelected()
     {
-        Vector3 eyePos = transform.position + eyeOffset; // Â²³æµøÄ±¤Æ
+        Vector3 eyePos = transform.position + eyeOffset; // ç°¡å–®è¦–è¦ºåŒ–
 
         Gizmos.color = Color.white;
         Gizmos.DrawWireSphere(transform.position, viewRadius);

@@ -1,4 +1,4 @@
-using System.Collections;
+ï»¿using System.Collections;
 using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEngine;
@@ -7,9 +7,9 @@ public class HighlightManager : MonoBehaviour
 {
     [Header("References")]
     [SerializeField] private TeamManager teamManager;
-    [Tooltip("¥Õ¦â°ª«G§÷½è¼ÒªO (Available)")]
+    [Tooltip("ç™½è‰²é«˜äº®æè³ªæ¨¡æ¿ (Available)")]
     [SerializeField] private Material availableHighlightTemplate;
-    [Tooltip("ºñ¦â°ª«G§÷½è¼ÒªO (Inactive Team Member)")]
+    [Tooltip("ç¶ è‰²é«˜äº®æè³ªæ¨¡æ¿ (Inactive Team Member)")]
     [SerializeField] private Material inactiveTeamHighlightTemplate;
 
     [Header("Settings")]
@@ -33,8 +33,14 @@ public class HighlightManager : MonoBehaviour
         }
         else
         {
-            Destroy(gameObject); // ¨¾¤î­«½Æ
+            Destroy(gameObject); // é˜²æ­¢é‡è¤‡
         }
+    }
+
+    private void OnDisable()
+    {
+        // ğŸ’€ ç•¶å ´æ™¯é‡å•Ÿæ™‚ï¼Œåœæ­¢èƒŒæ™¯æƒæå”ç¨‹
+        StopAllCoroutines();
     }
 
     void Start()
@@ -56,7 +62,7 @@ public class HighlightManager : MonoBehaviour
                 obj.inactiveTeamHighlightTemplate = this.inactiveTeamHighlightTemplate;
             }
         }
-        // ±Ò°Ê©w´Á§ó·s¨óµ{
+        // å•Ÿå‹•å®šæœŸæ›´æ–°å”ç¨‹
         updateCoroutine = StartCoroutine(UpdateAvailableHighlightsLoop());
     }
 
@@ -64,7 +70,7 @@ public class HighlightManager : MonoBehaviour
     {
         if (obj != null && allHighlightables.Add(obj))
         {
-            // ¦b³o¸Ì³]©w¼ÒªO
+            // åœ¨é€™è£¡è¨­å®šæ¨¡æ¿
             obj.availableHighlightTemplate = this.availableHighlightTemplate;
             obj.inactiveTeamHighlightTemplate = this.inactiveTeamHighlightTemplate;
         }
@@ -78,14 +84,14 @@ public class HighlightManager : MonoBehaviour
         }
     }
 
-    // ¤½¶}ªº±j¨î§ó·s¤èªk
+    // å…¬é–‹çš„å¼·åˆ¶æ›´æ–°æ–¹æ³•
     public void ForceHighlightUpdate()
     {
-        // Debug.Log("HighlightManager: Forcing Highlight Update!"); // °£¿ù¥Î
+        // Debug.Log("HighlightManager: Forcing Highlight Update!"); // é™¤éŒ¯ç”¨
         UpdateAllHighlights();
     }
 
-    // ©w´Á§ó·sªº¨óµ{°j°é
+    // å®šæœŸæ›´æ–°çš„å”ç¨‹è¿´åœˆ
     IEnumerator UpdateAvailableHighlightsLoop()
     {
         while (true)
@@ -95,7 +101,7 @@ public class HighlightManager : MonoBehaviour
         }
     }
 
-    // ®Ö¤ßÅŞ¿è
+    // æ ¸å¿ƒé‚è¼¯
     private void UpdateAllHighlights()
     {
         Transform currentCameraTransform = teamManager.CurrentCameraTransform;
@@ -103,26 +109,26 @@ public class HighlightManager : MonoBehaviour
 
         if (currentCameraTransform == null)
         {
-            // Debug.LogWarning("HighlightManager could not get current camera transform."); // ´î¤Ö Console ¾¸­µ
-            return; // §ä¤£¨ìÄá¼v¾÷´N¤£§ó·s
+            // Debug.LogWarning("HighlightManager could not get current camera transform."); // æ¸›å°‘ Console å™ªéŸ³
+            return; // æ‰¾ä¸åˆ°æ”å½±æ©Ÿå°±ä¸æ›´æ–°
         }
 
         allHighlightables.RemoveWhere(h => h == null);
 
         foreach (HighlightableObject highlightable in allHighlightables)
         {
-            // ÁöµM RemoveWhere ²M±¼¤F null¡A¦ı«OÀI°_¨£ÁÙ¬OÀË¬d¤@¤U enabled
+            // é›–ç„¶ RemoveWhere æ¸…æ‰äº† nullï¼Œä½†ä¿éšªèµ·è¦‹é‚„æ˜¯æª¢æŸ¥ä¸€ä¸‹ enabled
             if (highlightable.enabled)
             {
                 GameObject currentObject = highlightable.gameObject;
 
-                // ¦A¦¸ÀË¬d TeamManager
+                // å†æ¬¡æª¢æŸ¥ TeamManager
                 if (teamManager == null) continue;
 
                 bool isInTeam = highlightable.IsInTeam(teamManager);
                 bool isActive = (currentObject == activeCharacter);
 
-                // --- ª¬ºA§PÂ_ (ÅŞ¿è«O«ù¤£ÅÜ) ---
+                // --- ç‹€æ…‹åˆ¤æ–· (é‚è¼¯ä¿æŒä¸è®Š) ---
                 if (isInTeam && !isActive)
                 {
                     highlightable.SetInactiveTeamHighlight(true);
@@ -139,7 +145,7 @@ public class HighlightManager : MonoBehaviour
                     highlightable.SetInactiveTeamHighlight(false);
                 }
 
-                // --- §ó·s¼e«× ---
+                // --- æ›´æ–°å¯¬åº¦ ---
                 bool isTargetedNow = highlightable.IsTargeted;
 
                 if (!isActive && !isTargetedNow && (highlightable.IsAvailable() || highlightable.IsInactiveTeamMember()))

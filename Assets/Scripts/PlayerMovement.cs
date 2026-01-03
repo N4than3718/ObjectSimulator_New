@@ -1,4 +1,5 @@
 using System.Collections;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -85,7 +86,7 @@ public class PlayerMovement : MonoBehaviour
 
     [Header("Dynamic Outline")]
     [SerializeField] private float minOutlineWidth = 0.003f;
-    [SerializeField] private float maxOutlineWidth = 0.04f;
+    [SerializeField] private float maxOutlineWidth = 0.008f;
     [SerializeField] private float maxDistanceForOutline = 50f;
 
     [Header("Optimization")]
@@ -95,7 +96,7 @@ public class PlayerMovement : MonoBehaviour
     [Tooltip("射線檢測的層級 (建議排除 Player 層)")]
     public LayerMask interactionLayer = -1; // -1 代表 Everything (預設)
 
-    private InputSystem_Actions playerActions;
+    private InputSystem_Actions playerActions => GameDirector.Instance.playerActions;
     private Vector2 moveInput;
     private HighlightableObject currentlyTargetedPlayerObject;
     private bool jumpHeld = false;
@@ -122,9 +123,6 @@ public class PlayerMovement : MonoBehaviour
         audioSource = GetComponent<AudioSource>();
         animator = GetComponent<Animator>();
 
-        playerActions = new InputSystem_Actions();
-        playerActions.Player.Move.performed += ctx => moveInput = ctx.ReadValue<Vector2>();
-        playerActions.Player.Move.canceled += ctx => moveInput = Vector2.zero;
         teamManager = FindAnyObjectByType<TeamManager>();
         if (teamManager == null) Debug.LogError("PlayerMovement cannot find TeamManager!");
 
@@ -150,11 +148,19 @@ public class PlayerMovement : MonoBehaviour
     {
         Current = this;
 
-        if (playerActions == null) playerActions = new InputSystem_Actions();
-        playerActions.Player.Enable();
-        playerActions.Player.AddToTeam.performed += OnAddToTeam;
-        playerActions.Player.Jump.started += OnJumpStarted;
-        playerActions.Player.Jump.canceled += OnJumpCanceled;
+        if (GameDirector.Instance != null && playerActions != null)
+        {
+            // 綁定移動偵測 (這是 Update 能動的關鍵)
+            playerActions.Player.Move.performed += OnMovePerformed;
+            playerActions.Player.Move.canceled += OnMoveCanceled;
+
+            // 原有的綁定
+            playerActions.Player.AddToTeam.performed += OnAddToTeam;
+            playerActions.Player.Jump.started += OnJumpStarted;
+            playerActions.Player.Jump.canceled += OnJumpCanceled;
+            playerActions.Player.Attack.performed += OnSelectPerformed;
+        }
+
         if (rb != null)
         {
             rb.freezeRotation = true;
@@ -169,12 +175,16 @@ public class PlayerMovement : MonoBehaviour
             Current = null;
         }
 
-        if (playerActions != null)
+        if (GameDirector.Instance != null && GameDirector.Instance.playerActions != null)
         {
-            playerActions.Player.Disable();
+            // 💀 [修正] 同步解綁
+            playerActions.Player.Move.performed -= OnMovePerformed;
+            playerActions.Player.Move.canceled -= OnMoveCanceled;
+
             playerActions.Player.AddToTeam.performed -= OnAddToTeam;
             playerActions.Player.Jump.started -= OnJumpStarted;
             playerActions.Player.Jump.canceled -= OnJumpCanceled;
+            playerActions.Player.Attack.performed -= OnSelectPerformed;
         }
 
         if (currentlyTargetedPlayerObject != null)
@@ -189,6 +199,9 @@ public class PlayerMovement : MonoBehaviour
             rb.angularDamping = uncontrolledAngularDrag;
         }
     }
+
+    private void OnMovePerformed(InputAction.CallbackContext ctx) => moveInput = ctx.ReadValue<Vector2>();
+    private void OnMoveCanceled(InputAction.CallbackContext ctx) => moveInput = Vector2.zero;
 
     private void OnJumpStarted(InputAction.CallbackContext context)
     {
@@ -240,7 +253,14 @@ public class PlayerMovement : MonoBehaviour
     void Update()
     {
         if (playerActions == null) return;
-        moveInput = playerActions.Player.Move.ReadValue<Vector2>();
+        if (cameraTransform == null) return;
+        if (!this.enabled) return;
+
+        if (GameDirector.Instance != null && GameDirector.Instance.playerActions != null)
+        {
+            moveInput = GameDirector.Instance.playerActions.Player.Move.ReadValue<Vector2>();
+        }
+
         HandlePossessedHighlight();
 
         // 只要偵測到輸入，立刻解除鎖定，並重置貪睡鐘
@@ -277,55 +297,49 @@ public class PlayerMovement : MonoBehaviour
 
     void FixedUpdate()
     {
-        GroundCheck();
+        GroundCheck(); // 地面檢測
 
+        // 如果附身的是紙箱，更新紙箱動畫
         if (currentCardboard != null)
         {
-            // 把自己的 Rigidbody 和狀態傳過去
             currentCardboard.UpdateAnimationState(rb, isOverEncumbered, isPushing);
         }
 
+        // --- 核心移動判斷 ---
         if (!isOverEncumbered && moveInput.magnitude > 0.1f)
         {
+            // 🔥 移動時：設定移動阻力 (通常較低，甚至可以是 0，因為上面的 HandleMovement 已經自己處理慣性了)
             rb.linearDamping = moveDrag;
-            HandleMovement();
+            HandleMovement(); // <--- 呼叫剛剛修好的函式
         }
-        else if (!isOverEncumbered && IsGrounded) // [新增] 如果沒超重，也沒按鍵，就停下
+        else if (!isOverEncumbered && IsGrounded)
         {
+            // --- 停止時：處理自動煞車與休眠 ---
             sleepTimer += Time.fixedDeltaTime;
 
-            // 檢查水平速度是否已經很慢了
             Vector3 horizontalVel = new Vector3(rb.linearVelocity.x, 0, rb.linearVelocity.z);
 
-            if (horizontalVel.sqrMagnitude < 0.05f && sleepTimer > 0.5f) // 閾值可以微調，例如 0.05f
+            // 如果速度夠慢且已經停了一陣子，直接鎖定物理 (Kinematic) 省效能
+            if (horizontalVel.sqrMagnitude < 0.05f && sleepTimer > 0.5f)
             {
-                // 【關鍵】如果夠慢，直接開啟 Kinematic，物理引擎完全停止運算此物件
                 if (!rb.isKinematic)
                 {
-                    rb.isKinematic = true;
-                    // 關閉插值，避免鎖死瞬間的視覺拉扯 (可選，視情況)
-                    // rb.interpolation = RigidbodyInterpolation.None; 
-
-                    // 強制歸零速度，以防切換回物理時亂噴
                     rb.linearVelocity = Vector3.zero;
                     rb.angularVelocity = Vector3.zero;
                 }
             }
             else
             {
-                // 還沒夠慢，先用高阻尼減速 (你原本的邏輯)
+                // 還沒完全停下來，給它高阻力 (stopDrag) 幫忙煞車
                 rb.linearDamping = stopDrag;
-                // 或者保留你剛剛加的主動煞車代碼
             }
         }
         else if (!isOverEncumbered)
         {
-            // 如果 GroundCheck 稍微閃了一下 (判定成空中)，
-            // 我們不能讓阻力維持在 0，否則會無限滑行。
-            // 給它一個介於中間的阻力 (例如 2.0f)，讓它在"微跳"時也能減速。
-            sleepTimer = 0f; // 空中不鎖死
+            // 空中狀態
+            sleepTimer = 0f;
             rb.isKinematic = false;
-            rb.linearDamping = 0.5f;
+            rb.linearDamping = 0.5f; // 空中給一點點阻力防止無限飄移
         }
 
         CurrentHorizontalSpeed = new Vector3(rb.linearVelocity.x, 0, rb.linearVelocity.z).magnitude;
@@ -339,7 +353,7 @@ public class PlayerMovement : MonoBehaviour
     {
         if (cameraTransform == null || rb == null || playerActions == null) return;
 
-        // --- 1. 計算移動方向 (保持不變) ---
+        // --- 1. 計算移動方向 ---
         Vector3 camForward = cameraTransform.forward;
         Vector3 camRight = cameraTransform.right;
         camForward.y = 0; camRight.y = 0;
@@ -349,53 +363,49 @@ public class PlayerMovement : MonoBehaviour
         // 2. 根據是否在地面，決定移動邏輯
         if (IsGrounded)
         {
-            // --- 地面：保持原本的「直接速度控制」，反應靈敏 ---
+            // 🔥🔥🔥 [修復重點] 地面移動改用「速度差」計算 🔥🔥🔥
+            // 這會讓角色反應變得非常靈敏，想停就停，想轉就轉
+
+            // A. 計算目標速度 (我們希望角色達到的速度)
             Vector3 targetVelocity = moveDirection * CurrentSpeed;
 
+            // B. 取得當前速度
             Vector3 currentVelocity = rb.linearVelocity;
+
+            // C. 計算「需要補償的力」 (目標 - 當前)
             Vector3 velocityChange = targetVelocity - currentVelocity;
 
+            // D. 忽略垂直方向 (不要影響跳躍或重力)
             velocityChange.y = 0;
 
+            // E. 施加力 (使用 VelocityChange 模式，無視質量，瞬間生效)
             rb.AddForce(velocityChange, ForceMode.VelocityChange);
         }
         else
         {
-            // --- 空中：改為「施加力」或「限制性速度控制」，保留慣性 ---
-            // 方案 A (簡單版)：只允許玩家在空中「微調」方向，但不能急停
+            // --- 空中邏輯 (保留慣性) ---
             if (moveInput.magnitude > 0.1f)
             {
-                // 1. 計算目標速度
                 Vector3 targetVelocity = moveDirection * CurrentSpeed;
-
-                // 2. 取得當前水平速度
                 Vector3 currentVelocity = rb.linearVelocity;
                 Vector3 currentHorizontal = new Vector3(currentVelocity.x, 0, currentVelocity.z);
 
-                // 3. 【關鍵還原】計算 Lerp 之後的「預期速度」
-                // 這裡保留你原本的參數 (Time.fixedDeltaTime * airControl * 5f)
+                // 空中給一點點延遲 (Lerp)，不要像地面那麼黏
                 Vector3 intendedVelocity = Vector3.Lerp(currentHorizontal, targetVelocity, Time.fixedDeltaTime * airControl * 5f);
 
-                // 4. 計算「速度差 (Delta)」： 預期速度 - 當前速度
                 Vector3 velocityChange = intendedVelocity - currentHorizontal;
 
-                // 5. 將這個差值轉化為力，施加給剛體
-                // ForceMode.VelocityChange 會無視質量，直接改變速度，效果等同於你原本的寫法，但更安全
                 rb.AddForce(velocityChange, ForceMode.VelocityChange);
             }
-            // 注意：這裡沒有 else { velocity = 0 }，所以鬆開按鍵後，角色會繼續依照慣性飛行！
         }
 
         // --- 3. 處理旋轉 ---
-        // 只有在實際移動時才進行旋轉
         if (moveDirection.sqrMagnitude > 0.01f)
         {
-            // 計算目標旋轉方向 (只看水平方向)
             Quaternion targetRotation = Quaternion.LookRotation(moveDirection, Vector3.up);
-            // 使用 Slerp 平滑地轉向目標方向
-            // 注意：直接修改 Rigidbody 的 rotation 比修改 transform.rotation 更好
-            Quaternion newRotation = Quaternion.Slerp(rb.rotation, targetRotation, Time.fixedDeltaTime * rotationSpeed);
-            rb.MoveRotation(newRotation); // 使用 MoveRotation 更符合物理更新
+            float step = rotationSpeed * 72f * Time.fixedDeltaTime;
+
+            rb.MoveRotation(Quaternion.RotateTowards(rb.rotation, targetRotation, step));
         }
     }
 
@@ -589,7 +599,7 @@ public class PlayerMovement : MonoBehaviour
         HighlightableObject closestHighlightable = null;
         float closestDist = float.MaxValue;
 
-        bool doDebugLog = Mouse.current.leftButton.wasPressedThisFrame;
+        bool doDebugLog = false;
         if (doDebugLog) Debug.Log($"--- Raycast Hit Count: {hitCount} ---");
 
         for (int i = 0; i < hitCount; i++)
@@ -676,6 +686,21 @@ public class PlayerMovement : MonoBehaviour
                 return currentlyTargetedPlayerObject.gameObject;
             }
             return null;
+        }
+    }
+
+    private void OnSelectPerformed(InputAction.CallbackContext context)
+    {
+        if (!this.enabled || currentlyTargetedPlayerObject == null) return;
+
+        // 💀 [核心邏輯]：如果自己目前有高亮選中某個物件
+        CardboardSkill targetCardboard = currentlyTargetedPlayerObject.GetComponentInParent<CardboardSkill>();
+
+        if (targetCardboard != null)
+        {
+            Debug.Log($"[Interaction] {gameObject.name} 偵測到目標為紙箱，發送收納請求...");
+            targetCardboard.RequestStorage(this.gameObject);
+            return; // 💀 執行了互動就結束，不要讓 SkillManager 報錯
         }
     }
 

@@ -172,6 +172,9 @@ public class CardboardSkill : BaseSkill // 1. 改為繼承 BaseSkill
             GameObject obj = item.gameObject;
             item.isInsideContainer = false;
 
+            Rigidbody rb = obj.GetComponent<Rigidbody>();
+            rb.isKinematic = false;
+
             obj.transform.position = spitOutPoint.position;
             obj.SetActive(true);
 
@@ -194,7 +197,6 @@ public class CardboardSkill : BaseSkill // 1. 改為繼承 BaseSkill
 
     private IEnumerator SpitAllCoroutine()
     {
-        float offsetDistance = 1.0f;
         while (storedItems.Count > 0)
         {
             ObjectStats item = storedItems.Pop();
@@ -209,10 +211,11 @@ public class CardboardSkill : BaseSkill // 1. 改為繼承 BaseSkill
             Rigidbody rb = obj.GetComponent<Rigidbody>();
             if (rb != null)
             {
+                rb.isKinematic = false;
                 rb.linearVelocity = Vector3.zero; // 重置速度
                                                   // 往前方 + 隨機上拋一點
                 Vector3 forceDir = transform.forward + Vector3.up * 0.5f + Random.insideUnitSphere * 0.2f;
-                rb.AddForce(forceDir.normalized * 5f, ForceMode.Impulse); // 5f 是噴射力道
+                rb.AddForce(forceDir.normalized * 0.005f, ForceMode.Impulse);
 
                 // 加一點隨機旋轉
                 rb.AddTorque(Random.insideUnitSphere * 10f, ForceMode.Impulse);
@@ -260,6 +263,43 @@ public class CardboardSkill : BaseSkill // 1. 改為繼承 BaseSkill
         }
 
         return null;
+    }
+
+    /// <summary>
+    /// 提供給外部(隊友)呼叫的方法：請求被收納
+    /// </summary>
+    public void RequestStorage(GameObject requester)
+    {
+        if (storedItems.Count >= maxStorage) return;
+
+        Debug.Log($"[Cardboard] 接收到 {requester.name} 的收納請求，執行切換與收納...");
+
+        // 💀 [核心修正] 1. 先處理控制權切換
+        TeamManager tm = TeamManager.Instance;
+        if (tm != null && tm.ActiveCharacterGameObject == requester)
+        {
+            // 先切換到紙箱，確保切換邏輯從一個「活著」的物件發起
+            tm.PossessCharacter(this.gameObject);
+        }
+
+        // 💀 [核心修正] 2. 稍微延後收納，確保攝影機過渡協程已經成功啟動
+        StartCoroutine(DelayedStore(requester));
+    }
+
+    private IEnumerator DelayedStore(GameObject obj)
+    {
+        // 等待一幀，讓 TeamManager 的 StartCoroutine 有機會跑起來
+        yield return null;
+
+        // 執行原本的收納邏輯
+        ObjectStats item = obj.GetComponent<ObjectStats>();
+        if (item != null)
+        {
+            item.isInsideContainer = true;
+            storedItems.Push(item);
+            obj.SetActive(false); // 此時再關掉馬克杯就安全了
+            UpdateTotalWeight();
+        }
     }
 
     private void OnDrawGizmosSelected()

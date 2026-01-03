@@ -16,18 +16,24 @@ public class SkillManager : MonoBehaviour
 
     private void OnEnable()
     {
-        playerActions.Player.Enable();
-        playerActions.Player.Attack.started += OnSkillInput;
-        playerActions.Player.Attack.performed += OnSkillInput;
-        playerActions.Player.Attack.canceled += OnSkillInput;
+        if (GameDirector.Instance != null && GameDirector.Instance.playerActions != null)
+        {
+            var actions = GameDirector.Instance.playerActions;
+            actions.Player.Attack.started += OnSkillInput;
+            actions.Player.Attack.performed += OnSkillInput;
+            actions.Player.Attack.canceled += OnSkillInput;
+        }
     }
 
     private void OnDisable()
     {
-        playerActions.Player.Attack.started -= OnSkillInput;
-        playerActions.Player.Attack.performed -= OnSkillInput;
-        playerActions.Player.Attack.canceled -= OnSkillInput;
-        playerActions.Player.Disable();
+        if (GameDirector.Instance != null && GameDirector.Instance.playerActions != null)
+        {
+            var actions = GameDirector.Instance.playerActions;
+            actions.Player.Attack.started -= OnSkillInput;
+            actions.Player.Attack.performed -= OnSkillInput;
+            actions.Player.Attack.canceled -= OnSkillInput;
+        }
     }
 
     private void OnSkillInput(InputAction.CallbackContext context)
@@ -54,7 +60,7 @@ public class SkillManager : MonoBehaviour
             }
             else
             {
-                Debug.LogWarning($"[lSkillManager] 當前物件 {activeObj.name} 身上沒有掛載任何技能腳本！");
+                return;
             }
         }
     }

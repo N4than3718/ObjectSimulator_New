@@ -7,6 +7,8 @@ public class ExtractionZone : MonoBehaviour
         // 檢查進入的是不是玩家 (確保你的物品都有 "Player" tag)
         if (other.CompareTag("Player"))
         {
+            DataManager.Instance.SaveLevelProgress(1);
+
             // 呼叫導演喊卡
             GameDirector.Instance.TriggerVictory();
         }

@@ -74,6 +74,24 @@ public class AutoEnableObjects : MonoBehaviour
         // Debug.Log($"[Environment] 模式切換: {(isFullVisible ? "顯示" : "隱藏(ShadowOnly)")}");
     }
 
+    public void ReScanEnvironment()
+    {
+        allRenderers.Clear();
+        allColliders.Clear();
+
+        foreach (var obj in targetObjects)
+        {
+            if (obj != null)
+            {
+                // 強制開啟物件，否則 GetComponentsInChildren 有可能抓不到
+                obj.SetActive(true);
+                allRenderers.AddRange(obj.GetComponentsInChildren<Renderer>(true));
+                allColliders.AddRange(obj.GetComponentsInChildren<Collider>(true));
+            }
+        }
+        Debug.Log($"[Environment] 重新掃描完成：{allRenderers.Count} Renderers.");
+    }
+
     // --- 編輯器測試用按鈕 ---
     [ContextMenu("切換為：實體顯示 (Possess)")]
     public void TestShow() => ToggleVisuals(true);
