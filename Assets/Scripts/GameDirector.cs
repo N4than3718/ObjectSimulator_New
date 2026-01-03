@@ -14,6 +14,7 @@ public class GameDirector : MonoBehaviour
     [Header("UI References")]
     public GameObject gameOverPanel;
     public GameObject victoryPanel;
+    public GameObject pauseMenuUI;
     [Tooltip("主選單的場景名稱 (破關後回去用)")]
     public string mainMenuSceneName = "MainMenu";
 
@@ -22,6 +23,7 @@ public class GameDirector : MonoBehaviour
     public bool useVSync = false;
 
     public SpectatorController cameraScript;
+    public bool IsPaused { get; private set; } = false;
 
     private void Awake()
     {
@@ -35,6 +37,46 @@ public class GameDirector : MonoBehaviour
 
         QualitySettings.vSyncCount = useVSync ? 1 : 0;
         Application.targetFrameRate = targetFrameRate;
+        Time.timeScale = 1f;
+    }
+
+    private void Update()
+    {
+        // 監測 Esc 鍵 (這裡使用舊 Input 或你可改為 New Input System 事件)
+        if (Input.GetKeyDown(KeyCode.Escape))
+        {
+            if (IsPaused) Resume();
+            else Pause();
+        }
+    }
+
+    public void Pause()
+    {
+        IsPaused = true;
+        Time.timeScale = 0f; // 凍結物理與時間
+        pauseMenuUI.SetActive(true);
+
+        // 解鎖滑鼠
+        Cursor.lockState = CursorLockMode.None;
+        Cursor.visible = true;
+
+        // 💀 Coder: 暫停所有攝影機輸入
+        if (CamControl.Current != null) CamControl.Current.IsInputPaused = true;
+        if (cameraScript != null) cameraScript.IsInputPaused = true;
+    }
+
+    public void Resume()
+    {
+        IsPaused = false;
+        Time.timeScale = 1f;
+        pauseMenuUI.SetActive(false);
+
+        // 鎖回滑鼠
+        Cursor.lockState = CursorLockMode.Locked;
+        Cursor.visible = false;
+
+        if (CamControl.Current != null) CamControl.Current.IsInputPaused = false;
+        if (cameraScript != null) cameraScript.IsInputPaused = false;
     }
 
     private void Start()
@@ -119,6 +161,24 @@ public class GameDirector : MonoBehaviour
         {
             Time.timeScale = 1f;
             SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex + 1);
+        }
+    }
+
+    public void QuitToMenu()
+    {
+        Time.timeScale = 1f;
+        SceneManager.LoadScene("MainMenu"); // 請確保你的場景命名一致
+    }
+
+    // 💾 存檔邏輯 
+    public void SaveLevelProgress(int levelIndex)
+    {
+        int currentReached = PlayerPrefs.GetInt("ReachedLevel", 0);
+        if (levelIndex > currentReached)
+        {
+            PlayerPrefs.SetInt("ReachedLevel", levelIndex);
+            PlayerPrefs.Save();
+            Debug.Log($"進度已儲存：解鎖關卡 {levelIndex}");
         }
     }
 }
