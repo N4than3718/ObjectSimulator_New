@@ -15,9 +15,9 @@ public class CardboardSkill : BaseSkill // 1. 改為繼承 BaseSkill
     private Animator animator;
 
     [Header("Heavy Push Settings")]
-    [SerializeField] private float weightThreshold = 50f;
-    [SerializeField] private float heavyPushForce = 50f;
-    [SerializeField] private float pushInterval = 0.8f;
+    [SerializeField] private float weightThreshold = 2.0f;
+    [SerializeField] private float heavyPushForce = 8.0f;
+    [SerializeField] private float pushInterval = 1.0f;
     [SerializeField] private float animationBaseSpeed = 5.0f;
 
     [Header("倉儲設定")]
