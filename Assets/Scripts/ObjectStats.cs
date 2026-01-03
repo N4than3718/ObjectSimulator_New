@@ -26,6 +26,9 @@ public class ObjectStats : MonoBehaviour
     [HideInInspector]
     public bool isInsideContainer = false;
 
+    [HideInInspector]
+    [SerializeField] private SoundMaterial _lastMaterialType;
+
     private void Start()
     {
         // 遊戲開始時，強制物理引擎使用我們設定的重量
@@ -39,12 +42,21 @@ public class ObjectStats : MonoBehaviour
     // 自動根據材質設定預設值
     private void OnValidate()
     {
-        switch (materialType)
+        if (materialType != _lastMaterialType)
         {
-            case SoundMaterial.Metal: noiseMultiplier = 1.5f; break;
-            case SoundMaterial.Glass: noiseMultiplier = 1.2f; break;
-            case SoundMaterial.Soft: noiseMultiplier = 0.2f; break;
-            default: noiseMultiplier = 1.0f; break;
+            switch (materialType)
+            {
+                case SoundMaterial.Metal: noiseMultiplier = 1.5f; break;
+                case SoundMaterial.Glass: noiseMultiplier = 1.2f; break;
+                case SoundMaterial.Soft: noiseMultiplier = 0.2f; break;
+                case SoundMaterial.Wood: noiseMultiplier = 0.5f; break; // 補上木頭
+                case SoundMaterial.Plastic: noiseMultiplier = 0.8f; break; // 補上塑膠
+                default: noiseMultiplier = 1.0f; break;
+            }
+
+            // 更新記憶
+            _lastMaterialType = materialType;
+            // Debug.Log($"[ObjectStats] 材質變更為 {materialType}，自動重設倍率為 {noiseMultiplier}");
         }
 
         Rigidbody rb = GetComponent<Rigidbody>();
