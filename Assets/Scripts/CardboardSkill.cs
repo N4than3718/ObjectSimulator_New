@@ -194,7 +194,6 @@ public class CardboardSkill : BaseSkill // 1. 改為繼承 BaseSkill
 
     private IEnumerator SpitAllCoroutine()
     {
-        float offsetDistance = 1.0f;
         while (storedItems.Count > 0)
         {
             ObjectStats item = storedItems.Pop();
