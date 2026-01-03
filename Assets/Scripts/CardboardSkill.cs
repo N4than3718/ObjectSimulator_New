@@ -201,14 +201,24 @@ public class CardboardSkill : BaseSkill // 1. 改為繼承 BaseSkill
             GameObject obj = item.gameObject;
             item.isInsideContainer = false;
 
-            Vector3 spitPos = spitOutPoint.position + (transform.forward * offsetDistance) + (Random.insideUnitSphere * 0.1f);
-            spitPos.y = spitOutPoint.position.y;
-
-            obj.transform.position = spitPos;
+            // 1. 先設定位置在箱子口
+            obj.transform.position = spitOutPoint.position;
             obj.SetActive(true);
 
-            offsetDistance += 0.5f;
-            yield return new WaitForSeconds(0.15f);
+            // 2. 獲取剛體並施加推力
+            Rigidbody rb = obj.GetComponent<Rigidbody>();
+            if (rb != null)
+            {
+                rb.linearVelocity = Vector3.zero; // 重置速度
+                                                  // 往前方 + 隨機上拋一點
+                Vector3 forceDir = transform.forward + Vector3.up * 0.5f + Random.insideUnitSphere * 0.2f;
+                rb.AddForce(forceDir.normalized * 5f, ForceMode.Impulse); // 5f 是噴射力道
+
+                // 加一點隨機旋轉
+                rb.AddTorque(Random.insideUnitSphere * 10f, ForceMode.Impulse);
+            }
+
+            yield return new WaitForSeconds(0.1f); // 縮短間隔，像機關槍一樣吐出來
         }
         UpdateTotalWeight();
     }
