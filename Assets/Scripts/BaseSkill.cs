@@ -1,36 +1,42 @@
-using UnityEngine;
+ï»¿using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.InputSystem;
 
-// Ä~©Ó MonoBehaviour¡A³o¼Ë§Ú­Ì¥i¥H§â§Ş¯àª½±µ±¾¦bª«¥ó¤W³]©w°Ñ¼Æ
+// ç¹¼æ‰¿ MonoBehaviourï¼Œé€™æ¨£æˆ‘å€‘å¯ä»¥æŠŠæŠ€èƒ½ç›´æ¥æ›åœ¨ç‰©ä»¶ä¸Šè¨­å®šåƒæ•¸
 public abstract class BaseSkill : MonoBehaviour
 {
-    [Header("§Ş¯à°ò¥»³]©w")]
-    [SerializeField] protected string skillName = "¥¼©R¦W§Ş¯à";
-    [SerializeField] protected float cooldownTime = 2.0f; // §N«o®É¶¡
-    [SerializeField] protected Sprite skillIcon; // UI ¹Ï¥Ü (¤§«á¥Î)
+    [Header("æŠ€èƒ½åŸºæœ¬è¨­å®š")]
+    [SerializeField] protected string skillName = "æœªå‘½åæŠ€èƒ½";
+    [SerializeField] protected float cooldownTime = 2.0f; // å†·å»æ™‚é–“
+    [SerializeField] protected Sprite skillIcon; // UI åœ–ç¤º (ä¹‹å¾Œç”¨)
 
-    // °õ¦æ´Á¶¡ªºª¬ºA
+    // åŸ·è¡ŒæœŸé–“çš„ç‹€æ…‹
     protected float cooldownTimer = 0f;
     protected bool isReady = true;
 
-    // UI ¨Æ¥ó (¤§«á¥i¥H¥Î¨Ó§ó·s§N«o±ø)
+    // UI äº‹ä»¶ (ä¹‹å¾Œå¯ä»¥ç”¨ä¾†æ›´æ–°å†·å»æ¢)
     public Sprite GetSkillIcon() => skillIcon;
     public float GetCooldownRatio() => isReady ? 0f : (cooldownTimer / cooldownTime);
 
+    protected virtual void Start()
+    {
+        // ğŸ’€ The Coder: åˆå§‹åŒ–æ™‚ï¼Œå¦‚æœæŠ€èƒ½æ˜¯æº–å‚™å¥½çš„ï¼Œç›´æ¥é—œé–‰æ­¤ Component ä»¥ç¯€çœ Update é–‹éŠ·
+        if (isReady)
+        {
+            this.enabled = false;
+        }
+    }
+
     protected virtual void Update()
     {
-        // ³B²z§N«o­Ë¼Æ
-        if (!isReady)
-        {
-            cooldownTimer -= Time.deltaTime;
+        // è™•ç†å†·å»å€’æ•¸
+        cooldownTimer -= Time.deltaTime;
 
-            if (cooldownTimer <= 0f)
-            {
-                cooldownTimer = 0f;
-                isReady = true;
-                OnSkillReady(); // Ä²µo§N«o§¹¦¨ªºÅŞ¿è
-            }
+        if (cooldownTimer <= 0f)
+        {
+            cooldownTimer = 0f;
+            isReady = true;
+            OnSkillReady(); // è§¸ç™¼å†·å»å®Œæˆçš„é‚è¼¯
         }
     }
 
@@ -43,44 +49,54 @@ public abstract class BaseSkill : MonoBehaviour
     }
 
     /// <summary>
-    /// ¹Á¸ÕÄ²µo§Ş¯à (¥Ñ¥~³¡©I¥s¡A¨Ò¦p SkillManager)
+    /// å˜—è©¦è§¸ç™¼æŠ€èƒ½ (ç”±å¤–éƒ¨å‘¼å«ï¼Œä¾‹å¦‚ SkillManager)
     /// </summary>
     public bool TryActivate()
     {
-        if (!this.enabled)
-        {
-            this.enabled = true;
-            // Debug.Log($"{skillName} ¤w­«·s±Ò¥Î (Re-enabled by TryActivate)");
-        }
-
         if (isReady)
         {
-            Activate(); // °õ¦æ¹ê»Ú§Ş¯àÅŞ¿è
+            Activate(); // åŸ·è¡Œå¯¦éš›æŠ€èƒ½é‚è¼¯
             StartCooldown();
             return true;
         }
         else
         {
-            Debug.Log($"{skillName} §N«o¤¤... ³Ñ¾l {cooldownTimer:F1} ¬í");
-            // ³o¸Ì¥i¥H¼½©ñ¡uµLªk¨Ï¥Î¡vªº­µ®Ä
+            Debug.Log($"{skillName} å†·å»ä¸­... å‰©é¤˜ {cooldownTimer:F1} ç§’");
+            // é€™è£¡å¯ä»¥æ’­æ”¾ã€Œç„¡æ³•ä½¿ç”¨ã€çš„éŸ³æ•ˆ
             return false;
         }
     }
 
     /// <summary>
-    /// ¶}©l­pºâ§N«o
+    /// é–‹å§‹è¨ˆç®—å†·å»
     /// </summary>
     protected void StartCooldown()
     {
         isReady = false;
         cooldownTimer = cooldownTime;
+
+        this.enabled = true;
     }
 
     /// <summary>
-    /// §Ş¯à§N«o§¹¦¨®Éªº¦^©I (¥i¨Ñ¤lÃş§OÂĞ¼g)
+    /// å†·å»çµæŸçš„è™•ç†é‚è¼¯
+    /// </summary>
+    private void CompleteCooldown()
+    {
+        cooldownTimer = 0f;
+        isReady = true;
+        OnSkillReady(); // è§¸ç™¼å­é¡åˆ¥é‚è¼¯
+
+        // ğŸ’€ The Coder: ä»»å‹™å®Œæˆï¼Œé—œé–‰ Update é€²å…¥ä¼‘çœ 
+        this.enabled = false;
+        // Debug.Log($"[{skillName}] å†·å»å®Œç•¢ï¼Œé€²å…¥ä¼‘çœ æ¨¡å¼ã€‚");
+    }
+
+    /// <summary>
+    /// æŠ€èƒ½å†·å»å®Œæˆæ™‚çš„å›å‘¼ (å¯ä¾›å­é¡åˆ¥è¦†å¯«)
     /// </summary>
     protected virtual void OnSkillReady() {  }
 
-    // --- ¥²¶·¥Ñ¤lÃş§O¹ê§@ªº®Ö¤ßÅŞ¿è ---
+    // --- å¿…é ˆç”±å­é¡åˆ¥å¯¦ä½œçš„æ ¸å¿ƒé‚è¼¯ ---
     protected abstract void Activate();
 }
