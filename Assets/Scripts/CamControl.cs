@@ -1,5 +1,4 @@
 using UnityEngine;
-using UnityEngine.InputSystem;
 
 public class CamControl : MonoBehaviour
 {
@@ -48,9 +47,6 @@ public class CamControl : MonoBehaviour
     private void OnEnable()
     {
         Current = this;
-
-        playerActions.Player.Enable();
-        playerActions.Player.UnlockCursor.performed += OnUnlockCursor;
     }
 
     private void OnDisable()
@@ -59,9 +55,6 @@ public class CamControl : MonoBehaviour
         {
             Current = null;
         }
-
-        playerActions.Player.Disable();
-        playerActions.Player.UnlockCursor.performed -= OnUnlockCursor;
     }
 
     void Start()
@@ -85,12 +78,6 @@ public class CamControl : MonoBehaviour
 
         lookInput = playerActions.Player.Look.ReadValue<Vector2>();
         RotationInput = lookInput; // 如果 RotationInput 沒用到，可以註解掉或刪除
-    }
-
-    private void OnUnlockCursor(InputAction.CallbackContext context)
-    {
-        Cursor.lockState = CursorLockMode.None;
-        Cursor.visible = true;
     }
 
     // ▼▼▼ 新增：LateUpdate()，用於處理攝影機移動和旋轉 ▼▼▼
