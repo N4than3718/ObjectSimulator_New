@@ -28,6 +28,7 @@ public class SpectatorController : MonoBehaviour
     private Camera spectatorCamera;
     private float yaw;
     private float pitch;
+    public bool IsInputPaused { get; set; } = false;
 
     private HighlightableObject currentlyTargetedObject;
 
@@ -72,6 +73,11 @@ public class SpectatorController : MonoBehaviour
 
     void Update()
     {
+        if (IsInputPaused)
+        {
+            return; // Don't process rotation, positioning, etc.
+        }
+
         HandleLook();       // Call the single HandleLook method
         HandleMovement();   // Call the single HandleMovement method
         HandleHighlight();  // Call the single HandleHighlight method
