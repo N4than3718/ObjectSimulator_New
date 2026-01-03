@@ -28,7 +28,6 @@ public class CamControl : MonoBehaviour
     public float pitchMax = 85f;
 
     // --- 私有變數 ---
-    private InputSystem_Actions playerActions;
     private float yaw = 0f;
     private float pitch = 0f;
     private Vector2 lookInput;
@@ -38,11 +37,6 @@ public class CamControl : MonoBehaviour
 
     private float _currentHeight;
     private float _heightVelocity; // 高度變化的速度紀錄
-
-    void Awake()
-    {
-        playerActions = new InputSystem_Actions();
-    }
 
     private void OnEnable()
     {
@@ -76,7 +70,10 @@ public class CamControl : MonoBehaviour
             return; // Don't process rotation, positioning, etc.
         }
 
-        lookInput = playerActions.Player.Look.ReadValue<Vector2>();
+        if (GameDirector.Instance != null && GameDirector.Instance.playerActions != null)
+        {
+            lookInput = GameDirector.Instance.playerActions.Player.Look.ReadValue<Vector2>();
+        }
         RotationInput = lookInput; // 如果 RotationInput 沒用到，可以註解掉或刪除
     }
 
