@@ -1,7 +1,6 @@
 ﻿using UnityEngine;
 using UnityEngine.SceneManagement;
 using System.Collections;
-using UnityEngine.InputSystem;
 
 public class GameDirector : MonoBehaviour
 {
@@ -15,7 +14,6 @@ public class GameDirector : MonoBehaviour
     [Header("UI References")]
     public GameObject gameOverPanel;
     public GameObject victoryPanel;
-    public GameObject pauseMenuUI;
     [Tooltip("主選單的場景名稱 (破關後回去用)")]
     public string mainMenuSceneName = "MainMenu";
 
@@ -24,9 +22,6 @@ public class GameDirector : MonoBehaviour
     public bool useVSync = false;
 
     public SpectatorController cameraScript;
-    public InputSystem_Actions playerActions;
-
-    public bool IsPaused { get; private set; } = false;
 
     private void Awake()
     {
@@ -37,73 +32,9 @@ public class GameDirector : MonoBehaviour
             return;
         }
         Instance = this;
-        playerActions = new InputSystem_Actions(); // 整個遊戲只 new 這一次
-        playerActions.Player.Enable(); // 在這裡統一起動
 
         QualitySettings.vSyncCount = useVSync ? 1 : 0;
         Application.targetFrameRate = targetFrameRate;
-        Time.timeScale = 1f;
-    }
-
-    private void OnEnable()
-    {
-        // 💀 Coder: 只綁定一個 Toggle 函數，避免邏輯衝突
-        playerActions.Player.UnlockCursor.performed += OnTogglePauseInput;
-    }
-
-    private void OnDisable()
-    {
-        playerActions.Player.Disable();
-        playerActions.Player.UnlockCursor.performed -= OnTogglePauseInput;
-    }
-
-    // 處理 Input System 的事件 (需要參數)
-    private void OnTogglePauseInput(InputAction.CallbackContext context)
-    {
-        TogglePause();
-    }
-
-    // 真正的邏輯中心：UI 按鈕也可以直接呼叫這個方法 (不需要參數)
-    public void TogglePause()
-    {
-        if (IsPaused) Resume();
-        else Pause();
-    }
-
-    public void Pause()
-    {
-        Debug.Log("GameManager: 嘗試暫停遊戲..."); // 🔍 這裡會告訴你事件有沒有觸發
-        if (pauseMenuUI == null)
-        {
-            Debug.LogError("GameManager: 錯誤！pauseMenuUI 欄位是空的，請把選單物件拖進來！");
-            return;
-        }
-
-        IsPaused = true;
-        Time.timeScale = 0f; // 凍結物理與時間
-        pauseMenuUI.SetActive(true);
-
-        // 解鎖滑鼠
-        Cursor.lockState = CursorLockMode.None;
-        Cursor.visible = true;
-
-        // 💀 Coder: 暫停所有攝影機輸入
-        if (CamControl.Current != null) CamControl.Current.IsInputPaused = true;
-        if (cameraScript != null) cameraScript.IsInputPaused = true;
-    }
-
-    public void Resume()
-    {
-        IsPaused = false;
-        Time.timeScale = 1f;
-        pauseMenuUI.SetActive(false);
-
-        // 鎖回滑鼠
-        Cursor.lockState = CursorLockMode.Locked;
-        Cursor.visible = false;
-
-        if (CamControl.Current != null) CamControl.Current.IsInputPaused = false;
-        if (cameraScript != null) cameraScript.IsInputPaused = false;
     }
 
     private void Start()
@@ -189,11 +120,5 @@ public class GameDirector : MonoBehaviour
             Time.timeScale = 1f;
             SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex + 1);
         }
-    }
-
-    public void QuitToMenu()
-    {
-        Time.timeScale = 1f;
-        SceneManager.LoadScene("MainMenu"); // 請確保你的場景命名一致
     }
 }

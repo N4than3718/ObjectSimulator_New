@@ -14,7 +14,7 @@ public class IntroSequence : MonoBehaviour
             targetMug.SetTargetedHighlight(true);
 
             // 額外微調：讓邊框稍微加粗一點，增加戲劇性
-            targetMug.SetOutlineWidth(0.04f);
+            targetMug.SetOutlineWidth(0.005f);
 
             Debug.Log("✨ 開場動畫：馬克杯已甦醒！");
         }

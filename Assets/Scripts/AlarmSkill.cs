@@ -18,10 +18,8 @@ public class AlarmSkill : BaseSkill
     private float timer = 0f;
     private Vector3 originalLocalPos; // 用於震動復原
 
-    protected override void Start()
+    private void Start()
     {
-        base.Start();
-
         if (ringingPart != null) originalLocalPos = ringingPart.localPosition;
     }
 

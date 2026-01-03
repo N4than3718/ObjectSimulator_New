@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 public class CamControl : MonoBehaviour
 {
@@ -28,6 +29,7 @@ public class CamControl : MonoBehaviour
     public float pitchMax = 85f;
 
     // --- 私有變數 ---
+    private InputSystem_Actions playerActions;
     private float yaw = 0f;
     private float pitch = 0f;
     private Vector2 lookInput;
@@ -38,9 +40,17 @@ public class CamControl : MonoBehaviour
     private float _currentHeight;
     private float _heightVelocity; // 高度變化的速度紀錄
 
+    void Awake()
+    {
+        playerActions = new InputSystem_Actions();
+    }
+
     private void OnEnable()
     {
         Current = this;
+
+        playerActions.Player.Enable();
+        playerActions.Player.UnlockCursor.performed += OnUnlockCursor;
     }
 
     private void OnDisable()
@@ -49,6 +59,9 @@ public class CamControl : MonoBehaviour
         {
             Current = null;
         }
+
+        playerActions.Player.Disable();
+        playerActions.Player.UnlockCursor.performed -= OnUnlockCursor;
     }
 
     void Start()
@@ -70,11 +83,14 @@ public class CamControl : MonoBehaviour
             return; // Don't process rotation, positioning, etc.
         }
 
-        if (GameDirector.Instance != null && GameDirector.Instance.playerActions != null)
-        {
-            lookInput = GameDirector.Instance.playerActions.Player.Look.ReadValue<Vector2>();
-        }
+        lookInput = playerActions.Player.Look.ReadValue<Vector2>();
         RotationInput = lookInput; // 如果 RotationInput 沒用到，可以註解掉或刪除
+    }
+
+    private void OnUnlockCursor(InputAction.CallbackContext context)
+    {
+        Cursor.lockState = CursorLockMode.None;
+        Cursor.visible = true;
     }
 
     // ▼▼▼ 新增：LateUpdate()，用於處理攝影機移動和旋轉 ▼▼▼

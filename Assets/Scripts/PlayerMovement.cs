@@ -95,6 +95,7 @@ public class PlayerMovement : MonoBehaviour
     [Tooltip("射線檢測的層級 (建議排除 Player 層)")]
     public LayerMask interactionLayer = -1; // -1 代表 Everything (預設)
 
+    private InputSystem_Actions playerActions;
     private Vector2 moveInput;
     private HighlightableObject currentlyTargetedPlayerObject;
     private bool jumpHeld = false;
@@ -112,7 +113,7 @@ public class PlayerMovement : MonoBehaviour
     public enum CapsuleOrientation { YAxis, XAxis, ZAxis }
     public bool IsGrounded { get; private set; }
     public float CurrentHorizontalSpeed { get; private set; }
-    private float CurrentSpeed => (GameDirector.Instance.playerActions != null && GameDirector.Instance.playerActions.Player.Sprint.IsPressed()) ? fastSpeed : playerSpeed;
+    private float CurrentSpeed => (playerActions != null && playerActions.Player.Sprint.IsPressed()) ? fastSpeed : playerSpeed;
 
     void Awake()
     {
@@ -121,8 +122,9 @@ public class PlayerMovement : MonoBehaviour
         audioSource = GetComponent<AudioSource>();
         animator = GetComponent<Animator>();
 
-        GameDirector.Instance.playerActions.Player.Move.performed += ctx => moveInput = ctx.ReadValue<Vector2>();
-        GameDirector.Instance.playerActions.Player.Move.canceled += ctx => moveInput = Vector2.zero;
+        playerActions = new InputSystem_Actions();
+        playerActions.Player.Move.performed += ctx => moveInput = ctx.ReadValue<Vector2>();
+        playerActions.Player.Move.canceled += ctx => moveInput = Vector2.zero;
         teamManager = FindAnyObjectByType<TeamManager>();
         if (teamManager == null) Debug.LogError("PlayerMovement cannot find TeamManager!");
 
@@ -148,10 +150,11 @@ public class PlayerMovement : MonoBehaviour
     {
         Current = this;
 
-        GameDirector.Instance.playerActions.Player.Enable();
-        GameDirector.Instance.playerActions.Player.AddToTeam.performed += OnAddToTeam;
-        GameDirector.Instance.playerActions.Player.Jump.started += OnJumpStarted;
-        GameDirector.Instance.playerActions.Player.Jump.canceled += OnJumpCanceled;
+        if (playerActions == null) playerActions = new InputSystem_Actions();
+        playerActions.Player.Enable();
+        playerActions.Player.AddToTeam.performed += OnAddToTeam;
+        playerActions.Player.Jump.started += OnJumpStarted;
+        playerActions.Player.Jump.canceled += OnJumpCanceled;
         if (rb != null)
         {
             rb.freezeRotation = true;
@@ -166,12 +169,12 @@ public class PlayerMovement : MonoBehaviour
             Current = null;
         }
 
-        if (GameDirector.Instance.playerActions != null)
+        if (playerActions != null)
         {
-            GameDirector.Instance.playerActions.Player.Disable();
-            GameDirector.Instance.playerActions.Player.AddToTeam.performed -= OnAddToTeam;
-            GameDirector.Instance.playerActions.Player.Jump.started -= OnJumpStarted;
-            GameDirector.Instance.playerActions.Player.Jump.canceled -= OnJumpCanceled;
+            playerActions.Player.Disable();
+            playerActions.Player.AddToTeam.performed -= OnAddToTeam;
+            playerActions.Player.Jump.started -= OnJumpStarted;
+            playerActions.Player.Jump.canceled -= OnJumpCanceled;
         }
 
         if (currentlyTargetedPlayerObject != null)
@@ -236,8 +239,8 @@ public class PlayerMovement : MonoBehaviour
 
     void Update()
     {
-        if (GameDirector.Instance.playerActions == null) return;
-        moveInput = GameDirector.Instance.playerActions.Player.Move.ReadValue<Vector2>();
+        if (playerActions == null) return;
+        moveInput = playerActions.Player.Move.ReadValue<Vector2>();
         HandlePossessedHighlight();
 
         // 只要偵測到輸入，立刻解除鎖定，並重置貪睡鐘
@@ -334,7 +337,7 @@ public class PlayerMovement : MonoBehaviour
 
     private void HandleMovement()
     {
-        if (cameraTransform == null || rb == null || GameDirector.Instance.playerActions == null) return;
+        if (cameraTransform == null || rb == null || playerActions == null) return;
 
         // --- 1. 計算移動方向 (保持不變) ---
         Vector3 camForward = cameraTransform.forward;
@@ -404,7 +407,7 @@ public class PlayerMovement : MonoBehaviour
             noiseTimer += Time.fixedDeltaTime;
             if (noiseTimer >= noiseFrequency)
             {
-                bool isSprinting = GameDirector.Instance.playerActions != null && GameDirector.Instance.playerActions.Player.Sprint.IsPressed();
+                bool isSprinting = playerActions != null && playerActions.Player.Sprint.IsPressed();
                 float range = isSprinting ? sprintNoiseRange : walkNoiseRange;
                 float intensity = isSprinting ? 15f : 5f; // 衝刺加比較多警戒值
 
@@ -703,9 +706,9 @@ public class PlayerMovement : MonoBehaviour
 
     private void HandleJump()
     {
-        if (rb == null) return;
+        if (playerActions == null || rb == null) return;
 
-        bool freshJumpPressed = GameDirector.Instance.playerActions.Player.Jump.WasPressedThisFrame();
+        bool freshJumpPressed = playerActions.Player.Jump.WasPressedThisFrame();
 
         bool heldJumpActive = jumpHeld;
 
@@ -745,7 +748,7 @@ public class PlayerMovement : MonoBehaviour
             lastJumpTime = Time.fixedTime;
         }
 
-        if (freshJumpPressed && rb.linearVelocity.y > 0)
+        if (playerActions.Player.Jump.WasReleasedThisFrame() && rb.linearVelocity.y > 0)
         {
             // 直接把垂直速度砍半，造成「急墜」感，縮短滯空時間 = 縮短距離
             rb.linearVelocity = new Vector3(rb.linearVelocity.x, rb.linearVelocity.y * jumpCutMultiplier, rb.linearVelocity.z);
