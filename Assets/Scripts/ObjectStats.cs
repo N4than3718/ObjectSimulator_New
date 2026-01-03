@@ -26,6 +26,16 @@ public class ObjectStats : MonoBehaviour
     [HideInInspector]
     public bool isInsideContainer = false;
 
+    private void Start()
+    {
+        // 遊戲開始時，強制物理引擎使用我們設定的重量
+        Rigidbody rb = GetComponent<Rigidbody>();
+        if (rb != null)
+        {
+            rb.mass = weight;
+        }
+    }
+
     // 自動根據材質設定預設值
     private void OnValidate()
     {
@@ -35,6 +45,12 @@ public class ObjectStats : MonoBehaviour
             case SoundMaterial.Glass: noiseMultiplier = 1.2f; break;
             case SoundMaterial.Soft: noiseMultiplier = 0.2f; break;
             default: noiseMultiplier = 1.0f; break;
+        }
+
+        Rigidbody rb = GetComponent<Rigidbody>();
+        if (rb != null)
+        {
+            rb.mass = weight;
         }
     }
 }
