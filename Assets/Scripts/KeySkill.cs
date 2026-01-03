@@ -101,9 +101,9 @@ public class KeySkill : BaseSkill
         if (coll != null) coll.enabled = false;
 
         // 4. 🔥 延遲銷毀 (关键！)
-        // 給 Unity 一點時間 (0.1秒) 去處理 TeamManager 的鏡頭切換和 List 更新
+        // 給 Unity 一點時間 (1秒) 去處理 TeamManager 的鏡頭切換和 List 更新
         // 這樣可以避免 Null Reference 錯誤導致銷毀失敗
-        Destroy(this.gameObject, 0.1f);
+        Destroy(this.gameObject, 1.0f);
     }
 
     // 畫出偵測範圍 (Debug用)
