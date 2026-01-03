@@ -30,9 +30,12 @@ public class SkillManager : MonoBehaviour
 
     private void OnSkillInput(InputAction.CallbackContext context)
     {
-        if (EventSystem.current != null && EventSystem.current.IsPointerOverGameObject())
+        if (context.started)
         {
-            return;
+            if (EventSystem.current != null && EventSystem.current.IsPointerOverGameObject())
+            {
+                return;
+            }
         }
 
         // 1. 確認目前是否在附身狀態
