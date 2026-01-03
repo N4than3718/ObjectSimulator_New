@@ -52,7 +52,6 @@ public class TeamManager : MonoBehaviour
     [SerializeField] private AnimationCurve transitionCurve = AnimationCurve.EaseInOut(0, 0, 1, 1); // 動畫曲線 (可選)
 
     private int activeCharacterIndex = -1;
-    private InputSystem_Actions playerActions;
     public GameState CurrentGameState => currentState;
     private Camera spectatorCameraComponent; // <--- [新增] 存 Spectator 的 Camera 元件
 
@@ -106,8 +105,6 @@ public class TeamManager : MonoBehaviour
             levelEnvironment = FindAnyObjectByType<AutoEnableObjects>();
         }
 
-        playerActions = new InputSystem_Actions();
-
         audioSource = GetComponent<AudioSource>(); // <-- [新增]
         if (audioSource == null) Debug.LogError("TeamManager 缺少 AudioSource 元件!", this.gameObject); // <-- [新增]
         else audioSource.playOnAwake = false;
@@ -129,16 +126,13 @@ public class TeamManager : MonoBehaviour
     // --- OnEnable ---
     private void OnEnable()
     {
-        if (playerActions == null) playerActions = new InputSystem_Actions();
-        playerActions.Player.Enable();
-
-        InputAction switchNextAction = playerActions.Player.Next;
+        InputAction switchNextAction = GameDirector.Instance.playerActions.Player.Next;
         if (switchNextAction != null)
             switchNextAction.performed += ctx => SwitchNextCharacter();
         else
             Debug.LogError("Input Action 'SwitchNext' not found!");
 
-        InputAction switchPrevAction = playerActions.Player.Previous;
+        InputAction switchPrevAction = GameDirector.Instance.playerActions.Player.Previous;
         if (switchPrevAction != null)
             switchPrevAction.performed += ctx => SwitchPreviousCharacter();
         else
@@ -148,14 +142,14 @@ public class TeamManager : MonoBehaviour
     // --- OnDisable ---
     private void OnDisable()
     {
-        if (playerActions != null)
+        if (GameDirector.Instance.playerActions != null)
         {
-            playerActions.Player.Disable();
-            InputAction switchNextAction = playerActions.Player.Next;
+            GameDirector.Instance.playerActions.Player.Disable();
+            InputAction switchNextAction = GameDirector.Instance.playerActions.Player.Next;
             if (switchNextAction != null)
                 switchNextAction.performed -= ctx => SwitchNextCharacter();
 
-            InputAction switchPrevAction = playerActions.Player.Previous;
+            InputAction switchPrevAction = GameDirector.Instance.playerActions.Player.Previous;
             if (switchPrevAction != null)
                 switchPrevAction.performed -= ctx => SwitchPreviousCharacter();
         }
