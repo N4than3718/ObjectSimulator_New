@@ -24,7 +24,7 @@ public class GameDirector : MonoBehaviour
     public bool useVSync = false;
 
     public SpectatorController cameraScript;
-    private InputSystem_Actions playerActions;
+    public InputSystem_Actions playerActions;
 
     public bool IsPaused { get; private set; } = false;
 
@@ -37,6 +37,8 @@ public class GameDirector : MonoBehaviour
             return;
         }
         Instance = this;
+        playerActions = new InputSystem_Actions(); // 整個遊戲只 new 這一次
+        playerActions.Player.Enable(); // 在這裡統一起動
 
         QualitySettings.vSyncCount = useVSync ? 1 : 0;
         Application.targetFrameRate = targetFrameRate;
@@ -45,7 +47,6 @@ public class GameDirector : MonoBehaviour
 
     private void OnEnable()
     {
-        playerActions.Player.Enable();
         // 💀 Coder: 只綁定一個 Toggle 函數，避免邏輯衝突
         playerActions.Player.UnlockCursor.performed += OnTogglePauseInput;
     }
@@ -71,6 +72,13 @@ public class GameDirector : MonoBehaviour
 
     public void Pause()
     {
+        Debug.Log("GameManager: 嘗試暫停遊戲..."); // 🔍 這裡會告訴你事件有沒有觸發
+        if (pauseMenuUI == null)
+        {
+            Debug.LogError("GameManager: 錯誤！pauseMenuUI 欄位是空的，請把選單物件拖進來！");
+            return;
+        }
+
         IsPaused = true;
         Time.timeScale = 0f; // 凍結物理與時間
         pauseMenuUI.SetActive(true);
