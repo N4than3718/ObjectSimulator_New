@@ -34255,6 +34255,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1464291464}
   - component: {fileID: 1464291469}
+  - component: {fileID: 1464291475}
   - component: {fileID: 1464291468}
   - component: {fileID: 1464291467}
   - component: {fileID: 1464291466}
@@ -34262,6 +34263,7 @@ GameObject:
   - component: {fileID: 1464291471}
   - component: {fileID: 1464291472}
   - component: {fileID: 1464291473}
+  - component: {fileID: 1464291474}
   m_Layer: 0
   m_Name: _GameManagers
   m_TagString: Untagged
@@ -34556,6 +34558,30 @@ MonoBehaviour:
   targetObjects:
   - {fileID: 1319305755}
   - {fileID: 278519258}
+--- !u!114 &1464291474
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1464291463}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5919772b9e8b228428b29a4233dbd801, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::LevelTimer
+--- !u!114 &1464291475
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1464291463}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1df5e6d3b8c2bb2409f9cd19137039a6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::DataManager
 --- !u!1 &1465795877
 GameObject:
   m_ObjectHideFlags: 0
