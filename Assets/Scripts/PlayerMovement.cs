@@ -630,7 +630,7 @@ public class PlayerMovement : MonoBehaviour
         // 動態調整線條寬度
         if (currentlyTargetedPlayerObject != null)
         {
-            float t = Mathf.InverseLerp(0, maxDistanceForOutline, closestDistance);
+            float t = Mathf.InverseLerp(0, maxDistanceForOutline, closestDist);
             float newWidth = Mathf.Lerp(minOutlineWidth, maxOutlineWidth, t);
             currentlyTargetedPlayerObject.SetOutlineWidth(newWidth);
         }
