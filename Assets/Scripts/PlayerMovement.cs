@@ -81,7 +81,7 @@ public class PlayerMovement : MonoBehaviour
 
     [Header("Interaction & Highlighting")]
     [Tooltip("這是所有互動與準星高亮的標準距離")]
-    public float interactionDistance = 1.0f;
+    public float interactionDistance = 3.5f;
 
     [Header("Dynamic Outline")]
     [SerializeField] private float minOutlineWidth = 0.003f;
@@ -91,6 +91,9 @@ public class PlayerMovement : MonoBehaviour
     [Header("Optimization")]
     // 🔥 新增：預先配置好的射線碰撞陣列 (大小設為 10 通常夠用了)
     private RaycastHit[] _highlightHits = new RaycastHit[10];
+
+    [Tooltip("射線檢測的層級 (建議排除 Player 層)")]
+    public LayerMask interactionLayer = -1; // -1 代表 Everything (預設)
 
     private InputSystem_Actions playerActions;
     private Vector2 moveInput;
@@ -569,26 +572,44 @@ public class PlayerMovement : MonoBehaviour
     private void HandlePossessedHighlight()
     {
         if (cameraTransform == null) return;
+
         Ray ray = new Ray(cameraTransform.position, cameraTransform.forward);
-        HighlightableObject hitHighlightable = null;
-        float hitDistance = interactionDistance;
+        Debug.DrawRay(ray.origin, ray.direction * interactionDistance, Color.red);
 
         // 取得射線路徑上的碰撞
-        int hitCount = Physics.RaycastNonAlloc(ray, _highlightHits, interactionDistance);
+        int hitCount = Physics.RaycastNonAlloc(
+                    ray,
+                    _highlightHits,
+                    interactionDistance,
+                    interactionLayer,
+                    QueryTriggerInteraction.Ignore
+                );
 
         // 我們需要找到 "最近的" 且 "不是自己" 的那個
         HighlightableObject closestHighlightable = null;
         float closestDist = float.MaxValue;
 
+        bool doDebugLog = Mouse.current.leftButton.wasPressedThisFrame;
+        if (doDebugLog) Debug.Log($"--- Raycast Hit Count: {hitCount} ---");
+
         for (int i = 0; i < hitCount; i++)
         {
             RaycastHit hit = _highlightHits[i]; // 取出當前的碰撞資訊
+            if (doDebugLog) Debug.Log($"[{i}] Hit: {hit.collider.name} (Layer: {LayerMask.LayerToName(hit.collider.gameObject.layer)})");
 
             // 1. 排除自己
-            if (hit.collider.transform.IsChildOf(transform)) continue;
+            if (hit.collider.transform.IsChildOf(transform))
+            {
+                if (doDebugLog) Debug.Log(" -> Ignored (Self)");
+                continue;
+            }
 
             // 2. 排除 Trigger
-            if (hit.collider.isTrigger) continue;
+            if (hit.collider.isTrigger)
+            {
+                if (doDebugLog) Debug.Log(" -> Ignored (Trigger)");
+                continue;
+            }
 
             // 3. 取得 Highlight 元件
             // 優化小技巧：先判斷距離是否比目前最近的還近，如果已經比較遠就不用 GetComponent 了 (省效能)
@@ -610,11 +631,18 @@ public class PlayerMovement : MonoBehaviour
                 {
                     closestHighlightable = highlightable;
                     closestDist = modifiedDistance;
+                    if (doDebugLog) Debug.Log(" -> 🔥 Candidate Found!");
                 }
+            }
+            else
+            {
+                if (doDebugLog) Debug.Log(" -> No HighlightableObject Script found on parent.");
             }
         }
 
         // 處理高亮狀態切換
+        HighlightableObject hitHighlightable = closestHighlightable;
+
         if (hitHighlightable != currentlyTargetedPlayerObject)
         {
             // 關掉舊的
