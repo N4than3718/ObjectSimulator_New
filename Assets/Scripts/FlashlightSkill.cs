@@ -26,6 +26,7 @@ public class FlashlightSkill : BaseSkill
     private Quaternion defaultRotation; // 用來復原角度
     private TeamManager teamManager;    // 用來取得攝影機
     private float timer = 0f;
+    private Collider[] _hitColliders = new Collider[10];
 
     public override void OnInput(InputAction.CallbackContext context)
     {
@@ -153,10 +154,12 @@ public class FlashlightSkill : BaseSkill
     private void CheckForTargets()
     {
         // 1. 找出範圍內的所有 NPC
-        Collider[] hits = Physics.OverlapSphere(transform.position, effectiveRange, targetLayer);
+        int numColliders = Physics.OverlapSphereNonAlloc(transform.position, effectiveRange, _hitColliders, targetLayer);
 
-        foreach (var hit in hits)
+        for (int i = 0; i < numColliders; i++)
         {
+            var hit = _hitColliders[i];
+
             // 嘗試取得 NpcAI 組件 (考慮到碰撞體可能在子物件或父物件)
             NpcAI npc = hit.GetComponentInParent<NpcAI>();
 
