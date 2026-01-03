@@ -14156,19 +14156,19 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CamControl
   FollowTarget: {fileID: 2094097422}
   offsetZ: 1
-  defaultOffsetY: 0.8
+  defaultOffsetY: 0.5
   minOffsetY: 0.1
   obstacleLayer:
     serializedVersion: 2
     m_Bits: 1921
-  checkRadius: 0.05
+  checkRadius: 0.15
   wallClipPadding: 0.1
   heightSmoothTime: 0.1
   rotateSpeed: 0.1
   rotateLerp: 15
-  moveSmoothSpeed: 60
-  pitchMin: -10
-  pitchMax: 85
+  moveSmoothSpeed: 10
+  pitchMin: -45
+  pitchMax: 80
 --- !u!114 &449396935
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -15599,19 +15599,19 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CamControl
   FollowTarget: {fileID: 1723257961}
   offsetZ: 1
-  defaultOffsetY: 0.8
+  defaultOffsetY: 0.5
   minOffsetY: 0.1
   obstacleLayer:
     serializedVersion: 2
     m_Bits: 1921
-  checkRadius: 0.05
+  checkRadius: 0.15
   wallClipPadding: 0.1
   heightSmoothTime: 0.1
   rotateSpeed: 0.1
   rotateLerp: 15
-  moveSmoothSpeed: 60
-  pitchMin: -10
-  pitchMax: 85
+  moveSmoothSpeed: 10
+  pitchMin: -45
+  pitchMax: 80
 --- !u!114 &542812362
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -27977,19 +27977,19 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CamControl
   FollowTarget: {fileID: 1045982609}
   offsetZ: 1
-  defaultOffsetY: 0.8
+  defaultOffsetY: 0.5
   minOffsetY: 0.1
   obstacleLayer:
     serializedVersion: 2
     m_Bits: 1921
-  checkRadius: 0.05
+  checkRadius: 0.15
   wallClipPadding: 0.1
   heightSmoothTime: 0.1
   rotateSpeed: 0.1
   rotateLerp: 15
-  moveSmoothSpeed: 60
-  pitchMin: -10
-  pitchMax: 85
+  moveSmoothSpeed: 10
+  pitchMin: -45
+  pitchMax: 80
 --- !u!1001 &1183666207
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -32055,19 +32055,19 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CamControl
   FollowTarget: {fileID: 957414671}
   offsetZ: 1
-  defaultOffsetY: 0.8
+  defaultOffsetY: 0.5
   minOffsetY: 0.1
   obstacleLayer:
     serializedVersion: 2
     m_Bits: 1921
-  checkRadius: 0.05
+  checkRadius: 0.15
   wallClipPadding: 0.1
   heightSmoothTime: 0.1
   rotateSpeed: 0.1
   rotateLerp: 15
-  moveSmoothSpeed: 60
-  pitchMin: -10
-  pitchMax: 85
+  moveSmoothSpeed: 10
+  pitchMin: -45
+  pitchMax: 80
 --- !u!114 &1402469982
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -35477,20 +35477,20 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CamControl
   FollowTarget: {fileID: 378211013}
-  offsetZ: 1.5
+  offsetZ: 1.2
   defaultOffsetY: 0.8
   minOffsetY: 0.1
   obstacleLayer:
     serializedVersion: 2
     m_Bits: 1921
-  checkRadius: 0.05
+  checkRadius: 0.15
   wallClipPadding: 0.1
   heightSmoothTime: 0.1
   rotateSpeed: 0.1
   rotateLerp: 15
-  moveSmoothSpeed: 60
-  pitchMin: -10
-  pitchMax: 85
+  moveSmoothSpeed: 10
+  pitchMin: -45
+  pitchMax: 80
 --- !u!114 &1531655496
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -40176,14 +40176,14 @@ MonoBehaviour:
   obstacleLayer:
     serializedVersion: 2
     m_Bits: 1921
-  checkRadius: 0.05
+  checkRadius: 0.15
   wallClipPadding: 0.1
   heightSmoothTime: 0.1
   rotateSpeed: 0.1
   rotateLerp: 15
-  moveSmoothSpeed: 60
-  pitchMin: -10
-  pitchMax: 85
+  moveSmoothSpeed: 10
+  pitchMin: -45
+  pitchMax: 80
 --- !u!114 &1816948869
 MonoBehaviour:
   m_ObjectHideFlags: 0
