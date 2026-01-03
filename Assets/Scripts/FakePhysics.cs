@@ -173,7 +173,6 @@ public class FakePhysics : MonoBehaviour, IInteractable
 
     void OnTriggerEnter(Collider other)
     {
-        Debug.Log($"有東西進來了: {other.name}, Tag: {other.tag}, Layer: {LayerMask.LayerToName(other.gameObject.layer)}");
         if (CanOpen(other)) peopleInZone++;
     }
 
