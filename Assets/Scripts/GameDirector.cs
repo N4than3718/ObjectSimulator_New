@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.SceneManagement;
 using System.Collections;
+using UnityEngine.InputSystem;
 
 public class GameDirector : MonoBehaviour
 {
@@ -23,6 +24,8 @@ public class GameDirector : MonoBehaviour
     public bool useVSync = false;
 
     public SpectatorController cameraScript;
+    private InputSystem_Actions playerActions;
+
     public bool IsPaused { get; private set; } = false;
 
     private void Awake()
@@ -40,14 +43,30 @@ public class GameDirector : MonoBehaviour
         Time.timeScale = 1f;
     }
 
-    private void Update()
+    private void OnEnable()
     {
-        // 監測 Esc 鍵 (這裡使用舊 Input 或你可改為 New Input System 事件)
-        if (Input.GetKeyDown(KeyCode.Escape))
-        {
-            if (IsPaused) Resume();
-            else Pause();
-        }
+        playerActions.Player.Enable();
+        // 💀 Coder: 只綁定一個 Toggle 函數，避免邏輯衝突
+        playerActions.Player.UnlockCursor.performed += OnTogglePauseInput;
+    }
+
+    private void OnDisable()
+    {
+        playerActions.Player.Disable();
+        playerActions.Player.UnlockCursor.performed -= OnTogglePauseInput;
+    }
+
+    // 處理 Input System 的事件 (需要參數)
+    private void OnTogglePauseInput(InputAction.CallbackContext context)
+    {
+        TogglePause();
+    }
+
+    // 真正的邏輯中心：UI 按鈕也可以直接呼叫這個方法 (不需要參數)
+    public void TogglePause()
+    {
+        if (IsPaused) Resume();
+        else Pause();
     }
 
     public void Pause()
