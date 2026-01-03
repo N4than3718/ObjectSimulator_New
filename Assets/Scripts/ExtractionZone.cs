@@ -1,15 +1,29 @@
-using UnityEngine;
+ï»¿using UnityEngine;
 
 public class ExtractionZone : MonoBehaviour
 {
     private void OnTriggerEnter(Collider other)
     {
-        // ÀË¬d¶i¤Jªº¬O¤£¬Oª±®a (½T«O§Aªºª««~³£¦³ "Player" tag)
+        // æª¢æŸ¥é€²å…¥çš„æ˜¯ä¸æ˜¯ç©å®¶ (ç¢ºä¿ä½ çš„ç‰©å“éƒ½æœ‰ "Player" tag)
         if (other.CompareTag("Player"))
         {
-            GameDirector.Instance.SaveLevelProgress(1); // °²³]³o¬O²Ä¤@Ãö
+            Debug.Log("ğŸ‰ é€šé—œæˆåŠŸ!");
 
-            // ©I¥s¾Éºt³Û¥d
+            // åœæ­¢è¨ˆæ™‚
+            if (LevelTimer.Instance != null)
+            {
+                LevelTimer.Instance.StopTimer();
+                float finalTime = LevelTimer.Instance.CurrentTime;
+
+                // ğŸ’¾ å„²å­˜é€²åº¦èˆ‡æ™‚é–“
+                if (DataManager.Instance != null)
+                {
+                    DataManager.Instance.SaveLevelProgress(2); // è§£é–ä¸‹ä¸€é—œ
+                    DataManager.Instance.SaveBestTime(1, finalTime); // å­˜å…¥æœ€ä½³æ™‚é–“
+                }
+            }
+
+            // å‘¼å«å°æ¼”å–Šå¡
             GameDirector.Instance.TriggerVictory();
         }
     }
