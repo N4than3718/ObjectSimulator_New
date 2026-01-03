@@ -1,37 +1,40 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.EventSystems;
 
 public class SkillManager : MonoBehaviour
 {
     [Header("核心引用")]
     [SerializeField] private TeamManager teamManager;
 
-    private InputSystem_Actions playerActions;
 
     private void Awake()
     {
         if (teamManager == null) teamManager = FindAnyObjectByType<TeamManager>();
-        playerActions = new InputSystem_Actions();
     }
 
     private void OnEnable()
     {
-        playerActions.Player.Enable();
-        playerActions.Player.Attack.started += OnSkillInput;
-        playerActions.Player.Attack.performed += OnSkillInput;
-        playerActions.Player.Attack.canceled += OnSkillInput;
+        GameDirector.Instance.playerActions.Player.Attack.started += OnSkillInput;
+        GameDirector.Instance.playerActions.Player.Attack.performed += OnSkillInput;
+        GameDirector.Instance.playerActions.Player.Attack.canceled += OnSkillInput;
     }
 
     private void OnDisable()
     {
-        playerActions.Player.Attack.started -= OnSkillInput;
-        playerActions.Player.Attack.performed -= OnSkillInput;
-        playerActions.Player.Attack.canceled -= OnSkillInput;
-        playerActions.Player.Disable();
+        GameDirector.Instance.playerActions.Player.Attack.started -= OnSkillInput;
+        GameDirector.Instance.playerActions.Player.Attack.performed -= OnSkillInput;
+        GameDirector.Instance.playerActions.Player.Attack.canceled -= OnSkillInput;
+        GameDirector.Instance.playerActions.Player.Disable();
     }
 
     private void OnSkillInput(InputAction.CallbackContext context)
     {
+        if (EventSystem.current != null && EventSystem.current.IsPointerOverGameObject())
+        {
+            return;
+        }
+
         // 1. 確認目前是否在附身狀態
         if (teamManager == null || teamManager.CurrentGameState != TeamManager.GameState.Possessing)
         {
