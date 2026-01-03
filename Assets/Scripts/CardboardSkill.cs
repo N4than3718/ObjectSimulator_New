@@ -10,7 +10,6 @@ public class CardboardSkill : BaseSkill // 1. 改為繼承 BaseSkill
 {
     [Header("元件參考 (Cardboard 專用)")]
     private PlayerMovement playerMovement;
-    private InputSystem_Actions playerActions;
     private TeamManager teamManager;
     private Animator animator;
 
@@ -47,7 +46,6 @@ public class CardboardSkill : BaseSkill // 1. 改為繼承 BaseSkill
         if (animator == null) animator = GetComponent<Animator>();
         playerMovement = GetComponent<PlayerMovement>();
         selfObjectStats = GetComponent<ObjectStats>();
-        playerActions = new InputSystem_Actions();
         teamManager = FindAnyObjectByType<TeamManager>();
 
         if (spitOutPoint == null)
