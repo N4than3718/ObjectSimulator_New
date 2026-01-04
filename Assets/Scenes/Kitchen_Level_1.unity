@@ -33743,13 +33743,14 @@ GameObject:
   - component: {fileID: 1419436492}
   - component: {fileID: 1419436494}
   - component: {fileID: 1419436493}
+  - component: {fileID: 1419436495}
   m_Layer: 5
   m_Name: Victory Panel
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &1419436492
 RectTransform:
   m_ObjectHideFlags: 0
@@ -33785,9 +33786,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
   m_Color: {r: 0, g: 0, b: 0, a: 0.78431374}
-  m_RaycastTarget: 1
+  m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
-  m_Maskable: 1
+  m_Maskable: 0
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
@@ -33809,6 +33810,18 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1419436491}
   m_CullTransparentMesh: 1
+--- !u!225 &1419436495
+CanvasGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1419436491}
+  m_Enabled: 1
+  m_Alpha: 0
+  m_Interactable: 0
+  m_BlocksRaycasts: 0
+  m_IgnoreParentGroups: 0
 --- !u!4 &1422859982 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 271438394739998615, guid: 2bc94a771cc6a0e4a90e5c81aed17ba7, type: 3}
@@ -35111,6 +35124,7 @@ MonoBehaviour:
     m_PostInfinity: 2
     m_RotationOrder: 4
   activeCharacterIndex: -1
+  physicalCam: {fileID: 0}
 --- !u!82 &1464291469
 AudioSource:
   m_ObjectHideFlags: 0
@@ -37474,6 +37488,7 @@ GameObject:
   - component: {fileID: 1555853809}
   - component: {fileID: 1555853811}
   - component: {fileID: 1555853810}
+  - component: {fileID: 1555853812}
   m_Layer: 5
   m_Name: Menu Panel
   m_TagString: Untagged
@@ -37518,9 +37533,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
   m_Color: {r: 0, g: 0, b: 0, a: 0.5882353}
-  m_RaycastTarget: 1
+  m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
-  m_Maskable: 1
+  m_Maskable: 0
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
@@ -37542,6 +37557,18 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1555853808}
   m_CullTransparentMesh: 1
+--- !u!225 &1555853812
+CanvasGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1555853808}
+  m_Enabled: 1
+  m_Alpha: 0
+  m_Interactable: 0
+  m_BlocksRaycasts: 0
+  m_IgnoreParentGroups: 0
 --- !u!4 &1559194999 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 7459963594472602431, guid: 743e6573d8132f64d8904158e39cc539, type: 3}
@@ -46652,13 +46679,14 @@ GameObject:
   - component: {fileID: 2066927766}
   - component: {fileID: 2066927768}
   - component: {fileID: 2066927767}
+  - component: {fileID: 2066927769}
   m_Layer: 5
   m_Name: GameOver Panel
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &2066927766
 RectTransform:
   m_ObjectHideFlags: 0
@@ -46695,7 +46723,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
   m_Color: {r: 0, g: 0, b: 0, a: 0.78431374}
-  m_RaycastTarget: 1
+  m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
@@ -46719,6 +46747,18 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2066927765}
   m_CullTransparentMesh: 1
+--- !u!225 &2066927769
+CanvasGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2066927765}
+  m_Enabled: 1
+  m_Alpha: 0
+  m_Interactable: 0
+  m_BlocksRaycasts: 0
+  m_IgnoreParentGroups: 0
 --- !u!1001 &2068859284
 PrefabInstance:
   m_ObjectHideFlags: 0
