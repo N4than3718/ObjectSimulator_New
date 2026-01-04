@@ -243,26 +243,38 @@ public class CardboardSkill : BaseSkill // 1. 改為繼承 BaseSkill
         // 檢查 Layer (利用位元運算檢查是否在 possessableLayer 清單內)
         if (((1 << target.layer) & possessableLayer) == 0)
         {
+            Debug.Log($"[Cardboard] 目標 {target.name} 層級不符！目標層級: {LayerMask.LayerToName(target.layer)}");
             return null; // 層級不對 (例如瞄準到牆壁或地板)
         }
 
         // 3. 執行原本的防呆檢查
 
         // 排除自己
-        if (target.transform.root == transform.root) return null;
+        if (target == this.gameObject)
+        {
+            return null;
+        }
+
+        if (target.transform.IsChildOf(this.transform))
+        {
+            Debug.Log($"[Cardboard] {target.name} 已經在肚子裡了！");
+            return null;
+        }
 
         // 排除另一個紙箱 (假設設定上不能吃紙箱)
         if (target.GetComponent<CardboardSkill>() != null) return null;
 
         // 必須有 ObjectStats 且不在容器內
         ObjectStats stats = target.GetComponent<ObjectStats>();
-        if (stats != null && !stats.isInsideContainer)
+        if (stats == null)
         {
-            // 通過所有檢查，這就是我們要吃的東西！
-            return target;
+            Debug.Log($"[Cardboard] 目標 {target.name} 身上沒有 ObjectStats 腳本！");
+            return null;
         }
 
-        return null;
+        if (stats.isInsideContainer) return null;
+
+        return target;
     }
 
     /// <summary>
