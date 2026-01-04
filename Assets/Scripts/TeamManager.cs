@@ -56,6 +56,7 @@ public class TeamManager : MonoBehaviour
     private InputSystem_Actions playerActions;
     public GameState CurrentGameState => currentState;
     private Camera spectatorCameraComponent; // <--- [新增] 存 Spectator 的 Camera 元件
+    public Camera physicalCam;
 
     // --- 公開屬性 ---
     public Transform CurrentCameraTransform
@@ -681,7 +682,7 @@ public class TeamManager : MonoBehaviour
             member.characterCamera.gameObject.SetActive(isControlled);
             member.characterCamera.enabled = isControlled;
 
-            Camera physicalCam = member.characterCamera.GetComponent<Camera>();
+            physicalCam = member.characterCamera.GetComponent<Camera>();
             if (physicalCam != null) physicalCam.enabled = isControlled;
 
             if (isControlled)
