@@ -201,8 +201,10 @@ public class FlashlightSkill : BaseSkill
     }
 
     // 覆寫初始化，確保一開始的狀態
-    private void Start()
+    protected override void Start()
     {
+        base.Start();
+
         if (spotlight == null) spotlight = GetComponentInChildren<Light>();
         if (audioSource == null) audioSource = GetComponent<AudioSource>();
         if (teamManager == null) teamManager = FindAnyObjectByType<TeamManager>();
