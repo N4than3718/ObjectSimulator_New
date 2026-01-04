@@ -59,7 +59,12 @@ public class NpcStatusUI : MonoBehaviour
     private Transform GetActiveCameraTransform()
     {
         // 方法 A：如果你有 TeamManager 統一管理 Camera，直接從那裡拿最準
-        return TeamManager.Instance.physicalCam.transform;
+        if (TeamManager.Instance.physicalCam != null)
+        {
+            return TeamManager.Instance.physicalCam.transform;
+        }
+
+        return null;
     }
 
     private void UpdateUI(float alertLevel, NpcAI.NpcState state)
