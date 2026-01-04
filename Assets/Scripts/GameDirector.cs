@@ -16,6 +16,7 @@ public class GameDirector : MonoBehaviour
     public GameObject gameOverPanel;
     public GameObject victoryPanel;
     public GameObject pauseMenuUI;
+    public UnityEngine.UI.Button loadButton; // 拖入你的 Load 按鈕實體
     [Tooltip("主選單的場景名稱 (破關後回去用)")]
     public string mainMenuSceneName = "MainMenu";
 
@@ -70,6 +71,7 @@ public class GameDirector : MonoBehaviour
         IsPaused = true;
         Time.timeScale = 0f; // 凍結物理與時間
         pauseMenuUI.SetActive(true);
+        CheckSaveFile();
 
         // 解鎖滑鼠
         Cursor.lockState = CursorLockMode.None;
@@ -94,6 +96,17 @@ public class GameDirector : MonoBehaviour
 
         if (CamControl.Current != null) CamControl.Current.IsInputPaused = false;
         if (cameraScript != null) cameraScript.IsInputPaused = false;
+    }
+
+    public void CheckSaveFile()
+    {
+        string path = Application.persistentDataPath + "/savefile.json";
+
+        if (loadButton != null)
+        {
+            // 💀 如果檔案不存在，按鈕就不可點擊，並變灰
+            loadButton.interactable = System.IO.File.Exists(path);
+        }
     }
 
     private void Start()
@@ -138,6 +151,7 @@ public class GameDirector : MonoBehaviour
     {
         // 1. 顯示對應 UI
         if (panelToShow) panelToShow.SetActive(true);
+        CheckSaveFile();
 
         // 2. 暫停遊戲
         Time.timeScale = 0f;
@@ -193,6 +207,8 @@ public class GameDirector : MonoBehaviour
             UIManager.Instance.StopAllCoroutines();
             StartCoroutine(UIManager.Instance.ShowSaveNotification());
         }
+
+        Resume();
     }
 
     public void OnClickLoad()
