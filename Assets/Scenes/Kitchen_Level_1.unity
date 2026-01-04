@@ -35189,6 +35189,7 @@ MonoBehaviour:
   gameOverPanel: {fileID: 2066927765}
   victoryPanel: {fileID: 1419436491}
   pauseMenuUI: {fileID: 1555853808}
+  loadButton: {fileID: 1157216899}
   mainMenuSceneName: MainMenu
   targetFrameRate: -1
   useVSync: 0
