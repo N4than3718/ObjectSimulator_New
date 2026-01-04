@@ -139,7 +139,6 @@ MonoBehaviour:
   - {fileID: 323055684504265662}
   - {fileID: 2103648384246321254}
   - {fileID: -1403251331740410300}
-  - {fileID: 3207094474665996738}
 --- !u!114 &323055684504265662
 MonoBehaviour:
   m_ObjectHideFlags: 3
@@ -255,25 +254,6 @@ MonoBehaviour:
   gain:
     m_OverrideState: 1
     m_Value: {x: 0.9602934, y: 0.9618103, z: 1, w: -1.1365357e-11}
---- !u!114 &3207094474665996738
-MonoBehaviour:
-  m_ObjectHideFlags: 3
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 221518ef91623a7438a71fef23660601, type: 3}
-  m_Name: WhiteBalance
-  m_EditorClassIdentifier: Unity.RenderPipelines.Universal.Runtime::UnityEngine.Rendering.Universal.WhiteBalance
-  active: 1
-  temperature:
-    m_OverrideState: 0
-    m_Value: 0
-  tint:
-    m_OverrideState: 0
-    m_Value: 0
 --- !u!114 &5783759708168251157
 MonoBehaviour:
   m_ObjectHideFlags: 3
@@ -295,10 +275,10 @@ MonoBehaviour:
     m_Value: -10
   colorFilter:
     m_OverrideState: 1
-    m_Value: {r: 0.9150943, g: 0.87558484, b: 0.82444817, a: 1}
+    m_Value: {r: 1, g: 1, b: 1, a: 1}
   hueShift:
     m_OverrideState: 0
     m_Value: 0
   saturation:
     m_OverrideState: 1
-    m_Value: 15
+    m_Value: 5
