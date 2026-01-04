@@ -358,7 +358,7 @@ public class NpcAI : MonoBehaviour
         // 檢查從 TriggerPickup 傳來的 objectToGrab
         if (objectToGrab != null)
         {
-            if (teamManager != null) teamManager.RemoveCharacterFromTeam(objectToGrab.gameObject);
+            // if (teamManager != null) teamManager.RemoveCharacterFromTeam(objectToGrab.gameObject);
             GameDirector.Instance.TriggerGameOver();
 
             _heldObjectRef = objectToGrab; // 正式持有物件
