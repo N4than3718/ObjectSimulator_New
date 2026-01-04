@@ -878,6 +878,8 @@ public class PlayerMovement : MonoBehaviour
             }
             else
             {
+                if (isComplexCollider) continue;
+
                 closestPoint = hitColl.ClosestPoint(objectCenter);
 
                 // --- 視覺化 Fallback (備案) ---
