@@ -36,14 +36,30 @@ public class NpcStatusUI : MonoBehaviour
         transform.position = linkedNPC.transform.position + offset;
 
         // 2. 永遠面向攝影機 (Billboard 效果)
-        if (mainCam != null)
+        Transform currentCamTransform = GetActiveCameraTransform();
+
+        if (currentCamTransform != null)
         {
-            transform.LookAt(transform.position + mainCam.transform.rotation * Vector3.forward,
-                             mainCam.transform.rotation * Vector3.up);
+            // 永遠面向該攝影機 (Billboard)
+            transform.LookAt(transform.position + currentCamTransform.rotation * Vector3.forward,
+                             currentCamTransform.rotation * Vector3.up);
+        }
+        else if(mainCam != null)
+        {
+            currentCamTransform = mainCam.transform;
+
+            transform.LookAt(transform.position + currentCamTransform.rotation * Vector3.forward,
+                 currentCamTransform.rotation * Vector3.up);
         }
 
         // 3. 更新 UI 顯示
         UpdateUI(linkedNPC.CurrentAlertLevel, linkedNPC.CurrentState);
+    }
+
+    private Transform GetActiveCameraTransform()
+    {
+        // 方法 A：如果你有 TeamManager 統一管理 Camera，直接從那裡拿最準
+        return TeamManager.Instance.physicalCam.transform;
     }
 
     private void UpdateUI(float alertLevel, NpcAI.NpcState state)
