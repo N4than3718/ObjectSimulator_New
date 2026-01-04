@@ -13,9 +13,9 @@ public class GameDirector : MonoBehaviour
     public GameState CurrentState;
 
     [Header("UI References")]
-    public GameObject gameOverPanel;
-    public GameObject victoryPanel;
-    public GameObject pauseMenuUI;
+    public CanvasGroup gameOverPanel;
+    public CanvasGroup victoryPanel;
+    public CanvasGroup menuPanel;
     public UnityEngine.UI.Button loadButton; // 拖入你的 Load 按鈕實體
     [Tooltip("主選單的場景名稱 (破關後回去用)")]
     public string mainMenuSceneName = "MainMenu";
@@ -45,6 +45,10 @@ public class GameDirector : MonoBehaviour
         QualitySettings.vSyncCount = useVSync ? 1 : 0;
         Application.targetFrameRate = targetFrameRate;
         Time.timeScale = 1f;
+
+        SetPanelActive(gameOverPanel, false);
+        SetPanelActive(victoryPanel, false);
+        SetPanelActive(menuPanel, false);
     }
 
     private void OnDisable()
@@ -52,6 +56,22 @@ public class GameDirector : MonoBehaviour
         if (Instance == this && playerActions != null)
         {
             playerActions.Player.Disable(); // 💀 只有真正的 Instance 才能關閉電源
+        }
+    }
+
+    private void SetPanelActive(CanvasGroup cg, bool isActive)
+    {
+        if (cg == null) return;
+
+        cg.alpha = isActive ? 1f : 0f;          // 控制透明度
+        cg.interactable = isActive;             // 控制是否可點擊
+        cg.blocksRaycasts = isActive;           // 控制是否攔截滑鼠
+
+        if (isActive)
+        {
+            // 💀 強制播放進場動畫，解決物件原本隱藏導致動畫不跑的問題
+            Animator anim = cg.GetComponent<Animator>();
+            if (anim != null) anim.Play("In", 0, 0f);
         }
     }
 
@@ -70,7 +90,7 @@ public class GameDirector : MonoBehaviour
     {
         IsPaused = true;
         Time.timeScale = 0f; // 凍結物理與時間
-        pauseMenuUI.SetActive(true);
+        SetPanelActive(menuPanel, true);
         CheckSaveFile();
 
         // 解鎖滑鼠
@@ -84,11 +104,11 @@ public class GameDirector : MonoBehaviour
 
     public void Resume()
     {
-        if (pauseMenuUI == null) return;
+        if (menuPanel == null) return;
 
         IsPaused = false;
         Time.timeScale = 1f;
-        pauseMenuUI.SetActive(false);
+        SetPanelActive(menuPanel, false);
 
         // 鎖回滑鼠
         Cursor.lockState = CursorLockMode.Locked;
@@ -120,8 +140,8 @@ public class GameDirector : MonoBehaviour
         Time.timeScale = 1f; // 確保時間流動
 
         // 隱藏所有結算 UI
-        if (gameOverPanel) gameOverPanel.SetActive(false);
-        if (victoryPanel) victoryPanel.SetActive(false);
+        if (gameOverPanel) SetPanelActive(menuPanel, false);
+        if (victoryPanel) SetPanelActive(menuPanel, false);
 
         Debug.Log("Game Director: Action! 🎬");
     }
@@ -147,10 +167,10 @@ public class GameDirector : MonoBehaviour
     }
 
     // 共用的結束邏輯
-    private void EndGameLogic(GameObject panelToShow)
+    private void EndGameLogic(CanvasGroup panelToShow)
     {
         // 1. 顯示對應 UI
-        if (panelToShow) panelToShow.SetActive(true);
+        if (panelToShow) SetPanelActive(panelToShow, true);
         CheckSaveFile();
 
         // 2. 暫停遊戲
@@ -219,9 +239,9 @@ public class GameDirector : MonoBehaviour
             Debug.Log("Game Director: Loading Level...");
             ss.LoadGame();
 
-            if (gameOverPanel) gameOverPanel.SetActive(false);
-            if (victoryPanel) victoryPanel.SetActive(false);
-            if (pauseMenuUI) pauseMenuUI.SetActive(false);
+            if (gameOverPanel) SetPanelActive(menuPanel, false);
+            if (victoryPanel) SetPanelActive(menuPanel, false);
+            if (menuPanel) SetPanelActive(menuPanel, false);
 
             CurrentState = GameState.Playing;
             Time.timeScale = 1f;
