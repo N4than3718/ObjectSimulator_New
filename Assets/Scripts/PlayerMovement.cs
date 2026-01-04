@@ -255,6 +255,8 @@ public class PlayerMovement : MonoBehaviour
         if (playerActions == null) return;
         if (cameraTransform == null) return;
         if (!this.enabled) return;
+        if (GameDirector.Instance == null || GameDirector.Instance.IsPaused) return;
+        if (GameDirector.Instance.CurrentState != GameDirector.GameState.Playing) return;
 
         if (GameDirector.Instance != null && GameDirector.Instance.playerActions != null)
         {
