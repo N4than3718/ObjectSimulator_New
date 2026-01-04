@@ -44,6 +44,9 @@ public class SkillManager : MonoBehaviour
             return;
         }
 
+        if (GameDirector.Instance == null || GameDirector.Instance.IsPaused) return;
+        if (GameDirector.Instance.CurrentState != GameDirector.GameState.Playing) return;
+
         // 2. 取得當前操控的物件 (ActiveCharacter)
         GameObject activeObj = teamManager.ActiveCharacterGameObject;
 
