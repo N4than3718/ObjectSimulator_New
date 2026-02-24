@@ -69,6 +69,8 @@ public class NpcAI : MonoBehaviour
     [SerializeField] private float aiUpdateInterval = 0.2f;
 
     [Header("致盲設定")] // ▼▼▼ [新增]
+    [Tooltip("手電筒致盲判定的目標點 (通常放在頭部/眼睛)")]
+    public Transform eyeTransform; // 讓你在 Inspector 裡把頭部的骨架拖進來
     [SerializeField] private float blindRecoveryTime = 3.0f; // 致盲後多久恢復
     [SerializeField] private float blindImmunityTime = 2.0f; // [新增] 免疫時間
     private float blindTimer = 0f;
@@ -851,5 +853,13 @@ public class NpcAI : MonoBehaviour
                 // Or add more complex logic to find next valid point
             }
         }
+    }
+
+    private void OnDrawGizmos()
+    {
+        Vector3 eyePosition = eyeTransform != null ? eyeTransform.position : transform.position + Vector3.up * 1.0f;
+
+        Gizmos.color = Color.magenta; // 用洋紅色標示弱點
+        Gizmos.DrawWireSphere(eyePosition, 0.15f); // 畫一個小圓圈
     }
 }
