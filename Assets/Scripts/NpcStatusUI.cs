@@ -14,8 +14,14 @@ public class NpcStatusUI : MonoBehaviour
     [Tooltip("放入警戒值 100~200 的連續圖檔 (例如：填滿中的驚嘆號)")]
     [SerializeField] private Sprite[] exclamationSprites;
 
+    // 💀 新增這行：專門放 200 (最高警戒) 時要瘋狂閃爍的幾張圖！
+    [Tooltip("放入最高警戒時要循環閃爍的圖檔 (例如：紅、白交替的全滿驚嘆號)")]
+    [SerializeField] private Sprite[] alertLoopSprites;
+
     [Header("設定")]
     [SerializeField] private Vector3 offset = new Vector3(0, 2.2f, 0);
+    // 💀 新增這行：控制驚嘆號循環播放的幀率 (FPS)
+    [SerializeField] private float alertAnimationFPS = 12f;
 
     private NpcAI linkedNPC;
     private Camera mainCam;
@@ -60,13 +66,16 @@ public class NpcStatusUI : MonoBehaviour
 
     private void UpdateUI(float alertLevel, NpcAI.NpcState state)
     {
-        // 1. 最高警戒狀態：直接顯示驚嘆號的最後一張圖 (全滿)
+        // 1. 最高警戒狀態：循環播放驚嘆號動畫 (Loop)
         if (state == NpcAI.NpcState.Alerted)
         {
             statusIcon.gameObject.SetActive(true);
-            if (exclamationSprites != null && exclamationSprites.Length > 0)
+            if (alertLoopSprites != null && alertLoopSprites.Length > 0)
             {
-                statusIcon.sprite = exclamationSprites[exclamationSprites.Length - 1];
+                // 💀 核心魔法：利用時間計算當前應該播放哪一張圖
+                // Time.time * FPS 會得到總經過的幀數，再 % 陣列長度就能無限循環
+                int loopIndex = (int)(Time.time * alertAnimationFPS) % exclamationSprites.Length;
+                statusIcon.sprite = exclamationSprites[loopIndex];
             }
             return;
         }
