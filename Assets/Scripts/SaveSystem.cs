@@ -1,29 +1,41 @@
 ﻿using UnityEngine;
 using System.IO;
 using System.Linq;
+using System;
+using System.Threading.Tasks; // 引入 Task 處理非同步
 
 public class SaveSystem : MonoBehaviour
 {
     private string savePath;
     private TeamManager teamManager;
 
+    // 讓 UI 系統或音效系統可以訂閱存檔/讀檔事件 ✨
+    public static event Action OnSaveStarted;
+    public static event Action OnSaveCompleted;
+    public static event Action OnLoadCompleted;
+
     void Awake()
     {
-        savePath = Application.persistentDataPath + "/savefile.json";
+        // 💀 使用 Path.Combine 避免跨平台路徑斜線問題
+        savePath = Path.Combine(Application.persistentDataPath, "savefile.json");
         teamManager = FindFirstObjectByType<TeamManager>();
     }
 
-    [ContextMenu("Save Game")] // 可以在 Inspector 點右鍵測試
-    public void SaveGame()
+    [ContextMenu("Save Game")]
+    public async void SaveGame() // 💀 改為 async
     {
+        OnSaveStarted?.Invoke(); // 通知 UI 顯示 "存檔中..." ✨
+
         SaveData data = new SaveData();
         data.activeUnitIndex = teamManager.activeCharacterIndex;
-        data.saveTime = System.DateTime.Now.ToString("yyyy/MM/dd HH:mm:ss");
+        // 💀 儲存時間改用 Ticks 或 ISO 8601 標準格式，方便未來做存檔排序
+        data.saveTime = DateTime.UtcNow.ToString("o");
 
         foreach (var unit in teamManager.team)
         {
             if (unit.character == null) continue;
 
+            // 🧠 這裡未來必須擴充：向 unit.character 請求它的專屬狀態 (例如紙箱裝了什麼)
             data.teamUnits.Add(new UnitData
             {
                 unitName = unit.character.name,
@@ -34,23 +46,24 @@ public class SaveSystem : MonoBehaviour
         }
 
         string json = JsonUtility.ToJson(data, true);
-        File.WriteAllText(savePath, json);
 
-        Debug.Log($"[SaveSystem] 存檔成功！路徑: {savePath}");
+        try
+        {
+            // 💀 使用非同步寫入，避免存檔時畫面卡頓 (Micro-stutter)
+            await File.WriteAllTextAsync(savePath, json);
+            Debug.Log($"[SaveSystem] 存檔成功！路徑: {savePath}");
+            OnSaveCompleted?.Invoke(); // 通知 UI 顯示 "存檔完成" ✨
+        }
+        catch (Exception e)
+        {
+            Debug.LogError($"[SaveSystem] 存檔失敗: {e.Message}");
+        }
     }
 
     [ContextMenu("Load Game")]
     public void LoadGame()
     {
-        if (teamManager == null)
-        {
-            teamManager = FindFirstObjectByType<TeamManager>();
-            if (teamManager == null)
-            {
-                Debug.LogError("[SaveSystem] 找不到 TeamManager，Load 終止！");
-                return;
-            }
-        }
+        if (teamManager == null) teamManager = FindFirstObjectByType<TeamManager>();
 
         if (!File.Exists(savePath))
         {
@@ -58,32 +71,38 @@ public class SaveSystem : MonoBehaviour
             return;
         }
 
-        string json = File.ReadAllText(savePath);
-        SaveData data = JsonUtility.FromJson<SaveData>(json);
-
-        // 💀 還原邏輯
-        for (int i = 0; i < data.teamUnits.Count; i++)
+        try
         {
-            // 修正上一題的運算子錯誤：陣列用 .Length
-            if (i >= teamManager.team.Length) break;
+            string json = File.ReadAllText(savePath);
+            SaveData data = JsonUtility.FromJson<SaveData>(json);
 
-            var unit = teamManager.team[i];
-
-            if (unit.character == null)
+            for (int i = 0; i < data.teamUnits.Count; i++)
             {
-                Debug.LogWarning($"[SaveSystem] 隊伍索引 {i} 的物件不存在，跳過此項。");
-                continue;
+                if (i >= teamManager.team.Length) break;
+                var unit = teamManager.team[i];
+                if (unit.character == null) continue;
+
+                // 💀 關鍵防護：如果物件有 Rigidbody 或 NavMeshAgent，瞬移前必須先關閉，瞬移後再開
+                // 否則物理引擎會因為瞬間位移計算出極大的力道導致物件噴飛
+                Rigidbody rb = unit.character.GetComponent<Rigidbody>();
+                if (rb != null) rb.isKinematic = true;
+
+                unit.character.transform.position = data.teamUnits[i].position;
+                unit.character.transform.rotation = data.teamUnits[i].rotation;
+                unit.isAvailable = data.teamUnits[i].isAvailable;
+
+                if (rb != null) rb.isKinematic = false;
             }
 
-            // 執行還原位置
-            unit.character.transform.position = data.teamUnits[i].position;
-            unit.character.transform.rotation = data.teamUnits[i].rotation;
-            unit.isAvailable = data.teamUnits[i].isAvailable;
+            teamManager.SwitchToCharacterByIndex(data.activeUnitIndex);
+            Debug.Log($"[SaveSystem] 存檔載入完成！");
+
+            OnLoadCompleted?.Invoke(); // 通知視覺/音效系統 ✨
         }
-
-        // 切換回存檔時的角色
-        teamManager.SwitchToCharacterByIndex(data.activeUnitIndex);
-
-        Debug.Log($"[SaveSystem] 存檔載入完成！存檔時間: {data.saveTime}");
+        catch (Exception e)
+        {
+            // 💀 捕捉 JSON 損毀或格式不符的錯誤
+            Debug.LogError($"[SaveSystem] 讀檔失敗，檔案可能損毀: {e.Message}");
+        }
     }
 }
