@@ -1,170 +1,150 @@
-using UnityEngine;
+ï»¿using UnityEngine;
 using System.Collections.Generic;
 using System.Linq;
 
 public class HighlightableObject : MonoBehaviour
 {
     [Header("Highlight Materials")]
-    [Tooltip("³Q¿ï¤¤®Éªº¶À¦â°ª«G§÷½è¼ÒªO")]
     public Material targetedHighlightTemplate;
-    [Tooltip("¥i¥[¤J¶¤¥î®Éªº¥Õ¦â°ª«G§÷½è¼ÒªO")]
     public Material availableHighlightTemplate;
-    // ¡¿¡¿¡¿ ·s¼W¡G«İ©R¶¤¤Íªººñ¦â°ª«G ¡¿¡¿¡¿
-    [Tooltip("«İ©R¶¤¤Íªººñ¦â°ª«G§÷½è¼ÒªO")]
     public Material inactiveTeamHighlightTemplate;
-    // ¡¶¡¶¡¶¡¶¡¶¡¶¡¶¡¶¡¶¡¶¡¶¡¶¡¶¡¶¡¶¡¶¡¶¡¶¡¶
 
-    // --- ¤º³¡ª¬ºA ---
-    public bool IsTargeted => isTargeted; // Åı¥~³¡¥i¥H¬d¸ß¬O§_³QºË·Ç
+    public bool IsTargeted => isTargeted;
     public bool IsAvailable() => isAvailable;
     public bool IsInactiveTeamMember() => isInactiveTeamMember;
-    private Renderer objectRenderer;
-    private Material[] originalMaterials;
+
+    // ğŸ’€ æ”¹ç”¨é™£åˆ—å„²å­˜æ‰€æœ‰å­ç‰©ä»¶çš„ Renderers
+    private Renderer[] objectRenderers;
+    // ğŸ’€ ä½¿ç”¨äºŒç¶­é™£åˆ—è¨˜éŒ„æ¯ä¸€å€‹ Renderer åŸæœ¬çš„æè³ª
+    private Material[][] originalMaterialsArray;
+
+    // ğŸ’€ æè³ªå¯¦ä¾‹å¿«å– (Cache)ï¼Œé¿å…é »ç¹ new å’Œ Destroy é€ æˆ GC
     private Material targetedInstance;
     private Material availableInstance;
-    private Material inactiveInstance; // ·s¼Wºñ¦â¹ê¨Ò
+    private Material inactiveInstance;
 
     private bool isTargeted = false;
     private bool isAvailable = false;
-    private bool isInactiveTeamMember = false; // ·s¼Wª¬ºA
-
+    private bool isInactiveTeamMember = false;
     private float currentOutlineWidth = -1f;
 
     void OnEnable()
     {
-        // ¹Á¸Õµù¥U¦Û¤v
         if (HighlightManager.Instance != null)
-        {
             HighlightManager.Instance.RegisterHighlightable(this);
-        }
     }
 
     void OnDisable()
     {
-        // ¹Á¸Õ¨ú®øµù¥U¦Û¤v
         if (HighlightManager.Instance != null)
-        {
             HighlightManager.Instance.UnregisterHighlightable(this);
-        }
     }
 
     void Awake()
     {
-        objectRenderer = GetComponentInChildren<Renderer>(true);
-        if (objectRenderer == null)
+        // ğŸ’€ é—œéµä¿®å¾©ï¼šå–å¾—æ‰€æœ‰å­ç‰©ä»¶çš„ Renderer (åŒ…å« Bell, Clock, Cap ç­‰)
+        objectRenderers = GetComponentsInChildren<Renderer>(true);
+        if (objectRenderers.Length == 0)
         {
-            Debug.LogError($"HighlightableObject on {gameObject.name} cannot find a Renderer!", this);
+            Debug.LogError($"HighlightableObject on {gameObject.name} cannot find any Renderer!", this);
             enabled = false;
             return;
         }
-        originalMaterials = objectRenderer.materials;
+
+        // è¨˜éŒ„æ¯ä¸€å€‹ Renderer æœ¬èº«çš„åŸå§‹æè³ª
+        originalMaterialsArray = new Material[objectRenderers.Length][];
+        for (int i = 0; i < objectRenderers.Length; i++)
+        {
+            originalMaterialsArray[i] = objectRenderers[i].materials;
+        }
+
+        // é å…ˆå¯¦ä¾‹åŒ–æè³ªï¼Œé¿å…éŠæˆ²ä¸­å¡é “
+        if (targetedHighlightTemplate) targetedInstance = new Material(targetedHighlightTemplate);
+        if (availableHighlightTemplate) availableInstance = new Material(availableHighlightTemplate);
+        if (inactiveTeamHighlightTemplate) inactiveInstance = new Material(inactiveTeamHighlightTemplate);
     }
 
-    // ¥Ñ SpectatorController ©Î PlayerMovement ©I¥s
     public void SetTargetedHighlight(bool active)
     {
-        if (!this.enabled) return;
-        if (isTargeted != active)
-        {
-            isTargeted = active;
-            UpdateHighlightMaterials();
-        }
+        if (!this.enabled || isTargeted == active) return;
+        isTargeted = active;
+        UpdateHighlightMaterials();
     }
 
-    // ¥Ñ HighlightManager ©I¥s
     public void SetAvailableHighlight(bool active)
     {
-        if (!this.enabled) return;
-        if (isAvailable != active)
-        {
-            isAvailable = active;
-            // ¦pªG¥¿¦b±Ò¥Î Available¡A½T«O Inactive ¬OÃö³¬ªº
-            if (active) isInactiveTeamMember = false;
-            UpdateHighlightMaterials();
-        }
+        if (!this.enabled || isAvailable == active) return;
+        isAvailable = active;
+        if (active) isInactiveTeamMember = false;
+        UpdateHighlightMaterials();
     }
 
-    // ¡¿¡¿¡¿ ·s¼W¡G¥Ñ HighlightManager ©I¥s ¡¿¡¿¡¿
     public void SetInactiveTeamHighlight(bool active)
     {
-        if (!this.enabled) return;
-        if (isInactiveTeamMember != active)
-        {
-            isInactiveTeamMember = active;
-            // ¦pªG¥¿¦b±Ò¥Î Inactive¡A½T«O Available ¬OÃö³¬ªº
-            if (active) isAvailable = false;
-            UpdateHighlightMaterials();
-        }
+        if (!this.enabled || isInactiveTeamMember == active) return;
+        isInactiveTeamMember = active;
+        if (active) isAvailable = false;
+        UpdateHighlightMaterials();
     }
-    // ¡¶¡¶¡¶¡¶¡¶¡¶¡¶¡¶¡¶¡¶¡¶¡¶¡¶¡¶¡¶¡¶¡¶¡¶¡¶
 
     public void SetOutlineWidth(float width)
     {
         if (!this.enabled || Mathf.Approximately(currentOutlineWidth, width)) return;
         currentOutlineWidth = width;
-        // ¡¿¡¿¡¿ Àu¥ı¯Å¡G¶À > ºñ > ¥Õ ¡¿¡¿¡¿
-        Material activeInstance = targetedInstance ?? inactiveInstance ?? availableInstance;
-        // ¡¶¡¶¡¶¡¶¡¶¡¶¡¶¡¶¡¶¡¶¡¶¡¶¡¶¡¶¡¶¡¶
+
+        Material activeInstance = GetActiveHighlightMaterial();
         if (activeInstance != null)
         {
             activeInstance.SetFloat("_OutlineWidth", width);
         }
     }
 
-    private void UpdateHighlightMaterials()
+    private Material GetActiveHighlightMaterial()
     {
-        if (objectRenderer == null) return;
-
-        List<Material> currentMaterials = originalMaterials.ToList();
-        DestroyCurrentInstances();
-        currentOutlineWidth = -1f;
-
-        // ¡¿¡¿¡¿ ®Ö¤ß­×§ï¡G¥[¤Jºñ¦â°ª«Gªº§PÂ_ÅŞ¿è¡AÀu¥ı¯Å ¶À > ºñ > ¥Õ ¡¿¡¿¡¿
-        if (isTargeted && targetedHighlightTemplate != null)
-        {
-            targetedInstance = new Material(targetedHighlightTemplate);
-            currentMaterials.Add(targetedInstance);
-        }
-        else if (isInactiveTeamMember && inactiveTeamHighlightTemplate != null) // ¶À¦â¤£«G¤~ÀË¬dºñ¦â
-        {
-            inactiveInstance = new Material(inactiveTeamHighlightTemplate);
-            currentMaterials.Add(inactiveInstance);
-        }
-        else if (isAvailable && availableHighlightTemplate != null) // ¶Àºñ³£¤£«G¤~ÀË¬d¥Õ¦â
-        {
-            availableInstance = new Material(availableHighlightTemplate);
-            currentMaterials.Add(availableInstance);
-        }
-        // ¡¶¡¶¡¶¡¶¡¶¡¶¡¶¡¶¡¶¡¶¡¶¡¶¡¶¡¶¡¶¡¶¡¶¡¶¡¶¡¶¡¶¡¶¡¶¡¶¡¶¡¶¡¶¡¶¡¶¡¶¡¶
-
-        objectRenderer.materials = currentMaterials.ToArray();
-
-        // ­«·sÀ³¥Î¼e«×
-        if (currentOutlineWidth > 0)
-        {
-            Material activeInstance = targetedInstance ?? inactiveInstance ?? availableInstance;
-            if (activeInstance != null) activeInstance.SetFloat("_OutlineWidth", currentOutlineWidth);
-        }
+        if (isTargeted) return targetedInstance;
+        if (isInactiveTeamMember) return inactiveInstance;
+        if (isAvailable) return availableInstance;
+        return null;
     }
 
-    private void DestroyCurrentInstances()
+    private void UpdateHighlightMaterials()
     {
-        if (targetedInstance != null) { Destroy(targetedInstance); targetedInstance = null; }
-        if (availableInstance != null) { Destroy(availableInstance); availableInstance = null; }
-        // ¡¿¡¿¡¿ ²M²zºñ¦â¹ê¨Ò ¡¿¡¿¡¿
-        if (inactiveInstance != null) { Destroy(inactiveInstance); inactiveInstance = null; }
-        // ¡¶¡¶¡¶¡¶¡¶¡¶¡¶¡¶¡¶¡¶¡¶¡¶
+        if (objectRenderers == null || objectRenderers.Length == 0) return;
+
+        Material activeInstance = GetActiveHighlightMaterial();
+
+        // ğŸ’€ è¿´åœˆéæ­·æ‰€æœ‰é›¶ä»¶ï¼Œå…¨éƒ¨å¥—ç”¨æè³ª
+        for (int i = 0; i < objectRenderers.Length; i++)
+        {
+            if (objectRenderers[i] == null) continue;
+
+            List<Material> currentMaterials = originalMaterialsArray[i].ToList();
+
+            if (activeInstance != null)
+            {
+                currentMaterials.Add(activeInstance);
+            }
+
+            objectRenderers[i].materials = currentMaterials.ToArray();
+        }
+
+        // é‡æ–°æ‡‰ç”¨å¯¬åº¦
+        if (currentOutlineWidth > 0 && activeInstance != null)
+        {
+            activeInstance.SetFloat("_OutlineWidth", currentOutlineWidth);
+        }
     }
 
     void OnDestroy()
     {
-        DestroyCurrentInstances();
+        // åªæœ‰åœ¨ç‰©ä»¶è¢«éŠ·æ¯€æ™‚æ‰æ¸…ç†æè³ªï¼Œå¾¹åº•è§£æ±º GC å•é¡Œ
+        if (targetedInstance != null) Destroy(targetedInstance);
+        if (availableInstance != null) Destroy(availableInstance);
+        if (inactiveInstance != null) Destroy(inactiveInstance);
     }
 
     public bool IsInTeam(TeamManager teamManager)
     {
-        if (this == null || this.gameObject == null) return false;
-        if (teamManager == null) return false;
-        return teamManager.IsInTeam(this.gameObject);
+        return teamManager != null && teamManager.IsInTeam(this.gameObject);
     }
 }
