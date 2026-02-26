@@ -35,13 +35,17 @@ public class SaveSystem : MonoBehaviour
         {
             if (unit.character == null) continue;
 
-            // 🧠 這裡未來必須擴充：向 unit.character 請求它的專屬狀態 (例如紙箱裝了什麼)
+            // 💀 檢查物件身上有沒有實作 ISaveable 的腳本 (例如 CardboardSkill)
+            ISaveable saveable = unit.character.GetComponent<ISaveable>();
+            string customJson = saveable != null ? saveable.GetSaveData() : "";
+
             data.teamUnits.Add(new UnitData
             {
                 unitName = unit.character.name,
                 position = unit.character.transform.position,
                 rotation = unit.character.transform.rotation,
-                isAvailable = unit.isAvailable
+                isAvailable = unit.isAvailable,
+                customStateJson = customJson // 存入專屬資料
             });
         }
 
@@ -90,6 +94,13 @@ public class SaveSystem : MonoBehaviour
                 unit.character.transform.position = data.teamUnits[i].position;
                 unit.character.transform.rotation = data.teamUnits[i].rotation;
                 unit.isAvailable = data.teamUnits[i].isAvailable;
+
+                // 💀 還原專屬狀態
+                ISaveable saveable = unit.character.GetComponent<ISaveable>();
+                if (saveable != null && !string.IsNullOrEmpty(data.teamUnits[i].customStateJson))
+                {
+                    saveable.RestoreSaveData(data.teamUnits[i].customStateJson);
+                }
 
                 if (rb != null) rb.isKinematic = false;
             }
