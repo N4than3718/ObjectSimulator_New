@@ -115,6 +115,8 @@ public class PlayerMovement : MonoBehaviour
     public bool IsGrounded { get; private set; }
     public float CurrentHorizontalSpeed { get; private set; }
     private float CurrentSpeed => (playerActions != null && playerActions.Player.Sprint.IsPressed()) ? fastSpeed : playerSpeed;
+    [HideInInspector]
+    public bool isFlying = false; // 💀 讓 HammerSkill 可以控制這個狀態
 
     void Awake()
     {
@@ -257,7 +259,8 @@ public class PlayerMovement : MonoBehaviour
         if (!this.enabled) return;
         if (GameDirector.Instance == null || GameDirector.Instance.IsPaused) return;
         if (GameDirector.Instance.CurrentState != GameDirector.GameState.Playing) return;
-
+        // 💀 [新增這行防呆]：如果在飛，直接跳過所有的按鍵偵測
+        if (isFlying) return;
         if (GameDirector.Instance != null && GameDirector.Instance.playerActions != null)
         {
             moveInput = GameDirector.Instance.playerActions.Player.Move.ReadValue<Vector2>();
@@ -305,6 +308,14 @@ public class PlayerMovement : MonoBehaviour
         if (currentCardboard != null)
         {
             currentCardboard.UpdateAnimationState(rb, isOverEncumbered, isPushing);
+        }
+
+        // 💀 [新增這段護城河]：如果正在飛，交給物理引擎，不要干擾！
+        if (isFlying)
+        {
+            rb.linearDamping = 0f; // 確保空中沒有煞車阻力
+            ApplyExtraGravity();   // 套用一點額外重力讓拋物線更漂亮
+            return;                // 直接中斷，不執行下面的走路邏輯！
         }
 
         // --- 核心移動判斷 ---

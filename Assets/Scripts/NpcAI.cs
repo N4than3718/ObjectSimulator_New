@@ -855,6 +855,14 @@ public class NpcAI : MonoBehaviour
         }
     }
 
+    public void GetStunned(float duration)
+    {
+        Debug.Log($"[NpcAI] 我被砸暈了！預計昏迷 {duration} 秒！");
+        // TODO: 停止 NavMeshAgent 移動
+        // TODO: 切換到昏迷動畫
+        // TODO: 啟動一個協程，幾秒後醒來
+    }
+
     private void OnDrawGizmos()
     {
         Vector3 eyePosition = eyeTransform != null ? eyeTransform.position : transform.position + Vector3.up * 1.0f;

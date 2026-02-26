@@ -15,6 +15,11 @@ public class HammerSkill : BaseSkill
     [SerializeField] private int linePoints = 30;     // 預測的點數量
     [SerializeField] private float timeBetweenPoints = 0.1f; // 點的密度
 
+    [Header("擊暈設定")]
+    [SerializeField] private float stunDuration = 5f; // 擊暈幾秒
+    [SerializeField] private GameObject impactEffect; // (選填) 撞擊灰塵特效
+    [SerializeField] private AudioClip impactSound;   // (選填) 撞擊重音
+
     [Header("狀態與引用")]
     [SerializeField] private PlayerMovement playerMovement;
 
@@ -119,7 +124,7 @@ public class HammerSkill : BaseSkill
         isFlying = true;
 
         // 1. 關閉玩家的走路控制 (必須在 PlayerMovement 裡加一個 isFlying 判斷)
-        if (playerMovement != null) playerMovement.enabled = false;
+        if (playerMovement != null) playerMovement.isFlying = true;
 
         // 2. 施加發射力道 (使用 VelocityChange 忽略質量，讓拋物線更符合預測)
         Vector3 launchVelocity = CalculateLaunchVelocity();
@@ -129,5 +134,51 @@ public class HammerSkill : BaseSkill
         rb.AddTorque(new Vector3(Random.Range(-5f, 5f), Random.Range(10f, 20f), 0), ForceMode.Impulse);
 
         Debug.Log($"[HammerSkill] 發射！力度: {launchVelocity.magnitude}");
+    }
+
+    // 當剛體撞到東西時，Unity 會自動呼叫這個函式
+    private void OnCollisionEnter(Collision collision)
+    {
+        // 如果不是在飛行狀態下撞擊，就不處理 (避免平常走路撞到牆也觸發)
+        if (!isFlying) return;
+
+        // 1. 撞到了！解除飛行狀態，把控制權還給玩家
+        isFlying = false;
+        if (playerMovement != null) playerMovement.isFlying = false;
+
+        // 2. 視覺與聽覺回饋
+        if (impactEffect != null)
+        {
+            Instantiate(impactEffect, collision.contacts[0].point, Quaternion.identity);
+        }
+        if (impactSound != null && GetComponent<AudioSource>() != null)
+        {
+            GetComponent<AudioSource>().PlayOneShot(impactSound);
+        }
+
+        // 3. 判斷撞到了什麼
+        NpcAI hitNpc = collision.collider.GetComponentInParent<NpcAI>();
+
+        if (hitNpc != null)
+        {
+            // 🎯 砸中 NPC：觸發擊暈！
+            Debug.Log($"[HammerSkill] 爆頭！砸暈了 {hitNpc.name}");
+
+            // 這裡假設你的 NpcAI 裡面有一個 GetStunned 的方法
+            // 如果還沒寫，我們下一步去 NpcAI 裡面補上
+            hitNpc.GetStunned(stunDuration);
+        }
+        else
+        {
+            // ❌ 沒砸中 NPC (砸到地板/牆壁)：發出巨大噪音引來守衛！
+            Debug.Log("[HammerSkill] 沒砸中目標，發出巨大噪音！");
+
+            // 這裡可以呼叫你原本寫在 ObjectStats 或其他地方的噪音產生器
+            // 例如產生一個半徑 20f 的噪音點，讓附近的 NPC 轉入 Investigate 狀態
+            // GenerateNoise(transform.position, 20f); 
+        }
+
+        // 4. (選用) 落地後把槌子扶正，避免它以奇怪的角度卡在地板上
+        // rb.rotation = Quaternion.Euler(0, rb.rotation.eulerAngles.y, 0);
     }
 }
