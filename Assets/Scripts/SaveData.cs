@@ -8,6 +8,8 @@ public class UnitData
     public Vector3 position;
     public Quaternion rotation;
     public bool isAvailable;
+
+    public string customStateJson;
 }
 
 [System.Serializable]
