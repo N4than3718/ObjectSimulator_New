@@ -5070,7 +5070,7 @@ GameObject:
   - component: {fileID: 251966383}
   - component: {fileID: 251966386}
   m_Layer: 5
-  m_Name: Save
+  m_Name: Load
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -5142,7 +5142,7 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 1464291472}
         m_TargetAssemblyTypeName: GameDirector, Assembly-CSharp
-        m_MethodName: OnClickSave
+        m_MethodName: OnClickLoad
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -33216,7 +33216,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Save
+  m_text: Load
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 5302535af1044152a457ed104f1f4b91, type: 2}
   m_sharedMaterial: {fileID: 2164040, guid: 5302535af1044152a457ed104f1f4b91, type: 2}
@@ -35161,6 +35161,7 @@ GameObject:
   - component: {fileID: 1464291472}
   - component: {fileID: 1464291473}
   - component: {fileID: 1464291474}
+  - component: {fileID: 1464291475}
   m_Layer: 0
   m_Name: _GameManagers
   m_TagString: Untagged
@@ -35470,6 +35471,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5919772b9e8b228428b29a4233dbd801, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::LevelTimer
+--- !u!114 &1464291475
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1464291463}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 21129f00ff49105498da585608c087f5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ObjectRegistry
 --- !u!1 &1465795877
 GameObject:
   m_ObjectHideFlags: 0
