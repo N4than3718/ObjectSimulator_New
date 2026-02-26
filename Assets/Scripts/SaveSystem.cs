@@ -18,12 +18,22 @@ public class SaveSystem : MonoBehaviour
     {
         // 💀 使用 Path.Combine 避免跨平台路徑斜線問題
         savePath = Path.Combine(Application.persistentDataPath, "savefile.json");
-        teamManager = FindFirstObjectByType<TeamManager>();
     }
 
     [ContextMenu("Save Game")]
     public async void SaveGame() // 💀 改為 async
     {
+        // 💀 每次存檔前，重新在「當前場景」尋找活著的 TeamManager
+        if (teamManager == null)
+        {
+            teamManager = FindFirstObjectByType<TeamManager>();
+            if (teamManager == null)
+            {
+                Debug.LogError("[SaveSystem] 當前場景找不到 TeamManager，存檔終止！");
+                return;
+            }
+        }
+
         OnSaveStarted?.Invoke(); // 通知 UI 顯示 "存檔中..." ✨
 
         SaveData data = new SaveData();

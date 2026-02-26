@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.InputSystem;
 
-public class FlashlightSkill : BaseSkill
+public class FlashlightSkill : BaseSkill, ISaveable
 {
     [Header("手電筒設定")]
     [SerializeField] private Light spotlight; // 拖曳聚光燈元件
@@ -27,6 +27,13 @@ public class FlashlightSkill : BaseSkill
     private TeamManager teamManager;    // 用來取得攝影機
     private float timer = 0f;
     private Collider[] _hitColliders = new Collider[10];
+
+    // 💀 建立專屬的存檔資料結構
+    [System.Serializable]
+    private class FlashlightSaveState
+    {
+        public bool isLightOn;
+    }
 
     public override void OnInput(InputAction.CallbackContext context)
     {
@@ -237,5 +244,27 @@ public class FlashlightSkill : BaseSkill
         // 畫出正中心的光軸
         Gizmos.color = Color.red;
         Gizmos.DrawRay(origin.position, origin.forward * effectiveRange);
+    }
+
+    // 💀 實作 GetSaveData：將狀態打包成 JSON 字串
+    public string GetSaveData()
+    {
+        FlashlightSaveState state = new FlashlightSaveState
+        {
+            // 記錄手電筒是否開著
+            isLightOn = spotlight != null && spotlight.enabled
+        };
+        return JsonUtility.ToJson(state);
+    }
+
+    // 💀 實作 RestoreSaveData：將 JSON 字串還原為狀態
+    public void RestoreSaveData(string jsonState)
+    {
+        FlashlightSaveState state = JsonUtility.FromJson<FlashlightSaveState>(jsonState);
+
+        if (spotlight != null)
+        {
+            spotlight.enabled = state.isLightOn;
+        }
     }
 }

@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.InputSystem;
 
-public class AlarmSkill : BaseSkill
+public class AlarmSkill : BaseSkill, ISaveable
 {
     [Header("噪音設定")]
     [SerializeField] private float noiseRadius = 15f;    // 聲音傳多遠
@@ -93,5 +93,39 @@ public class AlarmSkill : BaseSkill
     {
         isRinging = false;
         if (ringingPart != null) ringingPart.localRotation = originalLocalRot;
+    }
+
+    // 💀 2. 建立專屬的存檔資料結構
+    [System.Serializable]
+    private class AlarmSaveState
+    {
+        public bool isRinging;
+        public float currentTimer;
+    }
+
+    // 💀 3. 實作 GetSaveData
+    public string GetSaveData()
+    {
+        AlarmSaveState state = new AlarmSaveState
+        {
+            isRinging = this.isRinging,
+            currentTimer = this.timer
+        };
+        return JsonUtility.ToJson(state);
+    }
+
+    // 💀 4. 實作 RestoreSaveData
+    public void RestoreSaveData(string jsonState)
+    {
+        AlarmSaveState state = JsonUtility.FromJson<AlarmSaveState>(jsonState);
+
+        this.isRinging = state.isRinging;
+        this.timer = state.currentTimer;
+
+        // 防呆：如果讀檔時鬧鐘是關的，確保旋轉歸位
+        if (!this.isRinging && ringingPart != null)
+        {
+            ringingPart.localRotation = originalLocalRot;
+        }
     }
 }

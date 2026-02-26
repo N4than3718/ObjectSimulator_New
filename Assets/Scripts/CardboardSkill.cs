@@ -6,7 +6,7 @@ using UnityEngine.InputSystem;
 using UnityEngine.UI; // 引用 UI
 
 [RequireComponent(typeof(PlayerMovement), typeof(Collider), typeof(ObjectStats))]
-public class CardboardSkill : BaseSkill // 1. 改為繼承 BaseSkill
+public class CardboardSkill : BaseSkill, ISaveable
 {
     [Header("元件參考 (Cardboard 專用)")]
     private PlayerMovement playerMovement;
@@ -365,5 +365,57 @@ public class CardboardSkill : BaseSkill // 1. 改為繼承 BaseSkill
                 animator.speed = 1.0f;
             }
         }
+    }
+
+    // 💀 2. 專屬存檔結構：只存字串清單
+    [System.Serializable]
+    private class CardboardSaveState
+    {
+        public List<string> swallowedItemNames = new List<string>();
+    }
+
+    // 💀 3. 打包狀態
+    public string GetSaveData()
+    {
+        CardboardSaveState state = new CardboardSaveState();
+
+        // 歷遍 Stack 裡的所有物品，把名字存進 List
+        foreach (var item in storedItems)
+        {
+            if (item != null) state.swallowedItemNames.Add(item.gameObject.name);
+        }
+        return JsonUtility.ToJson(state);
+    }
+
+    // 💀 4. 還原狀態
+    public void RestoreSaveData(string jsonState)
+    {
+        CardboardSaveState state = JsonUtility.FromJson<CardboardSaveState>(jsonState);
+
+        // 先清空目前的肚子
+        storedItems.Clear();
+
+        // 反向操作：因為 Stack 是後進先出 (LIFO)，存檔時是從頂部往下存
+        // 讀檔時要從尾巴塞回去，才能保持原本的吐出順序
+        for (int i = state.swallowedItemNames.Count - 1; i >= 0; i--)
+        {
+            string itemName = state.swallowedItemNames[i];
+
+            // 🔥 呼叫我們的註冊中心，無視 SetActive(false) 找出物件！
+            GameObject swallowedObj = ObjectRegistry.Instance.GetObjectByName(itemName);
+
+            if (swallowedObj != null)
+            {
+                ObjectStats stats = swallowedObj.GetComponent<ObjectStats>();
+                if (stats != null)
+                {
+                    storedItems.Push(stats);
+                    swallowedObj.SetActive(false); // 確保它依然是被隱藏的
+                }
+            }
+        }
+
+        // 更新 UI 與重量
+        UpdateTotalWeight();
     }
 }
