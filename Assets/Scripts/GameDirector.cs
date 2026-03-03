@@ -1,4 +1,5 @@
 ﻿using System.Collections;
+using UnityEditor.Overlays;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
@@ -16,7 +17,8 @@ public class GameDirector : MonoBehaviour
     public CanvasGroup gameOverPanel;
     public CanvasGroup victoryPanel;
     public CanvasGroup menuPanel;
-    public UnityEngine.UI.Button loadButton; // 拖入你的 Load 按鈕實體
+    [Tooltip("把所有選單裡的 Load 按鈕都拖進來")]
+    public UnityEngine.UI.Button[] loadButton;
     [Tooltip("主選單的場景名稱 (破關後回去用)")]
     public string mainMenuSceneName = "MainMenu";
 
@@ -125,7 +127,13 @@ public class GameDirector : MonoBehaviour
         if (loadButton != null)
         {
             // 💀 如果檔案不存在，按鈕就不可點擊，並變灰
-            loadButton.interactable = System.IO.File.Exists(path);
+            foreach (var btn in loadButton)
+            {
+                if (btn != null)
+                {
+                    btn.interactable = System.IO.File.Exists(path);
+                }
+            }
         }
     }
 
@@ -146,12 +154,22 @@ public class GameDirector : MonoBehaviour
         Debug.Log("Game Director: Action! 🎬");
     }
 
-    public void TriggerVictory()
+public void TriggerVictory()
     {
         if (CurrentState != GameState.Playing) return;
 
         CurrentState = GameState.Victory;
         Debug.Log("Game Director: Cut! It's a wrap. (Victory)");
+
+        // 💀 新增這段：在彈出面板前，命令 UI 更新數據
+        if (victoryPanel != null)
+        {
+            VictoryUI uiLogic = victoryPanel.GetComponent<VictoryUI>();
+            if (uiLogic != null)
+            {
+                uiLogic.UpdateVictoryData();
+            }
+        }
 
         EndGameLogic(victoryPanel);
     }

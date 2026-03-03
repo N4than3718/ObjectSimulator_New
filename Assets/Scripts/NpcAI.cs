@@ -26,6 +26,8 @@ public class NpcAI : MonoBehaviour
 
     [Header("UI 設定")] // <--- [新增]
     [SerializeField] private NpcStatusUI statusUiPrefab; // 拖曳剛剛做的 UI Prefab
+    [SerializeField] private ParticleSystem stunStarsEffect;
+    [SerializeField] private ParticleSystem blindSpotsEffect;
 
     [Header("AI 狀態")]
     [SerializeField] private NpcState currentState = NpcState.Searching;
@@ -654,6 +656,11 @@ public class NpcAI : MonoBehaviour
 
         if (blindTimer <= 0)
         {
+            if (blindSpotsEffect != null)
+            {
+                blindSpotsEffect.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
+            }
+
             immunityTimer = blindImmunityTime;
             if (agent.enabled) agent.isStopped = false;
             Debug.Log("NPC: 視力恢復，進入警戒狀態！");
@@ -685,10 +692,16 @@ public class NpcAI : MonoBehaviour
         }
 
         Debug.LogWarning("NPC: 啊！我的眼睛！(被致盲)");
+        if (LevelTimer.Instance != null) LevelTimer.Instance.AddViolenceCount();
 
         // 切換狀態
         currentState = NpcState.Blinded;
         blindTimer = blindRecoveryTime;
+
+        if (blindSpotsEffect != null)
+        {
+            blindSpotsEffect.Play();
+        }
 
         // 視覺與行動阻斷
         if (agent.enabled) agent.isStopped = true;
@@ -724,6 +737,7 @@ public class NpcAI : MonoBehaviour
 
     private void EnterAlertedState(Transform target)
     {
+        if (LevelTimer.Instance != null) LevelTimer.Instance.AddDetectionCount();
         if (anim != null) anim.SetBool(lookAroundAnimParam, false);
         if (agent.enabled) agent.isStopped = false;
 
@@ -875,6 +889,11 @@ public class NpcAI : MonoBehaviour
             if (agent.enabled) agent.isStopped = false;
             Debug.Log("NPC: 💢 從昏迷中醒來，誰砸我！(進入高度警戒)");
 
+            if (stunStarsEffect != null)
+            {
+                stunStarsEffect.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
+            }
+
             // 醒來後直接給予極高警戒值並進入調查
             currentAlertLevel = 199f;
             currentState = NpcState.Investigating;
@@ -899,6 +918,7 @@ public class NpcAI : MonoBehaviour
         }
 
         Debug.Log($"[NpcAI] 💥 {gameObject.name} 被重物砸中！進入暈眩狀態 {duration} 秒！");
+        if (LevelTimer.Instance != null) LevelTimer.Instance.AddViolenceCount();
 
         // 1. 切換狀態並設定計時器
         currentState = NpcState.Stunned;
@@ -910,6 +930,11 @@ public class NpcAI : MonoBehaviour
         noiseInvestigationTarget = null;
 
         // 3. 播放專屬動畫
+        if (stunStarsEffect != null)
+        {
+            stunStarsEffect.Play();
+        }
+
         if (anim != null)
         {
             anim.SetTrigger("Stunned"); // 💀 記得在 Animator 裡加一個叫 Stunned 的 Trigger 和倒地動畫！

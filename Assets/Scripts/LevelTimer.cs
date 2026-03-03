@@ -6,6 +6,12 @@ public class LevelTimer : MonoBehaviour
     public float CurrentTime { get; private set; }
     private bool isRunning = false;
 
+    public int timesDetected { get; private set; } = 0;
+    public int timesViolent { get; private set; } = 0;
+
+    public void AddDetectionCount() => timesDetected++;
+    public void AddViolenceCount() => timesViolent++;
+
     private void Awake()
     {
         Instance = this;
