@@ -777,6 +777,8 @@ public class NpcAI : MonoBehaviour
 
     public void HearNoise(Vector3 position, float range, float intensity)
     {
+        if (currentState == NpcState.Stunned) return;
+
         // 1. 計算距離衰減 (可選，這裡先簡化)
         float distance = Vector3.Distance(transform.position, position);
 
