@@ -7,7 +7,7 @@ using UnityEngine.AI;
 [RequireComponent(typeof(FieldOfView), typeof(NavMeshAgent), typeof(Animator))]
 public class NpcAI : MonoBehaviour
 {
-    public enum NpcState { Searching, Investigating, Alerted, Blinded }
+    public enum NpcState { Searching, Investigating, Alerted, Blinded, Stunned }
 
     [Header("Debug 強制撿拾")]
     public bool forcePickupDebug = false;
@@ -75,6 +75,7 @@ public class NpcAI : MonoBehaviour
     [SerializeField] private float blindImmunityTime = 2.0f; // [新增] 免疫時間
     private float blindTimer = 0f;
     private float immunityTimer = 0f; // [新增] 免疫計時器
+    private float stunTimer = 0f;
 
     [Header("Debug")]
     [SerializeField][Range(0, 200)] private float currentAlertLevel = 0f;
@@ -241,6 +242,9 @@ public class NpcAI : MonoBehaviour
                     break;
                 case NpcState.Blinded:
                     BlindedState();
+                    break;
+                case NpcState.Stunned:
+                    StunnedState();
                     break;
             }
 
@@ -855,12 +859,59 @@ public class NpcAI : MonoBehaviour
         }
     }
 
+    // 這是狀態機每 0.2 秒會來呼叫一次的邏輯 (沿用 BlindedState 的設計)
+    private void StunnedState()
+    {
+        // 確保 NPC 無法移動
+        if (agent.enabled) agent.isStopped = true;
+
+        // 倒數計時
+        stunTimer -= aiUpdateInterval;
+
+        if (stunTimer <= 0)
+        {
+            if (agent.enabled) agent.isStopped = false;
+            Debug.Log("NPC: 💢 從昏迷中醒來，誰砸我！(進入高度警戒)");
+
+            // 醒來後直接給予極高警戒值並進入調查
+            currentAlertLevel = 199f;
+            currentState = NpcState.Investigating;
+
+            // 根據最後記憶的位置去追擊
+            if (lastSightingPosition != Vector3.zero)
+            {
+                agent.SetDestination(lastSightingPosition);
+                investigationTimer = 0f;
+            }
+        }
+    }
+
+    // 這是給 HammerSkill 呼叫的接收器
     public void GetStunned(float duration)
     {
-        Debug.Log($"[NpcAI] 我被砸暈了！預計昏迷 {duration} 秒！");
-        // TODO: 停止 NavMeshAgent 移動
-        // TODO: 切換到昏迷動畫
-        // TODO: 啟動一個協程，幾秒後醒來
+        // 如果已經在暈了，就重新刷新暈眩時間 (被連續砸頭)
+        if (currentState == NpcState.Stunned)
+        {
+            stunTimer = duration;
+            return;
+        }
+
+        Debug.Log($"[NpcAI] 💥 {gameObject.name} 被重物砸中！進入暈眩狀態 {duration} 秒！");
+
+        // 1. 切換狀態並設定計時器
+        currentState = NpcState.Stunned;
+        stunTimer = duration;
+
+        // 2. 行動阻斷
+        if (agent.enabled) agent.isStopped = true;
+        threatTarget = null;
+        noiseInvestigationTarget = null;
+
+        // 3. 播放專屬動畫
+        if (anim != null)
+        {
+            anim.SetTrigger("Stunned"); // 💀 記得在 Animator 裡加一個叫 Stunned 的 Trigger 和倒地動畫！
+        }
     }
 
     private void OnDrawGizmos()
