@@ -133,6 +133,15 @@ public class GameDirector : MonoBehaviour
                 {
                     btn.interactable = System.IO.File.Exists(path);
                 }
+
+                CanvasGroup cg = btn.GetComponent<CanvasGroup>();
+                if (cg == null)
+                {
+                    cg = btn.gameObject.AddComponent<CanvasGroup>();
+                }
+
+                // 直接調整 CanvasGroup 的整體透明度 (1 = 完全不透明, 0.4 = 半透明反灰感)
+                cg.alpha = System.IO.File.Exists(path) ? 1f : 0.4f;
             }
         }
     }
