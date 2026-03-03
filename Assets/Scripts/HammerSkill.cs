@@ -42,6 +42,12 @@ public class HammerSkill : BaseSkill
 
     public override void OnInput(InputAction.CallbackContext context)
     {
+        if (!this.enabled)
+        {
+            this.enabled = true;
+            Debug.Log($"[HammerSkill] 檢測到輸入但腳本未啟用，已強制自我喚醒！");
+        }
+
         if (context.started && !isFlying)
         {
             // 開始蓄力
