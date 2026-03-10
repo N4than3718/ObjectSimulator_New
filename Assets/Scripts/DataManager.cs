@@ -57,6 +57,31 @@ public class DataManager : MonoBehaviour
         }
     }
 
+    // --- 任務事件記錄功能 (跨關卡狀態) ---
+
+    // 💀 寫入事件 (例如：SetEvent("PowerBroken", true))
+    public void SetEvent(string eventName, bool isCompleted)
+    {
+        // PlayerPrefs 不支援直接存 bool，所以我們用 Int 代替 (1=真, 0=假)
+        PlayerPrefs.SetInt("Event_" + eventName, isCompleted ? 1 : 0);
+        PlayerPrefs.Save();
+        Debug.Log($"[DataManager] 任務事件更新: {eventName} = {isCompleted}");
+    }
+
+    // 💀 讀取事件 (第三關載入時用來檢查)
+    public bool GetEvent(string eventName)
+    {
+        return PlayerPrefs.GetInt("Event_" + eventName, 0) == 1;
+    }
+
+    // 💀 (可選) 清除所有事件，通常在開新遊戲時呼叫
+    public void ResetAllEvents()
+    {
+        PlayerPrefs.DeleteKey("Event_KeyDropped");
+        PlayerPrefs.DeleteKey("Event_PowerBroken");
+        // ... 有幾個事件就刪幾個
+    }
+
     // 💀 Coder: 開發者工具，按一個鍵重置所有存檔
     [ContextMenu("Clear All Data")]
     public void ClearAllData()
