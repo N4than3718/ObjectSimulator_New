@@ -43,7 +43,7 @@ public class ImpactSoundEmitter : MonoBehaviour
         // 實際判定閾值 (輕的東西需要撞更大力才會有聲音)
         float threshold = impactThreshold / Mathf.Max(weightFactor, 0.5f);
 
-        if (impactForce > impactThreshold)
+        if (impactForce > threshold)
         {
             float range = impactForce * weightFactor * materialFactor;
             float intensity = range * 2f; // 撞越大力越警戒
