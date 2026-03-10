@@ -1030,6 +1030,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: AmmoCase
       objectReference: {fileID: 0}
+    - target: {fileID: 6370764775388150225, guid: ea99e1f78d567fd43a874e5fceb5fcc2, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -6565,6 +6569,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 103837076}
     m_Modifications:
+    - target: {fileID: 3529970057693005443, guid: f7451994f0e521d42a346f5c1bb790cd, type: 3}
+      propertyPath: m_ApplyToChildren
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 4750112250915331486, guid: f7451994f0e521d42a346f5c1bb790cd, type: 3}
       propertyPath: m_Name
       value: Stairs2_C5
@@ -6613,7 +6621,25 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    m_RemovedComponents: []
+    - target: {fileID: 6048870546641497762, guid: f7451994f0e521d42a346f5c1bb790cd, type: 3}
+      propertyPath: m_Enabled
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6249980336396752802, guid: f7451994f0e521d42a346f5c1bb790cd, type: 3}
+      propertyPath: m_Enabled
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8786779341907837672, guid: f7451994f0e521d42a346f5c1bb790cd, type: 3}
+      propertyPath: m_Enabled
+      value: 1
+      objectReference: {fileID: 0}
+    m_RemovedComponents:
+    - {fileID: 5883825464228788389, guid: f7451994f0e521d42a346f5c1bb790cd, type: 3}
+    - {fileID: 7444746088524091035, guid: f7451994f0e521d42a346f5c1bb790cd, type: 3}
+    - {fileID: 6954142852705927926, guid: f7451994f0e521d42a346f5c1bb790cd, type: 3}
+    - {fileID: 6801096732916652490, guid: f7451994f0e521d42a346f5c1bb790cd, type: 3}
+    - {fileID: 8143928128109629924, guid: f7451994f0e521d42a346f5c1bb790cd, type: 3}
+    - {fileID: 4746208033221021297, guid: f7451994f0e521d42a346f5c1bb790cd, type: 3}
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents: []
@@ -43043,6 +43069,7 @@ GameObject:
   - component: {fileID: 1363107011}
   - component: {fileID: 1363107015}
   - component: {fileID: 1363107014}
+  - component: {fileID: 1363107016}
   m_Layer: 8
   m_Name: Plane
   m_TagString: Untagged
@@ -43175,6 +43202,26 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 10, y: 10, z: 10}
   m_Center: {x: 0, y: -5, z: 0}
+--- !u!114 &1363107016
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1363107009}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1e3fdca004f2d45fe8abbed571a8abd5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.AI.Navigation::Unity.AI.Navigation.NavMeshModifier
+  m_SerializedVersion: 0
+  m_OverrideArea: 0
+  m_Area: 0
+  m_OverrideGenerateLinks: 0
+  m_GenerateLinks: 0
+  m_IgnoreFromBuild: 1
+  m_ApplyToChildren: 0
+  m_AffectedAgents: ffffffff
 --- !u!1001 &1374601469
 PrefabInstance:
   m_ObjectHideFlags: 0
