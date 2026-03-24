@@ -5,6 +5,7 @@ using UnityEngine.InputSystem;
 public class HammerSkill : BaseSkill
 {
     [Header("憤怒鳥彈弓設定")]
+    public Transform cameraTransform;
     [Tooltip("拉滿橡皮筋時的最大發射力道")]
     [SerializeField] private float maxForce = 25f;
     [Tooltip("滑鼠要拉多遠才能達到最大力道？")]
@@ -26,7 +27,6 @@ public class HammerSkill : BaseSkill
     [SerializeField] private PlayerMovement playerMovement;
 
     private Rigidbody rb;
-    private Camera mainCam;
 
     // 拖曳狀態追蹤
     private bool isDragging = false;
@@ -42,10 +42,9 @@ public class HammerSkill : BaseSkill
     {
         base.Start();
         rb = GetComponent<Rigidbody>();
-        mainCam = Camera.main;
         if (playerMovement == null) playerMovement = GetComponent<PlayerMovement>();
 
-        if (trajectoryLine != null) trajectoryLine.enabled = false;
+        if (trajectoryLine != null) trajectoryLine.gameObject.SetActive(false);
     }
 
     protected override void Update()
@@ -66,7 +65,7 @@ public class HammerSkill : BaseSkill
             isDragging = true;
             accumulatedDrag = Vector2.zero; // 💀 每次拉弓前，把拖曳量歸零
 
-            if (trajectoryLine != null) trajectoryLine.enabled = true;
+            if (trajectoryLine != null) trajectoryLine.gameObject.SetActive(true);
             if (playerMovement != null) playerMovement.enabled = false;
         }
 
@@ -99,10 +98,10 @@ public class HammerSkill : BaseSkill
         float forcePercent = dragDistance / maxDragDistance;
         float finalForce = forcePercent * maxForce * forceMultiplier;
 
-        Vector3 aimDirection = mainCam.transform.forward * dragVector.y + mainCam.transform.right * dragVector.x;
-        if (aimDirection.magnitude < 0.1f) aimDirection = mainCam.transform.forward;
+        Vector3 aimDirection = cameraTransform.transform.forward * dragVector.y + cameraTransform.transform.right * dragVector.x;
+        if (aimDirection.magnitude < 0.1f) aimDirection = cameraTransform.transform.forward;
 
-        Vector3 launchDirection = Quaternion.AngleAxis(-30f, mainCam.transform.right) * aimDirection.normalized;
+        Vector3 launchDirection = Quaternion.AngleAxis(-30f, cameraTransform.transform.right) * aimDirection.normalized;
 
         return launchDirection * finalForce;
     }
