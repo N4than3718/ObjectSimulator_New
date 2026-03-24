@@ -1,68 +1,97 @@
 ﻿using UnityEngine;
-using System.Collections; // 💀 使用協程必須加這行
+using System.Collections;
 
 public class ToiletTeleporter : MonoBehaviour
 {
     [Header("傳送設定")]
-    [Tooltip("要把玩家沖到哪裡？ (把出口的空物件或另一個馬桶拖進來)")]
+    [Tooltip("要把玩家沖到哪裡？")]
     [SerializeField] private Transform destination;
+    [Tooltip("沖水動畫要播幾秒？")]
+    [SerializeField] private float flushDelay = 1.5f;
 
-    [Tooltip("沖水要花幾秒鐘？")]
-    [SerializeField] private float flushDelay = 1.0f;
+    [Header("漩渦動畫設定")]
+    [Tooltip("旋轉速度 (數字越大轉越快)")]
+    [SerializeField] private float spinSpeed = 720f;
+    [Tooltip("要下沉多深？ (微觀世界建議設小一點，例如 0.2)")]
+    [SerializeField] private float sinkDepth = 0.2f;
 
-    [Header("沉浸感 (選填)")]
+    [Header("沉浸感")]
     [SerializeField] private AudioClip flushSound;
     [SerializeField] private ParticleSystem waterSplash;
 
     private bool isFlushing = false;
 
-    // 當有東西碰到馬桶的觸發區域時...
     private void OnTriggerEnter(Collider other)
     {
-        // 1. 確認掉進來的是不是「玩家」，而且馬桶目前沒有在沖水
         if (other.CompareTag("Player") && !isFlushing)
         {
             if (destination != null)
             {
-                // 2. 啟動沖水流程！
                 StartCoroutine(FlushRoutine(other.gameObject));
-            }
-            else
-            {
-                Debug.LogWarning("[Toilet] 靠北！馬桶沒有設定出口，塞住了！");
             }
         }
     }
 
-    // 💀 沖水協程 (可以中途等待的特殊函式)
     private IEnumerator FlushRoutine(GameObject player)
     {
         isFlushing = true;
 
-        // --- 第一階段：掉進馬桶 ---
-        Debug.Log("玩家掉進馬桶了！開始沖水！");
+        // --- 第一階段：封印玩家的控制權與物理 ---
+        // 取得玩家身上的移動腳本與剛體，並暫時關閉，避免跟我們的下沉動畫打架
+        PlayerMovement movementScript = player.GetComponent<PlayerMovement>();
+        Rigidbody rb = player.GetComponent<Rigidbody>();
+        Collider[] allColliders = player.GetComponentsInChildren<Collider>();
 
-        if (flushSound != null)
-            AudioSource.PlayClipAtPoint(flushSound, transform.position);
+        if (movementScript != null) movementScript.enabled = false;
+        if (rb != null)
+        {
+            rb.isKinematic = true; // 關閉重力與物理推擠
+            rb.linearVelocity = Vector3.zero; // 煞車
+        }
+        foreach (Collider col in allColliders)
+        {
+            col.enabled = false;
+        }
 
-        if (waterSplash != null)
-            waterSplash.Play();
+        // 播放音效與水花
+        if (flushSound != null) AudioSource.PlayClipAtPoint(flushSound, transform.position);
+        if (waterSplash != null) waterSplash.Play();
 
-        player.GetComponent<PlayerMovement>().enabled = false;
+        // --- 第二階段：漩渦動畫 (邊轉邊沉) ---
+        float elapsedTime = 0f;
+        Vector3 startPosition = player.transform.position;
+        // 計算目標下沉位置 (往下 sinkDepth 的距離)
+        Vector3 targetPosition = startPosition + Vector3.down * sinkDepth;
 
-        // --- 第二階段：在管線裡流動 (等待) ---
-        yield return new WaitForSeconds(flushDelay);
+        // 💀 核心魔法：每一幀不斷更新位置與旋轉，直到時間結束
+        while (elapsedTime < flushDelay)
+        {
+            elapsedTime += Time.deltaTime;
+            float percent = elapsedTime / flushDelay; // 0 到 1 的進度條
 
-        // --- 第三階段：從目的地噴出來 (瞬間移動) ---
+            // 1. 平滑下沉 (Lerp)
+            player.transform.position = Vector3.Lerp(startPosition, targetPosition, percent);
 
-        // 真正執行瞬間移動
+            // 2. 瘋狂旋轉 (沿著 Y 軸轉)
+            player.transform.Rotate(Vector3.up, spinSpeed * Time.deltaTime, Space.World);
+
+            // 等待下一個影格再來執行迴圈
+            yield return null;
+        }
+
+        // --- 第三階段：從目的地噴出來 ---
         player.transform.position = destination.position;
-        player.transform.rotation = destination.rotation; // 讓玩家看向出口的方向
+        player.transform.rotation = destination.rotation;
 
-        // 重新開啟控制器
-        player.GetComponent<PlayerMovement>().enabled = true;
+        // 💥 解除封印：把控制權與物理還給玩家！
+        if (movementScript != null) movementScript.enabled = true;
+        if (rb != null) rb.isKinematic = false;
+        foreach (Collider col in allColliders)
+        {
+            col.enabled = true;
+        }
 
-        Debug.Log("傳送完成！");
         isFlushing = false;
+        Debug.Log("[Toilet] 沖水傳送完畢！");
     }
 }
