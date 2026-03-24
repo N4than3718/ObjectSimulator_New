@@ -68,11 +68,5 @@ public class ObjectStats : MonoBehaviour
             _lastMaterialType = materialType;
             // Debug.Log($"[ObjectStats] 材質變更為 {materialType}，自動重設倍率為 {noiseMultiplier}");
         }
-
-        Rigidbody rb = GetComponent<Rigidbody>();
-        if (rb != null)
-        {
-            rb.mass = weight;
-        }
     }
 }
