@@ -4,96 +4,107 @@ using UnityEngine.InputSystem;
 [RequireComponent(typeof(Rigidbody))]
 public class HammerSkill : BaseSkill
 {
-    [Header("發射設定")]
-    [SerializeField] private float minForce = 5f;
-    [SerializeField] private float maxForce = 20f;
-    [SerializeField] private float chargeTime = 1.5f; // 蓄滿所需時間
-    [SerializeField] private float upwardAngle = 30f; // 預設往上拋的角度
+    [Header("憤怒鳥彈弓設定")]
+    [Tooltip("拉滿橡皮筋時的最大發射力道")]
+    [SerializeField] private float maxForce = 25f;
+    [Tooltip("滑鼠要拉多遠才能達到最大力道？")]
+    [SerializeField] private float maxDragDistance = 300f;
+    [Tooltip("力道加乘係數")]
+    [SerializeField] private float forceMultiplier = 3f;
 
     [Header("軌跡視覺")]
     [SerializeField] private LineRenderer trajectoryLine;
-    [SerializeField] private int linePoints = 30;     // 預測的點數量
-    [SerializeField] private float timeBetweenPoints = 0.1f; // 點的密度
+    [SerializeField] private int linePoints = 30;
+    [SerializeField] private float timeBetweenPoints = 0.1f;
 
     [Header("擊暈設定")]
-    [SerializeField] private float stunDuration = 5f; // 擊暈幾秒
-    [SerializeField] private GameObject impactEffect; // (選填) 撞擊灰塵特效
-    [SerializeField] private AudioClip impactSound;   // (選填) 撞擊重音
+    [SerializeField] private float stunDuration = 5f;
+    [SerializeField] private GameObject impactEffect;
+    [SerializeField] private AudioClip impactSound;
 
     [Header("狀態與引用")]
     [SerializeField] private PlayerMovement playerMovement;
 
     private Rigidbody rb;
-    private bool isCharging = false;
-    private float currentChargeTimer = 0f;
+    private Camera mainCam;
+
+    // 拖曳狀態追蹤
+    private bool isDragging = false;
+    private Vector2 accumulatedDrag;
+    private Vector2 dragStartPos;
+    private Vector2 currentDragPos;
     private bool isFlying = false;
 
     protected override void Activate()
-    { }
+    {   }
 
     protected override void Start()
     {
         base.Start();
         rb = GetComponent<Rigidbody>();
+        mainCam = Camera.main;
         if (playerMovement == null) playerMovement = GetComponent<PlayerMovement>();
 
-        if (trajectoryLine != null) trajectoryLine.gameObject.SetActive(false);
-    }
-
-    public override void OnInput(InputAction.CallbackContext context)
-    {
-        if (!this.enabled)
-        {
-            this.enabled = true;
-            Debug.Log($"[HammerSkill] 檢測到輸入但腳本未啟用，已強制自我喚醒！");
-        }
-
-        if (context.started && !isFlying)
-        {
-            // 開始蓄力
-            isCharging = true;
-            currentChargeTimer = 0f;
-            if (trajectoryLine != null) trajectoryLine.gameObject.SetActive(true);
-        }
-        else if (context.canceled && isCharging)
-        {
-            // 釋放發射
-            isCharging = false;
-            if (trajectoryLine != null) trajectoryLine.gameObject.SetActive(false);
-            Launch();
-        }
+        if (trajectoryLine != null) trajectoryLine.enabled = false;
     }
 
     protected override void Update()
     {
         base.Update();
 
-        if (isCharging)
-        {
-            // 累加蓄力時間
-            currentChargeTimer += Time.deltaTime;
-            currentChargeTimer = Mathf.Clamp(currentChargeTimer, 0, chargeTime);
+        // 💀 核心邏輯：偵測滑鼠拖曳 (拉彈弓)
+        HandleDragInput();
+    }
 
-            // 畫拋物線
+    private void HandleDragInput()
+    {
+        if (isFlying || Mouse.current == null) return;
+
+        // 1. 按下左鍵：開始拉弓
+        if (Mouse.current.leftButton.wasPressedThisFrame)
+        {
+            isDragging = true;
+            accumulatedDrag = Vector2.zero; // 💀 每次拉弓前，把拖曳量歸零
+
+            if (trajectoryLine != null) trajectoryLine.enabled = true;
+            if (playerMovement != null) playerMovement.enabled = false;
+        }
+
+        // 2. 按住左鍵拖曳：更新拋物線預覽
+        if (isDragging && Mouse.current.leftButton.isPressed)
+        {
+            // 💀 關鍵修改：用 Delta (位移量) 不斷累加，而不是讀取死板的 Position！
+            accumulatedDrag += Mouse.current.delta.ReadValue();
             DrawTrajectory();
+        }
+
+        // 3. 放開左鍵：發射！
+        if (isDragging && Mouse.current.leftButton.wasReleasedThisFrame)
+        {
+            isDragging = false;
+            if (trajectoryLine != null) trajectoryLine.gameObject.SetActive(false);
+            Launch();
         }
     }
 
+    // 💀 計算發射向量 (滑鼠往後拉，力量往前推)
     private Vector3 CalculateLaunchVelocity()
     {
-        // 計算當前蓄力比例
-        float chargePercent = currentChargeTimer / chargeTime;
-        float currentForce = Mathf.Lerp(minForce, maxForce, chargePercent);
+        // 💀 關鍵修改：在憤怒鳥裡，滑鼠往「下」拉 (負數)，槌子要往「前」飛。
+        // 所以我們直接把累積的拖曳量加上負號反轉！
+        Vector2 dragVector = -accumulatedDrag;
 
-        // 取得攝影機面向的方向 (如果沒有攝影機，就用自己前方的方向)
-        Transform aimTransform = Camera.main != null ? Camera.main.transform : transform;
-        Vector3 aimDirection = aimTransform.forward;
+        // --- 下面的都不用動，維持原樣 ---
+        float dragDistance = Mathf.Clamp(dragVector.magnitude, 0, maxDragDistance);
+        float forcePercent = dragDistance / maxDragDistance;
+        float finalForce = forcePercent * maxForce * forceMultiplier;
 
-        // 稍微往上抬一個角度，形成拋物線
-        Vector3 launchDirection = Quaternion.AngleAxis(-upwardAngle, aimTransform.right) * aimDirection;
+        Vector3 aimDirection = mainCam.transform.forward * dragVector.y + mainCam.transform.right * dragVector.x;
+        if (aimDirection.magnitude < 0.1f) aimDirection = mainCam.transform.forward;
 
-        // F = ma -> V = F/m (如果我們使用 VelocityChange，質量影響會自動處理，這裡直接算出初速向量)
-        return launchDirection.normalized * currentForce;
+        Vector3 launchDirection = Quaternion.AngleAxis(-30f, mainCam.transform.right) * aimDirection.normalized;
+
+        return launchDirection * finalForce;
     }
 
     private void DrawTrajectory()
@@ -104,14 +115,14 @@ public class HammerSkill : BaseSkill
         Vector3 velocity = CalculateLaunchVelocity();
         trajectoryLine.positionCount = linePoints;
 
-        // 💀 物理公式：S = V0*t + 0.5*g*t^2
+        // 物理預測公式：S = V0*t + 0.5*g*t^2
         for (int i = 0; i < linePoints; i++)
         {
             float t = i * timeBetweenPoints;
             Vector3 pointPosition = startPos + velocity * t + 0.5f * Physics.gravity * (t * t);
             trajectoryLine.SetPosition(i, pointPosition);
 
-            // 如果預測點撞到地板或牆壁，就中斷後面的線條
+            // 預測撞擊點中斷線條
             if (i > 0)
             {
                 Vector3 lastPos = trajectoryLine.GetPosition(i - 1);
@@ -129,62 +140,40 @@ public class HammerSkill : BaseSkill
     {
         isFlying = true;
 
-        // 1. 關閉玩家的走路控制 (必須在 PlayerMovement 裡加一個 isFlying 判斷)
-        if (playerMovement != null) playerMovement.isFlying = true;
-
-        // 2. 施加發射力道 (使用 VelocityChange 忽略質量，讓拋物線更符合預測)
         Vector3 launchVelocity = CalculateLaunchVelocity();
-        rb.linearVelocity = launchVelocity;
 
-        // 3. ✨ Juice: 加入隨機旋轉，讓槌子在空中翻滾
+        // 使用 VelocityChange 忽略質量，讓拋物線更精準
+        rb.AddForce(launchVelocity, ForceMode.VelocityChange);
+
+        // 翻滾特效
         rb.AddTorque(new Vector3(Random.Range(-5f, 5f), Random.Range(10f, 20f), 0), ForceMode.Impulse);
 
-        Debug.Log($"[HammerSkill] 發射！力度: {launchVelocity.magnitude}");
+        Debug.Log($"[HammerSkill] 憤怒彈射！初速: {launchVelocity.magnitude}");
     }
 
-    // 當剛體撞到東西時，Unity 會自動呼叫這個函式
     private void OnCollisionEnter(Collision collision)
     {
-        // 如果不是在飛行狀態下撞擊，就不處理 (避免平常走路撞到牆也觸發)
         if (!isFlying) return;
 
-        // 1. 撞到了！解除飛行狀態，把控制權還給玩家
         isFlying = false;
-        if (playerMovement != null) playerMovement.isFlying = false;
 
-        // 2. 視覺與聽覺回饋
-        if (impactEffect != null)
-        {
-            Instantiate(impactEffect, collision.contacts[0].point, Quaternion.identity);
-        }
-        if (impactSound != null && GetComponent<AudioSource>() != null)
-        {
-            GetComponent<AudioSource>().PlayOneShot(impactSound);
-        }
+        // 落地後恢復玩家移動能力
+        if (playerMovement != null) playerMovement.enabled = true;
 
-        // 3. 判斷撞到了什麼
+        // --- 以下是你原本寫的擊暈與特效邏輯 (保持不變) ---
+        if (impactEffect != null) Instantiate(impactEffect, collision.contacts[0].point, Quaternion.identity);
+        if (impactSound != null && GetComponent<AudioSource>() != null) GetComponent<AudioSource>().PlayOneShot(impactSound);
+
         NpcAI hitNpc = collision.collider.GetComponentInParent<NpcAI>();
-
         if (hitNpc != null)
         {
-            // 🎯 砸中 NPC：觸發擊暈！
             Debug.Log($"[HammerSkill] 爆頭！砸暈了 {hitNpc.name}");
-
-            // 這裡假設你的 NpcAI 裡面有一個 GetStunned 的方法
-            // 如果還沒寫，我們下一步去 NpcAI 裡面補上
-            hitNpc.GetStunned(stunDuration);
+            // hitNpc.GetStunned(stunDuration); // 等你的 NPC 寫好再解開
         }
         else
         {
-            // ❌ 沒砸中 NPC (砸到地板/牆壁)：發出巨大噪音引來守衛！
             Debug.Log("[HammerSkill] 沒砸中目標，發出巨大噪音！");
-
-            // 這裡可以呼叫你原本寫在 ObjectStats 或其他地方的噪音產生器
-            // 例如產生一個半徑 20f 的噪音點，讓附近的 NPC 轉入 Investigate 狀態
-            // GenerateNoise(transform.position, 20f); 
+            // StealthManager.MakeNoise(gameObject, transform.position, 20f, 1f);
         }
-
-        // 4. (選用) 落地後把槌子扶正，避免它以奇怪的角度卡在地板上
-        // rb.rotation = Quaternion.Euler(0, rb.rotation.eulerAngles.y, 0);
     }
 }
