@@ -18,6 +18,7 @@ public class PowerBox : MonoBehaviour
     public Light[] lightsToTurnOff;
 
     [Header("特效與音效 (選填)")]
+    public Material burnedMaterial;
     public ParticleSystem sparkParticles;
     public UnityEvent OnPowerBroken; // 可以在 Inspector 綁定播放火花粒子或音效
 
@@ -72,9 +73,12 @@ public class PowerBox : MonoBehaviour
 
         // ✨ 4. 觸發額外特效 (並把電箱本體變黑，表示烤焦了)
         OnPowerBroken.Invoke();
-        if (GetComponent<Renderer>() != null)
+        // 💀 換成正確的材質替換代碼：
+        if (GetComponent<Renderer>() != null && burnedMaterial != null)
         {
-            GetComponent<Renderer>().material.color = new Color(0.2f, 0.2f, 0.2f); // 變成焦黑色
+            // 💀 直接更換整個材質球！
+            GetComponent<Renderer>().material = burnedMaterial;
+            Debug.Log("[PowerBox] 視覺替換: 乾淨材質 -> 燒焦材質");
         }
     }
 }
