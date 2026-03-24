@@ -18,6 +18,7 @@ public class PowerBox : MonoBehaviour
     public Light[] lightsToTurnOff;
 
     [Header("特效與音效 (選填)")]
+    public ParticleSystem sparkParticles;
     public UnityEvent OnPowerBroken; // 可以在 Inspector 綁定播放火花粒子或音效
 
     private void OnCollisionEnter(Collision collision)
@@ -45,6 +46,11 @@ public class PowerBox : MonoBehaviour
     {
         isBroken = true;
         Debug.Log("[PowerBox] 總電源箱被破壞！整棟停電！");
+
+        if (sparkParticles != null)
+        {
+            sparkParticles.Play();
+        }
 
         // 💀 1. 寫入跨關卡事件：記錄電箱已破壞 (給第三關用)
         if (DataManager.Instance != null)
