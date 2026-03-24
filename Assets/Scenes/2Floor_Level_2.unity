@@ -1044,6 +1044,18 @@ PrefabInstance:
       propertyPath: myCharacterCamera
       value: 
       objectReference: {fileID: 1943689174}
+    - target: {fileID: 1441788837318454500, guid: 902bbaa23553af74fa8cbe88f080f12d, type: 3}
+      propertyPath: cameraTransform
+      value: 
+      objectReference: {fileID: 1943689173}
+    - target: {fileID: 2633698012220964542, guid: 902bbaa23553af74fa8cbe88f080f12d, type: 3}
+      propertyPath: m_Parameters.widthCurve.m_Curve.Array.data[0].value
+      value: 0.05
+      objectReference: {fileID: 0}
+    - target: {fileID: 2636677237601098237, guid: 902bbaa23553af74fa8cbe88f080f12d, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 3566633784792933625, guid: 902bbaa23553af74fa8cbe88f080f12d, type: 3}
       propertyPath: m_LocalPosition.x
       value: 6.333
