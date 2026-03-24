@@ -5,31 +5,35 @@ using UnityEngine.InputSystem;
 public class HammerSkill : BaseSkill
 {
     [Header("發射設定")]
+    [Tooltip("按下按鍵後，延遲幾秒才開始蓄力？")]
+    [SerializeField] private float chargeDelay = 1.5f;
     [SerializeField] private float minForce = 5f;
     [SerializeField] private float maxForce = 20f;
-    [SerializeField] private float chargeTime = 1.5f; // 蓄滿所需時間
-    [SerializeField] private float upwardAngle = 30f; // 預設往上拋的角度
+    [SerializeField] private float chargeTime = 5f;
 
     [Header("軌跡視覺")]
     [SerializeField] private LineRenderer trajectoryLine;
-    [SerializeField] private int linePoints = 30;     // 預測的點數量
-    [SerializeField] private float timeBetweenPoints = 0.1f; // 點的密度
+    [SerializeField] private int linePoints = 30;
+    [SerializeField] private float timeBetweenPoints = 0.1f;
 
     [Header("擊暈設定")]
-    [SerializeField] private float stunDuration = 5f; // 擊暈幾秒
-    [SerializeField] private GameObject impactEffect; // (選填) 撞擊灰塵特效
-    [SerializeField] private AudioClip impactSound;   // (選填) 撞擊重音
+    [SerializeField] private float stunDuration = 5f;
+    [SerializeField] private GameObject impactEffect;
+    [SerializeField] private AudioClip impactSound;
 
     [Header("狀態與引用")]
     [SerializeField] private PlayerMovement playerMovement;
+    [SerializeField] private Transform aimCamera;
 
     private Rigidbody rb;
     private bool isCharging = false;
-    private float currentChargeTimer = 0f;
     private bool isFlying = false;
 
-    protected override void Activate()
-    { }
+    // 計時器統整
+    private float holdTimer = 0f;
+    private float currentForce = 0f;
+
+    protected override void Activate() { }
 
     protected override void Start()
     {
@@ -40,82 +44,111 @@ public class HammerSkill : BaseSkill
         if (trajectoryLine != null) trajectoryLine.gameObject.SetActive(false);
     }
 
-    public override void OnInput(InputAction.CallbackContext context)
-    {
-        if (!this.enabled)
-        {
-            this.enabled = true;
-            Debug.Log($"[HammerSkill] 檢測到輸入但腳本未啟用，已強制自我喚醒！");
-        }
-
-        if (context.started && !isFlying)
-        {
-            // 開始蓄力
-            isCharging = true;
-            currentChargeTimer = 0f;
-            if (trajectoryLine != null) trajectoryLine.gameObject.SetActive(true);
-        }
-        else if (context.canceled && isCharging)
-        {
-            // 釋放發射
-            isCharging = false;
-            if (trajectoryLine != null) trajectoryLine.gameObject.SetActive(false);
-            Launch();
-        }
-    }
+    // 💀 刪除了原本衝突的 OnInput 方法，統一將輸入邏輯交給 Update 處理
 
     protected override void Update()
     {
         base.Update();
 
-        if (isCharging)
-        {
-            // 累加蓄力時間
-            currentChargeTimer += Time.deltaTime;
-            currentChargeTimer = Mathf.Clamp(currentChargeTimer, 0, chargeTime);
+        // 統一在這裡處理輸入與蓄力
+        HandleChargeInput();
+    }
 
-            // 畫拋物線
+    private void HandleChargeInput()
+    {
+        if (isFlying || Mouse.current == null) return;
+
+        // 1. 剛按下左鍵：初始化所有狀態
+        if (Mouse.current.leftButton.wasPressedThisFrame)
+        {
+            isCharging = true;
+            holdTimer = 0f;
+            currentForce = minForce; // 鎖定在基礎力道
+
+            if (trajectoryLine != null) trajectoryLine.gameObject.SetActive(true);
+        }
+
+        // 2. 按住左鍵不放：跑計時器與畫線
+        if (isCharging && Mouse.current.leftButton.isPressed)
+        {
+            holdTimer += Time.deltaTime;
+
+            // 超過 1.5 秒延遲後，開始增加力道
+            if (holdTimer >= chargeDelay)
+            {
+                // 計算扣除延遲後，真正用來蓄力的時間
+                float actualChargeTime = holdTimer - chargeDelay;
+                float chargePercent = actualChargeTime / chargeTime;
+
+                // 力道逐漸增加，最大不超過 maxForce
+                currentForce = Mathf.Lerp(minForce, maxForce, chargePercent);
+            }
+
+            // 每幀更新預覽線
             DrawTrajectory();
+        }
+
+        // 3. 放開左鍵：發射
+        if (isCharging && Mouse.current.leftButton.wasReleasedThisFrame)
+        {
+            isCharging = false;
+            if (trajectoryLine != null) trajectoryLine.gameObject.SetActive(false);
+
+            Launch();
+            holdTimer = 0f; // 重置
         }
     }
 
     private Vector3 CalculateLaunchVelocity()
     {
-        // 計算當前蓄力比例
-        float chargePercent = currentChargeTimer / chargeTime;
-        float currentForce = Mathf.Lerp(minForce, maxForce, chargePercent);
+        Vector3 horizontalDirection = aimCamera != null ? aimCamera.forward : transform.forward;
+        horizontalDirection.y = 0;
+        horizontalDirection.Normalize();
 
-        // 取得攝影機面向的方向 (如果沒有攝影機，就用自己前方的方向)
-        Transform aimTransform = Camera.main != null ? Camera.main.transform : transform;
-        Vector3 aimDirection = aimTransform.forward;
+        float pitchAngle = aimCamera != null ? aimCamera.eulerAngles.x : transform.eulerAngles.x;
+        if (pitchAngle > 180f) pitchAngle -= 360f;
 
-        // 稍微往上抬一個角度，形成拋物線
-        Vector3 launchDirection = Quaternion.AngleAxis(-upwardAngle, aimTransform.right) * aimDirection;
+        float launchAngle = -pitchAngle;
+        launchAngle = Mathf.Clamp(launchAngle, -80f, 85f);
 
-        // F = ma -> V = F/m (如果我們使用 VelocityChange，質量影響會自動處理，這裡直接算出初速向量)
-        return launchDirection.normalized * currentForce;
+        float radianAngle = launchAngle * Mathf.Deg2Rad;
+
+        float verticalSpeed = currentForce * Mathf.Sin(radianAngle);
+        float horizontalSpeed = currentForce * Mathf.Cos(radianAngle);
+
+        Vector3 finalVelocity = (horizontalDirection * horizontalSpeed) + (Vector3.up * verticalSpeed);
+        return finalVelocity;
     }
 
     private void DrawTrajectory()
     {
         if (trajectoryLine == null) return;
 
-        Vector3 startPos = transform.position;
+        // 💀 1. 起點偏移：不要從肚子裡發射！
+        // 順著攝影機方向，把畫線的起點稍微往前推 0.1 個單位，避開自己的碰撞體
+        Vector3 forwardOffset = aimCamera != null ? aimCamera.forward : transform.forward;
+        Vector3 startPos = transform.position + (forwardOffset * 0.1f);
+
         Vector3 velocity = CalculateLaunchVelocity();
         trajectoryLine.positionCount = linePoints;
 
-        // 💀 物理公式：S = V0*t + 0.5*g*t^2
+        // 💀 2. 設定 LayerMask (碰撞遮罩)
+        // 這行程式碼的意思是：「除了 Layer 是 Player 的東西之外，其他全撞」
+        // 這樣射線就不會被槌子自己的 BoxCollider 擋住了！
+        int layerMask = ~LayerMask.GetMask("Player");
+
         for (int i = 0; i < linePoints; i++)
         {
             float t = i * timeBetweenPoints;
             Vector3 pointPosition = startPos + velocity * t + 0.5f * Physics.gravity * (t * t);
             trajectoryLine.SetPosition(i, pointPosition);
 
-            // 如果預測點撞到地板或牆壁，就中斷後面的線條
             if (i > 0)
             {
                 Vector3 lastPos = trajectoryLine.GetPosition(i - 1);
-                if (Physics.Raycast(lastPos, (pointPosition - lastPos).normalized, out RaycastHit hit, Vector3.Distance(lastPos, pointPosition)))
+
+                // 💀 3. 把 layerMask 加進 Raycast 裡面！
+                if (Physics.Raycast(lastPos, (pointPosition - lastPos).normalized, out RaycastHit hit, Vector3.Distance(lastPos, pointPosition), layerMask))
                 {
                     trajectoryLine.positionCount = i + 1;
                     trajectoryLine.SetPosition(i, hit.point);
@@ -129,62 +162,38 @@ public class HammerSkill : BaseSkill
     {
         isFlying = true;
 
-        // 1. 關閉玩家的走路控制 (必須在 PlayerMovement 裡加一個 isFlying 判斷)
         if (playerMovement != null) playerMovement.isFlying = true;
 
-        // 2. 施加發射力道 (使用 VelocityChange 忽略質量，讓拋物線更符合預測)
         Vector3 launchVelocity = CalculateLaunchVelocity();
-        rb.linearVelocity = launchVelocity;
 
-        // 3. ✨ Juice: 加入隨機旋轉，讓槌子在空中翻滾
+        // 💀 改回 AddForce (VelocityChange)，這在 Unity 物理引擎中通常比直接設定 linearVelocity 更穩定
+        rb.AddForce(launchVelocity, ForceMode.VelocityChange);
+
         rb.AddTorque(new Vector3(Random.Range(-5f, 5f), Random.Range(10f, 20f), 0), ForceMode.Impulse);
 
         Debug.Log($"[HammerSkill] 發射！力度: {launchVelocity.magnitude}");
     }
 
-    // 當剛體撞到東西時，Unity 會自動呼叫這個函式
     private void OnCollisionEnter(Collision collision)
     {
-        // 如果不是在飛行狀態下撞擊，就不處理 (避免平常走路撞到牆也觸發)
         if (!isFlying) return;
 
-        // 1. 撞到了！解除飛行狀態，把控制權還給玩家
         isFlying = false;
         if (playerMovement != null) playerMovement.isFlying = false;
 
-        // 2. 視覺與聽覺回饋
-        if (impactEffect != null)
-        {
-            Instantiate(impactEffect, collision.contacts[0].point, Quaternion.identity);
-        }
-        if (impactSound != null && GetComponent<AudioSource>() != null)
-        {
-            GetComponent<AudioSource>().PlayOneShot(impactSound);
-        }
+        if (impactEffect != null) Instantiate(impactEffect, collision.contacts[0].point, Quaternion.identity);
+        if (impactSound != null && GetComponent<AudioSource>() != null) GetComponent<AudioSource>().PlayOneShot(impactSound);
 
-        // 3. 判斷撞到了什麼
         NpcAI hitNpc = collision.collider.GetComponentInParent<NpcAI>();
-
         if (hitNpc != null)
         {
-            // 🎯 砸中 NPC：觸發擊暈！
             Debug.Log($"[HammerSkill] 爆頭！砸暈了 {hitNpc.name}");
-
-            // 這裡假設你的 NpcAI 裡面有一個 GetStunned 的方法
-            // 如果還沒寫，我們下一步去 NpcAI 裡面補上
-            hitNpc.GetStunned(stunDuration);
+            // hitNpc.GetStunned(stunDuration);
         }
         else
         {
-            // ❌ 沒砸中 NPC (砸到地板/牆壁)：發出巨大噪音引來守衛！
             Debug.Log("[HammerSkill] 沒砸中目標，發出巨大噪音！");
-
-            // 這裡可以呼叫你原本寫在 ObjectStats 或其他地方的噪音產生器
-            // 例如產生一個半徑 20f 的噪音點，讓附近的 NPC 轉入 Investigate 狀態
             // GenerateNoise(transform.position, 20f); 
         }
-
-        // 4. (選用) 落地後把槌子扶正，避免它以奇怪的角度卡在地板上
-        // rb.rotation = Quaternion.Euler(0, rb.rotation.eulerAngles.y, 0);
     }
 }

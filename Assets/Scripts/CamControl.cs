@@ -25,7 +25,7 @@ public class CamControl : MonoBehaviour
     public float moveSmoothSpeed = 60f; // 用於位置跟隨的平滑度
 
     [Header("視角限制 (俯仰角)")]
-    public float pitchMin = -10f;
+    public float pitchMin = -60f;
     public float pitchMax = 85f;
 
     // --- 私有變數 ---

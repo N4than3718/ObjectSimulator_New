@@ -680,10 +680,10 @@ MonoBehaviour:
   skillName: "\u672A\u547D\u540D\u6280\u80FD"
   cooldownTime: 2
   skillIcon: {fileID: 21300000, guid: 01e10e29455387f4a9a2b6d4ca3e1dbb, type: 3}
+  chargeDelay: 1.5
   minForce: 5
-  maxForce: 20
+  maxForce: 10
   chargeTime: 1.5
-  upwardAngle: 30
   trajectoryLine: {fileID: 2633698012220964542}
   linePoints: 30
   timeBetweenPoints: 0.1
@@ -691,6 +691,7 @@ MonoBehaviour:
   impactEffect: {fileID: 0}
   impactSound: {fileID: 0}
   playerMovement: {fileID: 1299983682765258658}
+  aimCamera: {fileID: 0}
 --- !u!1 &7280095295727566634
 GameObject:
   m_ObjectHideFlags: 0
