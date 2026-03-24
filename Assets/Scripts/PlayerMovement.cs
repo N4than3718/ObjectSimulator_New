@@ -26,7 +26,7 @@ public class PlayerMovement : MonoBehaviour
     [Header("Component Links")]
     public CamControl myCharacterCamera;
     public Transform myFollowTarget;
-    public CardboardSkill currentCardboard;
+    private CardboardSkill currentCardboard;
 
     [Header("音效設定 (SFX)")]
     [SerializeField] private AudioClip jumpSound;
@@ -124,6 +124,7 @@ public class PlayerMovement : MonoBehaviour
         coll = movementCollider;
         audioSource = GetComponent<AudioSource>();
         animator = GetComponent<Animator>();
+        currentCardboard = GetComponent<CardboardSkill>();  
 
         teamManager = FindAnyObjectByType<TeamManager>();
         if (teamManager == null) Debug.LogError("PlayerMovement cannot find TeamManager!");
