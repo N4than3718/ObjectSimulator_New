@@ -26,6 +26,8 @@ public class FakePhysics : MonoBehaviour, IInteractable
     public bool openAwayFromPlayer = true;
 
     [Header("旋轉模式設定 (Rotate)")]
+    [Tooltip("旋轉軸向：一般門填 (0,1,0)，馬桶蓋/寶箱通常填 (1,0,0) 或 (0,0,1)")]
+    public Vector3 rotationAxis = Vector3.up; // 💀 新增這行！預設為 Y 軸(0,1,0) 以相容舊的門
     public float openAngle = 90f;    // 開門角度
 
     [Header("滑動模式設定 (Slide)")]
@@ -115,7 +117,7 @@ public class FakePhysics : MonoBehaviour, IInteractable
             // 🔥 旋轉邏輯
             // targetValue 可能是 1 (正開) 或 -1 (反開)
             float angle = currentValue * openAngle;
-            doorVisuals.localRotation = initialRotation * Quaternion.Euler(0, angle, 0);
+            doorVisuals.localRotation = initialRotation * Quaternion.Euler(rotationAxis * angle);
         }
         else if (motionType == MotionType.Slide)
         {
