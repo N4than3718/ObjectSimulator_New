@@ -188,12 +188,11 @@ public class HammerSkill : BaseSkill
         if (hitNpc != null)
         {
             Debug.Log($"[HammerSkill] 爆頭！砸暈了 {hitNpc.name}");
-            // hitNpc.GetStunned(stunDuration);
+            hitNpc.GetStunned(stunDuration);
         }
         else
         {
             Debug.Log("[HammerSkill] 沒砸中目標，發出巨大噪音！");
-            // GenerateNoise(transform.position, 20f); 
         }
     }
 }
