@@ -47,6 +47,7 @@ GameObject:
   - component: {fileID: 8565604232263226868}
   - component: {fileID: 5289400467730619445}
   - component: {fileID: 3663997035344825824}
+  - component: {fileID: 7824554481668000096}
   m_Layer: 0
   m_Name: Toilet1_C1_01
   m_TagString: Untagged
@@ -189,6 +190,7 @@ MonoBehaviour:
   flushDelay: 1
   spinSpeed: 720
   sinkDepth: 0.2
+  cooldownTime: 5
   flushSound: {fileID: 0}
   waterSplash: {fileID: 0}
 --- !u!114 &5289400467730619445
@@ -235,6 +237,26 @@ MonoBehaviour:
   targetedHighlightTemplate: {fileID: 2100000, guid: 6539271f926886640a9e4ca63e350961, type: 2}
   availableHighlightTemplate: {fileID: 2100000, guid: ff65ad8d0c8862e4e9abef0f7c56125b, type: 2}
   inactiveTeamHighlightTemplate: {fileID: 2100000, guid: 62e93f7c4d71da845876a9b40fa10e1d, type: 2}
+--- !u!114 &7824554481668000096
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8486063692694460847}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1e3fdca004f2d45fe8abbed571a8abd5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.AI.Navigation::Unity.AI.Navigation.NavMeshModifier
+  m_SerializedVersion: 0
+  m_OverrideArea: 1
+  m_Area: 1
+  m_OverrideGenerateLinks: 0
+  m_GenerateLinks: 0
+  m_IgnoreFromBuild: 0
+  m_ApplyToChildren: 1
+  m_AffectedAgents: ffffffff
 --- !u!1001 &8720627105732452344
 PrefabInstance:
   m_ObjectHideFlags: 0

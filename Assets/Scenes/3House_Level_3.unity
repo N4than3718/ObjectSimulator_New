@@ -8295,6 +8295,18 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 7195072756206792420, guid: b8ff7e22ed9c4df49a618045ad5a1bd2, type: 3}
+      propertyPath: m_Area
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7195072756206792420, guid: b8ff7e22ed9c4df49a618045ad5a1bd2, type: 3}
+      propertyPath: m_OverrideArea
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7195072756206792420, guid: b8ff7e22ed9c4df49a618045ad5a1bd2, type: 3}
+      propertyPath: m_IgnoreFromBuild
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -8535,6 +8547,18 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1301734105}
     m_Modifications:
+    - target: {fileID: 931657657938839165, guid: 14f8c42535ef8bc4db065c1a3e016115, type: 3}
+      propertyPath: m_Area
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 931657657938839165, guid: 14f8c42535ef8bc4db065c1a3e016115, type: 3}
+      propertyPath: m_OverrideArea
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 931657657938839165, guid: 14f8c42535ef8bc4db065c1a3e016115, type: 3}
+      propertyPath: m_IgnoreFromBuild
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 8277033753234777501, guid: 14f8c42535ef8bc4db065c1a3e016115, type: 3}
       propertyPath: m_Name
       value: Bed5_C1
@@ -10372,6 +10396,18 @@ PrefabInstance:
     - target: {fileID: 2280212068109728601, guid: 957e663f9844aa04d82160af47c54666, type: 3}
       propertyPath: m_Name
       value: Bed3_C1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7029702064547713848, guid: 957e663f9844aa04d82160af47c54666, type: 3}
+      propertyPath: m_Area
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7029702064547713848, guid: 957e663f9844aa04d82160af47c54666, type: 3}
+      propertyPath: m_OverrideArea
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7029702064547713848, guid: 957e663f9844aa04d82160af47c54666, type: 3}
+      propertyPath: m_IgnoreFromBuild
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -15121,13 +15157,41 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 696843029771492132, guid: a2cf49896668afc4c83f78f689d018ae, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 764856170}
   m_SourcePrefab: {fileID: 100100000, guid: a2cf49896668afc4c83f78f689d018ae, type: 3}
 --- !u!4 &764856168 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 207305941300593054, guid: a2cf49896668afc4c83f78f689d018ae, type: 3}
   m_PrefabInstance: {fileID: 764856167}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &764856169 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 696843029771492132, guid: a2cf49896668afc4c83f78f689d018ae, type: 3}
+  m_PrefabInstance: {fileID: 764856167}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &764856170
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 764856169}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1e3fdca004f2d45fe8abbed571a8abd5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.AI.Navigation::Unity.AI.Navigation.NavMeshModifier
+  m_SerializedVersion: 0
+  m_OverrideArea: 1
+  m_Area: 1
+  m_OverrideGenerateLinks: 0
+  m_GenerateLinks: 0
+  m_IgnoreFromBuild: 0
+  m_ApplyToChildren: 1
+  m_AffectedAgents: ffffffff
 --- !u!1001 &768432273
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -17300,13 +17364,41 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 7239797355683957030, guid: d1d9e22af0473814b99b7010e2465f42, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 879795481}
   m_SourcePrefab: {fileID: 100100000, guid: d1d9e22af0473814b99b7010e2465f42, type: 3}
 --- !u!4 &879795479 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 8012816308756976540, guid: d1d9e22af0473814b99b7010e2465f42, type: 3}
   m_PrefabInstance: {fileID: 879795478}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &879795480 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 7239797355683957030, guid: d1d9e22af0473814b99b7010e2465f42, type: 3}
+  m_PrefabInstance: {fileID: 879795478}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &879795481
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 879795480}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1e3fdca004f2d45fe8abbed571a8abd5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.AI.Navigation::Unity.AI.Navigation.NavMeshModifier
+  m_SerializedVersion: 0
+  m_OverrideArea: 1
+  m_Area: 1
+  m_OverrideGenerateLinks: 0
+  m_GenerateLinks: 0
+  m_IgnoreFromBuild: 0
+  m_ApplyToChildren: 1
+  m_AffectedAgents: ffffffff
 --- !u!1001 &879984878
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -17985,6 +18077,18 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8075933696070267200, guid: f07c5ba4af82ef04887e6d81c89f3f9a, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8233302669773103474, guid: f07c5ba4af82ef04887e6d81c89f3f9a, type: 3}
+      propertyPath: m_Area
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8233302669773103474, guid: f07c5ba4af82ef04887e6d81c89f3f9a, type: 3}
+      propertyPath: m_OverrideArea
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8233302669773103474, guid: f07c5ba4af82ef04887e6d81c89f3f9a, type: 3}
+      propertyPath: m_IgnoreFromBuild
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8888041074007763962, guid: f07c5ba4af82ef04887e6d81c89f3f9a, type: 3}
@@ -23281,6 +23385,18 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 7067550647795728788, guid: f40f4250ccfee7f499e31026fa1346a1, type: 3}
+      propertyPath: m_Area
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7067550647795728788, guid: f40f4250ccfee7f499e31026fa1346a1, type: 3}
+      propertyPath: m_OverrideArea
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7067550647795728788, guid: f40f4250ccfee7f499e31026fa1346a1, type: 3}
+      propertyPath: m_IgnoreFromBuild
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -26036,6 +26152,18 @@ PrefabInstance:
     - target: {fileID: 886040313154330517, guid: d1e4a121ae5125a41808f09978d70a93, type: 3}
       propertyPath: m_Name
       value: Sofa1_C2
+      objectReference: {fileID: 0}
+    - target: {fileID: 1846344573907188037, guid: d1e4a121ae5125a41808f09978d70a93, type: 3}
+      propertyPath: m_Area
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1846344573907188037, guid: d1e4a121ae5125a41808f09978d70a93, type: 3}
+      propertyPath: m_OverrideArea
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1846344573907188037, guid: d1e4a121ae5125a41808f09978d70a93, type: 3}
+      propertyPath: m_IgnoreFromBuild
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -40155,6 +40283,18 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1534845248}
     m_Modifications:
+    - target: {fileID: 1839796176272195397, guid: 232db7ae553b7f24ea2eff3b509031b1, type: 3}
+      propertyPath: m_Area
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1839796176272195397, guid: 232db7ae553b7f24ea2eff3b509031b1, type: 3}
+      propertyPath: m_OverrideArea
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1839796176272195397, guid: 232db7ae553b7f24ea2eff3b509031b1, type: 3}
+      propertyPath: m_IgnoreFromBuild
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 3628011628455634868, guid: 232db7ae553b7f24ea2eff3b509031b1, type: 3}
       propertyPath: m_RootOrder
       value: 42
