@@ -632,6 +632,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Flashlight
       objectReference: {fileID: 0}
+    - target: {fileID: 3988944650495567483, guid: 4a3d4be8a07cdc34aae87e09c86ed456, type: 3}
+      propertyPath: cameraTransform
+      value: 
+      objectReference: {fileID: 1526240598}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -6448,6 +6452,11 @@ BoxCollider:
 CanvasGroup:
   m_CorrespondingSourceObject: {fileID: 1464601329404175839, guid: 889f6adf50ff56e4387d1807746d5aaa, type: 3}
   m_PrefabInstance: {fileID: 1783967483}
+  m_PrefabAsset: {fileID: 0}
+--- !u!4 &1526240598 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 8003502056725172170, guid: 0c73c0015f97e6040882905fc69f7c68, type: 3}
+  m_PrefabInstance: {fileID: 1684880377}
   m_PrefabAsset: {fileID: 0}
 --- !u!1001 &1532288472
 PrefabInstance:
