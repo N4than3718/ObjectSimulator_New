@@ -1207,6 +1207,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1120589066}
     m_Modifications:
+    - target: {fileID: 5827467079723709146, guid: 1da31f94dae29184dbdfb9176f76e724, type: 3}
+      propertyPath: m_TagString
+      value: Player
+      objectReference: {fileID: 0}
     - target: {fileID: 8586531783025507824, guid: 1da31f94dae29184dbdfb9176f76e724, type: 3}
       propertyPath: m_Name
       value: Mug
