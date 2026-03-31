@@ -23,11 +23,22 @@ public class ToiletTeleporter : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
-        if (other.CompareTag("Player") && !isFlushing)
+        // 1. 尋找碰到的東西身上，或者它的父物件身上，有沒有 PlayerMovement 腳本
+        PlayerMovement playerScript = other.GetComponentInParent<PlayerMovement>();
+
+        // 2. 如果有，代表這坨東西(或它的某個部位)屬於玩家！
+        if (playerScript != null && !isFlushing)
         {
             if (destination != null)
             {
-                StartCoroutine(FlushRoutine(other.gameObject));
+                Debug.Log("[Toilet Debug] 身分確認！只傳送玩家本人！");
+
+                // 💀 關鍵修改：只傳送掛著 PlayerMovement 的那個核心物件！絕對不牽連無辜！
+                StartCoroutine(FlushRoutine(playerScript.gameObject));
+            }
+            else
+            {
+                Debug.LogWarning("[Toilet Debug] 靠北！馬桶沒有設定出口！");
             }
         }
     }
@@ -80,18 +91,31 @@ public class ToiletTeleporter : MonoBehaviour
         }
 
         // --- 第三階段：從目的地噴出來 ---
+        // 1. 瞬間移動座標與面向
         player.transform.position = destination.position;
         player.transform.rotation = destination.rotation;
 
-        // 💥 解除封印：把控制權與物理還給玩家！
-        if (movementScript != null) movementScript.enabled = true;
-        if (rb != null) rb.isKinematic = false;
-        foreach (Collider col in allColliders)
+        // 💀 關鍵黑魔法：強制物理引擎立刻更新座標！
+        // 很多時候你改了 position，但物理引擎還停留在上一幀，導致你一開碰撞就掉下樓。
+        // 這行程式碼會大喊：「喂！他已經在這裡了，馬上給我更新地板碰撞！」
+        Physics.SyncTransforms();
+
+        // 2. 清空殘留慣性
+        if (rb != null)
         {
-            col.enabled = true;
+            rb.linearVelocity = Vector3.zero;
+            rb.angularVelocity = Vector3.zero;
         }
 
+        // 3. 依序解開物理封印
+        foreach (Collider c in allColliders)
+        {
+            if (c != null) c.enabled = true;
+        }
+        if (rb != null) rb.isKinematic = false;
+        if (movementScript != null) movementScript.enabled = true;
+
         isFlushing = false;
-        Debug.Log("[Toilet] 沖水傳送完畢！");
+        Debug.Log("[Toilet] 沖水傳送完畢，這次沒有帶走整棟房子！");
     }
 }
