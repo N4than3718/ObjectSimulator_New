@@ -15,31 +15,34 @@ public class ToiletTeleporter : MonoBehaviour
     [Tooltip("要下沉多深？ (微觀世界建議設小一點，例如 0.2)")]
     [SerializeField] private float sinkDepth = 0.2f;
 
+    [Header("冷卻設定")]
+    [Tooltip("傳送後，水箱需要幾秒才能補滿水？")]
+    [SerializeField] private float cooldownTime = 5.0f; // 💀 5秒冷卻
+
     [Header("沉浸感")]
     [SerializeField] private AudioClip flushSound;
     [SerializeField] private ParticleSystem waterSplash;
 
     private bool isFlushing = false;
+    private bool isOnCooldown = false; // 💀 追蹤是否在冷卻中
 
     private void OnTriggerEnter(Collider other)
     {
-        // 1. 尋找碰到的東西身上，或者它的父物件身上，有沒有 PlayerMovement 腳本
         PlayerMovement playerScript = other.GetComponentInParent<PlayerMovement>();
 
-        // 2. 如果有，代表這坨東西(或它的某個部位)屬於玩家！
-        if (playerScript != null && !isFlushing)
+        // 💀 關鍵修改：必須「不是沖水中」且「不是冷卻中」才能觸發！
+        if (playerScript != null && !isFlushing && !isOnCooldown)
         {
             if (destination != null)
             {
-                Debug.Log("[Toilet Debug] 身分確認！只傳送玩家本人！");
-
-                // 💀 關鍵修改：只傳送掛著 PlayerMovement 的那個核心物件！絕對不牽連無辜！
+                Debug.Log("[Toilet Debug] 身分確認！啟動沖水！");
                 StartCoroutine(FlushRoutine(playerScript.gameObject));
             }
-            else
-            {
-                Debug.LogWarning("[Toilet Debug] 靠北！馬桶沒有設定出口！");
-            }
+        }
+        // 💀 加上冷卻中的 Debug 提示，方便你測試
+        else if (playerScript != null && isOnCooldown)
+        {
+            Debug.Log("[Toilet Debug] 馬桶水箱還沒滿，請等幾秒再跳進來！");
         }
     }
 
@@ -117,5 +120,17 @@ public class ToiletTeleporter : MonoBehaviour
 
         isFlushing = false;
         Debug.Log("[Toilet] 沖水傳送完畢，這次沒有帶走整棟房子！");
+
+        StartCoroutine(CooldownTimer());
+    }
+
+    private IEnumerator CooldownTimer()
+    {
+        isOnCooldown = true; // 鎖上馬桶
+
+        yield return new WaitForSeconds(cooldownTime); // 死等 5 秒鐘
+
+        isOnCooldown = false; // 5 秒後重新開放
+        Debug.Log("[Toilet] 水箱補滿了！馬桶可以再次使用了！");
     }
 }
