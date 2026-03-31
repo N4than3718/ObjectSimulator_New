@@ -4,7 +4,7 @@ using UnityEngine.SceneManagement;
 public class MainMenuController : MonoBehaviour
 {
     [Tooltip("你的遊戲關卡場景名稱")]
-    [SerializeField] private string gameLevelName = "Kitchen_Level_1"; // 請確認你的場景名稱
+    [SerializeField] private string gameLevelName = "1Floor_Level_1"; // 請確認你的場景名稱
 
     public void OnStartGame()
     {
