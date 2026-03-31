@@ -4285,7 +4285,7 @@ Light:
   m_InnerSpotAngle: 175
   m_CookieSize2D: {x: 10, y: 10}
   m_Shadows:
-    m_Type: 2
+    m_Type: 0
     m_Resolution: -1
     m_CustomResolution: -1
     m_Strength: 1
@@ -9888,7 +9888,7 @@ Light:
   m_InnerSpotAngle: 175
   m_CookieSize2D: {x: 10, y: 10}
   m_Shadows:
-    m_Type: 2
+    m_Type: 0
     m_Resolution: -1
     m_CustomResolution: -1
     m_Strength: 1
@@ -13815,8 +13815,16 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 6746998146694285903, guid: 33afd21bcc02095469522355d7af4980, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1721407368}
   m_SourcePrefab: {fileID: 100100000, guid: 33afd21bcc02095469522355d7af4980, type: 3}
+--- !u!1 &884031453 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 6746998146694285903, guid: 33afd21bcc02095469522355d7af4980, type: 3}
+  m_PrefabInstance: {fileID: 884031452}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &884596208
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -15841,7 +15849,7 @@ Light:
   m_InnerSpotAngle: 179
   m_CookieSize2D: {x: 10, y: 10}
   m_Shadows:
-    m_Type: 2
+    m_Type: 0
     m_Resolution: -1
     m_CustomResolution: -1
     m_Strength: 1
@@ -21178,7 +21186,7 @@ MonoBehaviour:
   m_OverrideVoxelSize: 0
   m_VoxelSize: 0.06666667
   m_MinRegionArea: 2
-  m_NavMeshData: {fileID: 23800000, guid: f71ae9c14a451124bbb33a79404086b6, type: 2}
+  m_NavMeshData: {fileID: 23800000, guid: eeed140595747f341b7b54d4d2ffa4a4, type: 2}
   m_BuildHeightMesh: 0
 --- !u!65 &1363107015
 BoxCollider:
@@ -23410,7 +23418,7 @@ Light:
   m_InnerSpotAngle: 179
   m_CookieSize2D: {x: 10, y: 10}
   m_Shadows:
-    m_Type: 2
+    m_Type: 0
     m_Resolution: -1
     m_CustomResolution: -1
     m_Strength: 1
@@ -26027,6 +26035,26 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 6746998146693928559, guid: 33afd21bcc02095469522355d7af4980, type: 3}
   m_PrefabInstance: {fileID: 884031452}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &1721407368
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 884031453}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1e3fdca004f2d45fe8abbed571a8abd5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.AI.Navigation::Unity.AI.Navigation.NavMeshModifier
+  m_SerializedVersion: 0
+  m_OverrideArea: 0
+  m_Area: 0
+  m_OverrideGenerateLinks: 0
+  m_GenerateLinks: 0
+  m_IgnoreFromBuild: 1
+  m_ApplyToChildren: 1
+  m_AffectedAgents: ffffffff
 --- !u!4 &1723257961 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 684966036825358136, guid: 300bfeb697bd2f448ad6ff4c644945af, type: 3}
@@ -26475,7 +26503,7 @@ Light:
   m_InnerSpotAngle: 179
   m_CookieSize2D: {x: 10, y: 10}
   m_Shadows:
-    m_Type: 2
+    m_Type: 0
     m_Resolution: -1
     m_CustomResolution: -1
     m_Strength: 1
