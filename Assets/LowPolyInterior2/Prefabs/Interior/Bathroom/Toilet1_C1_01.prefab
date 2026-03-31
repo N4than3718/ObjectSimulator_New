@@ -1,5 +1,36 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
+--- !u!1 &6208408799187035532
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 5338872591615988531}
+  m_Layer: 0
+  m_Name: TP_Point
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &5338872591615988531
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6208408799187035532}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0.6, z: 0.3}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 9119610416724755221}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &8486063692694460847
 GameObject:
   m_ObjectHideFlags: 0
@@ -14,6 +45,8 @@ GameObject:
   - component: {fileID: 1786844207694255691}
   - component: {fileID: 4013112124753596817}
   - component: {fileID: 8565604232263226868}
+  - component: {fileID: 5289400467730619445}
+  - component: {fileID: 3663997035344825824}
   m_Layer: 0
   m_Name: Toilet1_C1_01
   m_TagString: Untagged
@@ -37,6 +70,7 @@ Transform:
   - {fileID: 9119610416270613195}
   - {fileID: 9119610417171838543}
   - {fileID: 9119610416419020228}
+  - {fileID: 5338872591615988531}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!33 &5269359785305427120
@@ -153,8 +187,54 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ToiletTeleporter
   destination: {fileID: 0}
   flushDelay: 1
+  spinSpeed: 720
+  sinkDepth: 0.2
   flushSound: {fileID: 0}
   waterSplash: {fileID: 0}
+--- !u!114 &5289400467730619445
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8486063692694460847}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 55f9c091b71772444a44a4178ff2260c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::FakePhysics
+  motionType: 0
+  doorType: 1
+  doorVisuals: {fileID: 9119610416270613195}
+  interactionPoint: {fileID: 9119610416724755221}
+  speed: 5
+  isLocked: 0
+  autoClose: 0
+  activationDistance: 2.5
+  openAwayFromPlayer: 1
+  rotationAxis: {x: 1, y: 0, z: 0}
+  openAngle: -105
+  slideDirection: {x: 0, y: 0, z: -1}
+  slideDistance: 0.5
+  audioSource: {fileID: 0}
+  openSound: {fileID: 0}
+  closeSound: {fileID: 0}
+  lockedSound: {fileID: 0}
+--- !u!114 &3663997035344825824
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8486063692694460847}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 27db6dbc31f97ab48b79c9276c594513, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::HighlightableObject
+  targetedHighlightTemplate: {fileID: 2100000, guid: 6539271f926886640a9e4ca63e350961, type: 2}
+  availableHighlightTemplate: {fileID: 2100000, guid: ff65ad8d0c8862e4e9abef0f7c56125b, type: 2}
+  inactiveTeamHighlightTemplate: {fileID: 2100000, guid: 62e93f7c4d71da845876a9b40fa10e1d, type: 2}
 --- !u!1001 &8720627105732452344
 PrefabInstance:
   m_ObjectHideFlags: 0
