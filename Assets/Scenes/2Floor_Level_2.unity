@@ -686,6 +686,10 @@ PrefabInstance:
       propertyPath: 'loadButton.Array.data[1]'
       value: 
       objectReference: {fileID: 585112771}
+    - target: {fileID: 2346434492100113362, guid: b80ea018927f14c46b4d962368e7c28f, type: 3}
+      propertyPath: 'targetObjects.Array.data[0]'
+      value: 
+      objectReference: {fileID: 6960849915831572527}
     - target: {fileID: 3212559918213024205, guid: b80ea018927f14c46b4d962368e7c28f, type: 3}
       propertyPath: m_LocalPosition.x
       value: -2.23431
@@ -7275,6 +7279,10 @@ PrefabInstance:
       propertyPath: m_IsActive
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 9115523217499132867, guid: 2c76398f539675042ab1269e88ea43ed, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents:
     - {fileID: 302591064072596695, guid: 2c76398f539675042ab1269e88ea43ed, type: 3}
     m_RemovedGameObjects:
@@ -7324,6 +7332,11 @@ Transform:
 --- !u!4 &6960849915831572526 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 3907151036258657556, guid: 2c76398f539675042ab1269e88ea43ed, type: 3}
+  m_PrefabInstance: {fileID: 6960849915831572523}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &6960849915831572527 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 9115523217499132867, guid: 2c76398f539675042ab1269e88ea43ed, type: 3}
   m_PrefabInstance: {fileID: 6960849915831572523}
   m_PrefabAsset: {fileID: 0}
 --- !u!1660057539 &9223372036854775807
