@@ -64,6 +64,12 @@ public class PowerBox : MonoBehaviour
         {
             if (light != null) light.enabled = false;
         }
+        // 💀 強制覆蓋環境光！(這會瞬間把你剛剛在 Lighting 面板開回來的光線給殺掉)
+        RenderSettings.ambientMode = UnityEngine.Rendering.AmbientMode.Flat; // 強制切換成純色模式
+        RenderSettings.ambientLight = new Color(0.05f, 0.05f, 0.15f); // 換成我們上一輪調的好萊塢黑夜(深藍色)
+
+        // 💀 關閉天空盒的反射光
+        RenderSettings.reflectionIntensity = 0f;
 
         // 🚪 3. 開啟撤離區
         if (extractionZone != null)
