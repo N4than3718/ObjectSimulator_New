@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using UnityEngine.Audio;
 using UnityEngine.InputSystem;
 
 [RequireComponent(typeof(Rigidbody))]
@@ -19,7 +20,10 @@ public class HammerSkill : BaseSkill
     [Header("擊暈設定")]
     [SerializeField] private float stunDuration = 5f;
     [SerializeField] private GameObject impactEffect;
+    [SerializeField] private AudioSource audioSource;
     [SerializeField] private AudioClip impactSound;
+    [SerializeField] private AudioClip throwSound;
+
 
     [Header("狀態與引用")]
     [SerializeField] private PlayerMovement playerMovement;
@@ -95,6 +99,7 @@ public class HammerSkill : BaseSkill
             if (trajectoryLine != null) trajectoryLine.gameObject.SetActive(false);
 
             Launch();
+            audioSource.PlayOneShot(throwSound);
             holdTimer = 0f; // 重置
         }
     }
@@ -182,7 +187,7 @@ public class HammerSkill : BaseSkill
         if (playerMovement != null) playerMovement.isFlying = false;
 
         if (impactEffect != null) Instantiate(impactEffect, collision.contacts[0].point, Quaternion.identity);
-        if (impactSound != null && GetComponent<AudioSource>() != null) GetComponent<AudioSource>().PlayOneShot(impactSound);
+        audioSource.PlayOneShot(impactSound);
 
         NpcAI hitNpc = collision.collider.GetComponentInParent<NpcAI>();
         if (hitNpc != null)
