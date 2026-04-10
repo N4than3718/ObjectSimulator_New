@@ -5040,7 +5040,7 @@ MonoBehaviour:
   agent: {fileID: 8568627702938882724}
   grabSocket: {fileID: 2356692287817605365}
   rightElbowHint: {fileID: 6841181591247449432}
-  statusUiPrefab: {fileID: 0}
+  statusUiPrefab: {fileID: 1983293499731575392, guid: eca99061b16608644ae0745a4a68a3d2, type: 3}
   stunStarsEffect: {fileID: 8578922555348091828}
   blindSpotsEffect: {fileID: 3393726699441255348}
   currentState: 0
