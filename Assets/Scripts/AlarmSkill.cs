@@ -44,14 +44,24 @@ public class AlarmSkill : BaseSkill, ISaveable
         if (isRinging)
         {
             Debug.Log($"{skillName}: 鬧鐘響了！(半徑: {noiseRadius})");
-            // 立即發出第一次聲音
+
+            // 💀 音效啟動：指定音檔並播放 (因為有開 Loop，播一次就好)
+            if (audioSource != null && ringSound != null)
+            {
+                audioSource.clip = ringSound;
+                audioSource.Play();
+            }
+
             EmitNoise();
             timer = 0f;
         }
         else
         {
             Debug.Log($"{skillName}: 鬧鐘關閉。");
-            // 💀 關閉時復原旋轉
+
+            // 💀 音效關閉：手動把聲音掐斷
+            if (audioSource != null) audioSource.Stop();
+
             if (ringingPart != null) ringingPart.localRotation = originalLocalRot;
         }
     }
@@ -84,15 +94,6 @@ public class AlarmSkill : BaseSkill, ISaveable
     {
         // 呼叫我們之前做好的 StealthManager
         StealthManager.MakeNoise(gameObject, transform.position, noiseRadius, noiseIntensity);
-
-        // (如果之後有音效，這裡加 audioSource.Play())
-    }
-
-    // 當技能被外部強制中斷或物件被回收時
-    private void OnDisable()
-    {
-        isRinging = false;
-        if (ringingPart != null) ringingPart.localRotation = originalLocalRot;
     }
 
     // 💀 2. 建立專屬的存檔資料結構
@@ -114,7 +115,15 @@ public class AlarmSkill : BaseSkill, ISaveable
         return JsonUtility.ToJson(state);
     }
 
-    // 💀 4. 實作 RestoreSaveData
+    private void OnDisable()
+    {
+        isRinging = false;
+        if (ringingPart != null) ringingPart.localRotation = originalLocalRot;
+
+        // 💀 防呆：物件消失或關閉時，聲音必須立刻停止！
+        if (audioSource != null) audioSource.Stop();
+    }
+
     public void RestoreSaveData(string jsonState)
     {
         AlarmSaveState state = JsonUtility.FromJson<AlarmSaveState>(jsonState);
@@ -122,10 +131,19 @@ public class AlarmSkill : BaseSkill, ISaveable
         this.isRinging = state.isRinging;
         this.timer = state.currentTimer;
 
-        // 防呆：如果讀檔時鬧鐘是關的，確保旋轉歸位
-        if (!this.isRinging && ringingPart != null)
+        if (!this.isRinging)
         {
-            ringingPart.localRotation = originalLocalRot;
+            if (ringingPart != null) ringingPart.localRotation = originalLocalRot;
+            if (audioSource != null) audioSource.Stop(); // 讀檔發現是關的，確保靜音
+        }
+        else
+        {
+            // 💀 讀檔發現鬧鐘是響的，趕快幫它把聲音播回來！
+            if (audioSource != null && ringSound != null && !audioSource.isPlaying)
+            {
+                audioSource.clip = ringSound;
+                audioSource.Play();
+            }
         }
     }
 }
