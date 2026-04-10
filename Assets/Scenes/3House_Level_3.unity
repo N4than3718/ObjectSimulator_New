@@ -13638,6 +13638,17 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 2256473243875703635, guid: c26ff46310e944d43b2c63b3fa31cfe0, type: 3}
   m_PrefabInstance: {fileID: 642821548}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &644988502 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 5571139817965544163, guid: b80ea018927f14c46b4d962368e7c28f, type: 3}
+  m_PrefabInstance: {fileID: 211269827}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 64f18a8dbd598ef4c8d8cf24c7f83188, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TeamManager
 --- !u!1001 &658508106
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -19378,6 +19389,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: _Cameras
       objectReference: {fileID: 0}
+    - target: {fileID: 4592625970238239860, guid: 0c73c0015f97e6040882905fc69f7c68, type: 3}
+      propertyPath: teamManager
+      value: 
+      objectReference: {fileID: 644988502}
     - target: {fileID: 5533944267991373200, guid: 0c73c0015f97e6040882905fc69f7c68, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0.00705
