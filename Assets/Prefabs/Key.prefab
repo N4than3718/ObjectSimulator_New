@@ -99,7 +99,7 @@ AudioSource:
   m_GameObject: {fileID: 2364851571723616684}
   m_Enabled: 1
   serializedVersion: 4
-  OutputAudioMixerGroup: {fileID: 24300002, guid: b140939044b52f64da79a0ce63541308, type: 2}
+  OutputAudioMixerGroup: {fileID: -4534245353841753819, guid: b140939044b52f64da79a0ce63541308, type: 2}
   m_audioClip: {fileID: 0}
   m_Resource: {fileID: 0}
   m_PlayOnAwake: 0
@@ -147,7 +147,7 @@ AudioSource:
     m_Curve:
     - serializedVersion: 3
       time: 0
-      value: 0
+      value: 1
       inSlope: 0
       outSlope: 0
       tangentMode: 0
@@ -304,7 +304,7 @@ MonoBehaviour:
     m_Bits: 512
   unlockEffect: {fileID: 0}
   unlockSound: {fileID: 0}
-  audioSource: {fileID: 0}
+  audioSource: {fileID: 1612998671125019557}
 --- !u!114 &1768151119433555135
 MonoBehaviour:
   m_ObjectHideFlags: 0
