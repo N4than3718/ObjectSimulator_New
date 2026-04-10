@@ -29,6 +29,17 @@ public class NpcAI : MonoBehaviour
     [SerializeField] private ParticleSystem stunStarsEffect;
     [SerializeField] private ParticleSystem blindSpotsEffect;
 
+    [Header("音效設定")]
+    [SerializeField] private AudioSource audioSource;
+    [Tooltip("把你的 10 個腳步聲全拖進這裡！")]
+    [SerializeField] private AudioClip[] footstepSounds;
+
+    [Header("語音與反應音效")]
+    [SerializeField] private AudioClip investigateSound; // "咦？什麼聲音？"
+    [SerializeField] private AudioClip alertSound;       // "站住！抓到你了！"
+    [SerializeField] private AudioClip stunnedSound;     // "啊！(被砸暈)"
+    [SerializeField] private AudioClip blindedSound;     // "我的眼睛！"
+
     [Header("AI 狀態")]
     [SerializeField] private NpcState currentState = NpcState.Searching;
 
@@ -693,6 +704,7 @@ public class NpcAI : MonoBehaviour
 
         Debug.LogWarning("NPC: 啊！我的眼睛！(被致盲)");
         if (LevelTimer.Instance != null) LevelTimer.Instance.AddViolenceCount();
+        PlayVoice(blindedSound); // 🔊 加上這行：播放眼瞎慘叫
 
         // 切換狀態
         currentState = NpcState.Blinded;
@@ -741,6 +753,7 @@ public class NpcAI : MonoBehaviour
         if (anim != null) anim.SetBool(lookAroundAnimParam, false);
         if (agent.enabled) agent.isStopped = false;
 
+        PlayVoice(alertSound); // 🔊 加上這行：播放追捕語音
         threatTarget = target;
         currentState = NpcState.Alerted;
         Debug.Log($"State Change: -> Alerted! Target: {threatTarget.name}");
@@ -842,6 +855,7 @@ public class NpcAI : MonoBehaviour
                 if (currentState != NpcState.Investigating)
                 {
                     Debug.Log("NPC: 聽到可疑聲音，切換至調查模式！");
+                    PlayVoice(investigateSound); // 🔊 加上這行：播放調查語音
                     currentState = NpcState.Investigating;
                     investigationTimer = 0f; // 重置搜索計時
                 }
@@ -919,6 +933,7 @@ public class NpcAI : MonoBehaviour
 
         Debug.Log($"[NpcAI] 💥 {gameObject.name} 被重物砸中！進入暈眩狀態 {duration} 秒！");
         if (LevelTimer.Instance != null) LevelTimer.Instance.AddViolenceCount();
+        PlayVoice(stunnedSound); // 🔊 加上這行：播放暈眩慘叫
 
         // 1. 切換狀態並設定計時器
         currentState = NpcState.Stunned;
@@ -938,6 +953,32 @@ public class NpcAI : MonoBehaviour
         if (anim != null)
         {
             anim.SetTrigger("Stunned"); // 💀 記得在 Animator 裡加一個叫 Stunned 的 Trigger 和倒地動畫！
+        }
+    }
+
+    // 💀 1. 隨機腳步聲播放器 (專門給 Animator 動畫事件呼叫)
+    public void PlayFootstepSound()
+    {
+        if (audioSource != null && footstepSounds != null && footstepSounds.Length > 0)
+        {
+            // 隨機挑選一個音檔 (0 到 陣列長度)
+            int randomIndex = UnityEngine.Random.Range(0, footstepSounds.Length);
+
+            // 💀 聽覺果汁：讓音高在 0.9 到 1.1 之間隨機微調，打破機械感！
+            audioSource.pitch = UnityEngine.Random.Range(0.9f, 1.1f);
+
+            // 播放！
+            audioSource.PlayOneShot(footstepSounds[randomIndex]);
+        }
+    }
+
+    // 💀 2. 語音播放輔助器
+    private void PlayVoice(AudioClip clip)
+    {
+        if (audioSource != null && clip != null)
+        {
+            audioSource.pitch = 1.0f; // 確保語音的音高正常 (不受腳步聲影響)
+            audioSource.PlayOneShot(clip);
         }
     }
 
