@@ -5022,10 +5022,10 @@ AudioSource:
   SpatializePostEffects: 0
   Priority: 128
   DopplerLevel: 1
-  MinDistance: 1
-  MaxDistance: 500
+  MinDistance: 1.5
+  MaxDistance: 5
   Pan2D: 0
-  rolloffMode: 0
+  rolloffMode: 1
   BypassEffects: 0
   BypassListenerEffects: 0
   BypassReverbZones: 0
@@ -5141,7 +5141,7 @@ MonoBehaviour:
   statusUiPrefab: {fileID: 1983293499731575392, guid: eca99061b16608644ae0745a4a68a3d2, type: 3}
   stunStarsEffect: {fileID: 8578922555348091828}
   blindSpotsEffect: {fileID: 3393726699441255348}
-  audioSource: {fileID: 0}
+  audioSource: {fileID: 1905188690269621390}
   footstepSounds:
   - {fileID: 8300000, guid: 8a47747448d036c4cb6c9fcc54c38fce, type: 3}
   - {fileID: 8300000, guid: cabc008be671fec488f911eb13a7b071, type: 3}
