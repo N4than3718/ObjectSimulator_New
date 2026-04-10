@@ -102,7 +102,7 @@ AudioSource:
   OutputAudioMixerGroup: {fileID: 24300002, guid: b140939044b52f64da79a0ce63541308, type: 2}
   m_audioClip: {fileID: 0}
   m_Resource: {fileID: 0}
-  m_PlayOnAwake: 1
+  m_PlayOnAwake: 0
   m_Volume: 1
   m_Pitch: 1
   Loop: 0
@@ -223,7 +223,6 @@ MonoBehaviour:
   radialMenuIcon: {fileID: 21300000, guid: d654166125fe809489319cc03e597c90, type: 3}
   myCharacterCamera: {fileID: 0}
   myFollowTarget: {fileID: 684966036825358136}
-  currentCardboard: {fileID: 0}
   jumpSound: {fileID: 8300000, guid: 6c6851817749c6f4389fe031b749df24, type: 3}
   jumpSoundVelocityThreshold: 0.5
   footstepSounds: []
