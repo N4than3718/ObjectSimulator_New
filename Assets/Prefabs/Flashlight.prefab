@@ -261,10 +261,10 @@ AudioSource:
   m_GameObject: {fileID: 3436623902562459901}
   m_Enabled: 1
   serializedVersion: 4
-  OutputAudioMixerGroup: {fileID: 24300002, guid: b140939044b52f64da79a0ce63541308, type: 2}
+  OutputAudioMixerGroup: {fileID: -4534245353841753819, guid: b140939044b52f64da79a0ce63541308, type: 2}
   m_audioClip: {fileID: 0}
   m_Resource: {fileID: 0}
-  m_PlayOnAwake: 1
+  m_PlayOnAwake: 0
   m_Volume: 1
   m_Pitch: 1
   Loop: 0
@@ -309,7 +309,7 @@ AudioSource:
     m_Curve:
     - serializedVersion: 3
       time: 0
-      value: 0
+      value: 1
       inSlope: 0
       outSlope: 0
       tangentMode: 0
@@ -385,7 +385,6 @@ MonoBehaviour:
   radialMenuIcon: {fileID: 21300000, guid: 2116512939e06f04fbcb68e66fbf73d5, type: 3}
   myCharacterCamera: {fileID: 0}
   myFollowTarget: {fileID: 8601943728655875361}
-  currentCardboard: {fileID: 0}
   jumpSound: {fileID: 8300000, guid: 6c6851817749c6f4389fe031b749df24, type: 3}
   jumpSoundVelocityThreshold: 0.5
   footstepSounds: []
