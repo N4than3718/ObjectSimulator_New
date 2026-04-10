@@ -189,7 +189,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ToiletTeleporter
   destination: {fileID: 0}
   flushDelay: 1
-  spinSpeed: 720
+  spinSpeed: 7.2
   sinkDepth: 0.2
   cooldownTime: 5
   flushSound: {fileID: 8300000, guid: 2b042c67e66c2594796ddca49589232d, type: 3}
