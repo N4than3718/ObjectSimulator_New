@@ -688,7 +688,9 @@ MonoBehaviour:
   timeBetweenPoints: 0.1
   stunDuration: 5
   impactEffect: {fileID: 0}
+  audioSource: {fileID: 1067917238907052708}
   impactSound: {fileID: 8300000, guid: eec59c5ec99a7d149b033d0962f09606, type: 3}
+  throwSound: {fileID: 8300000, guid: d1916838ae34d7540971e01fb640269a, type: 3}
   playerMovement: {fileID: 1299983682765258658}
   aimCamera: {fileID: 0}
 --- !u!1 &7280095295727566634
