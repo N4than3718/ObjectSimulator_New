@@ -1,25 +1,28 @@
 ﻿using UnityEngine;
+using UnityEngine.Audio;
 using UnityEngine.Events;
 
 public class PowerBox : MonoBehaviour
 {
     [Header("破壞設定")]
     [Tooltip("需要用什麼物品來砸爛它？(填寫 Prefab 名稱)")]
-    public string requiredWeaponName = "Hammer";
+    [SerializeField] private string requiredWeaponName = "Hammer";
     [Tooltip("需要多大的力道才能砸壞？(建議 3~5)")]
-    public float breakForceThreshold = 4.0f;
+    [SerializeField] private float breakForceThreshold = 4.0f;
 
     private bool isBroken = false;
 
     [Header("場景連動")]
     [Tooltip("破壞後要開啟的撤離區 (例如：洗衣槽通道)")]
-    public GameObject extractionZone;
+    [SerializeField] private GameObject extractionZone;
     [Tooltip("破壞後要關閉的燈光 (可以把 Directional Light 或房間燈拖進來)")]
-    public Light[] lightsToTurnOff;
+    [SerializeField] private Light[] lightsToTurnOff;
 
     [Header("特效與音效 (選填)")]
-    public Material burnedMaterial;
-    public ParticleSystem sparkParticles;
+    [SerializeField] private Material burnedMaterial;
+    [SerializeField] private ParticleSystem sparkParticles;
+    [SerializeField] private AudioClip metalSmashSound;
+    [SerializeField] private AudioClip powerDownSound;
     public UnityEvent OnPowerBroken; // 可以在 Inspector 綁定播放火花粒子或音效
 
     private void OnCollisionEnter(Collision collision)
@@ -52,6 +55,8 @@ public class PowerBox : MonoBehaviour
         {
             sparkParticles.Play();
         }
+        AudioSource.PlayClipAtPoint(metalSmashSound, transform.position); // 瞬間播放金屬砸爛聲
+        AudioSource.PlayClipAtPoint(powerDownSound, transform.position);  // 同時播放斷電嗡嗡聲
 
         // 💀 1. 寫入跨關卡事件：記錄電箱已破壞 (給第三關用)
         if (DataManager.Instance != null)
