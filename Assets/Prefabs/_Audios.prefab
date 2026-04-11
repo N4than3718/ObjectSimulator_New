@@ -306,6 +306,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::AudioManager
   bgmSource: {fileID: 5746525613092033555}
   uiSource: {fileID: 2801029690999940715}
-  defaultBGM: {fileID: 0}
+  defaultBGM: {fileID: 8300000, guid: 7fa9ff5bdd473854483218a3a189a26d, type: 3}
   clickDownSound: {fileID: 8300000, guid: c6a0de83213504c409dbb25c2c5c53ae, type: 3}
   clickReleaseSound: {fileID: 8300000, guid: 046a92d05609f5b48aed77d9e10a4fe1, type: 3}
