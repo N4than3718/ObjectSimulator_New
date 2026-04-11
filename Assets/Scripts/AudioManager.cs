@@ -10,9 +10,14 @@ public class AudioManager : MonoBehaviour
     [Tooltip("專門用來播 UI 按鈕聲的喇叭")]
     [SerializeField] private AudioSource uiSource;
 
-    [Header("預設音效檔 (Audio Clips)")]
+    [Header("預設 BGM 音效")]
     [SerializeField] private AudioClip defaultBGM;
-    [SerializeField] private AudioClip defaultUIClick;
+
+    [Header("預設 UI 音效")]
+    [Tooltip("滑鼠『按下去』瞬間的聲音")]
+    [SerializeField] private AudioClip clickDownSound;
+    [Tooltip("滑鼠『放開』瞬間的聲音")]
+    [SerializeField] private AudioClip clickReleaseSound;
 
     private void Awake()
     {
@@ -51,11 +56,21 @@ public class AudioManager : MonoBehaviour
     }
 
     // 💡 招式二：播放 UI 按鈕聲
-    public void PlayUIClick()
+    // 💡 招式 A：滑鼠按下時呼叫
+    public void PlayClickDown()
     {
-        if (uiSource != null && defaultUIClick != null)
+        if (uiSource != null && clickDownSound != null)
         {
-            uiSource.PlayOneShot(defaultUIClick);
+            uiSource.PlayOneShot(clickDownSound);
+        }
+    }
+
+    // 💡 招式 B：滑鼠放開時呼叫
+    public void PlayClickRelease()
+    {
+        if (uiSource != null && clickReleaseSound != null)
+        {
+            uiSource.PlayOneShot(clickReleaseSound);
         }
     }
 
