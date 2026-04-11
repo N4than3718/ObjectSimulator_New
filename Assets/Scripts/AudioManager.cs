@@ -25,8 +25,7 @@ public class AudioManager : MonoBehaviour
         if (Instance == null)
         {
             Instance = this;
-            // 如果你希望 BGM 跨關卡不中斷，可以取消下面這行的註解
-            // DontDestroyOnLoad(gameObject); 
+            DontDestroyOnLoad(gameObject); 
         }
         else
         {
