@@ -7,38 +7,38 @@ public class FakePhysics : MonoBehaviour, IInteractable
     public enum DoorType { Automatic, Manual }
 
     [Header("模式設定")]
-    public MotionType motionType = MotionType.Rotate; // 是轉的還是滑的？
-    public DoorType doorType = DoorType.Manual;       // 是手動還是自動？
+    [SerializeField] private MotionType motionType = MotionType.Rotate; // 是轉的還是滑的？
+    [SerializeField] private DoorType doorType = DoorType.Manual;       // 是手動還是自動？
 
     [Header("核心引用")]
-    public Transform doorVisuals;    // 會動的模型 (兒子)
-    public Transform interactionPoint; // 感應中心點 (空物件)
+    [SerializeField] private Transform doorVisuals;    // 會動的模型 (兒子)
+    [SerializeField] private Transform interactionPoint; // 感應中心點 (空物件)
 
     [Header("通用參數")]
-    public float speed = 5.0f;       // 動畫速度
+    [SerializeField] private float speed = 5.0f;       // 動畫速度
     public bool isLocked = false;    // 鎖定狀態
-    public bool autoClose = true;    // 自動關閉 (手動模式通常設 false)
+    [SerializeField] private bool autoClose = true;    // 自動關閉 (手動模式通常設 false)
 
     [Header("自動門專用設定")]
     [Tooltip("自動門：距離中心點多近才會觸發？")]
-    public float activationDistance = 2.5f;
+    [SerializeField] private float activationDistance = 2.5f;
     [Tooltip("自動門：勾選後，門永遠往「遠離玩家」的方向開")]
-    public bool openAwayFromPlayer = true;
+    [SerializeField] private bool openAwayFromPlayer = true;
 
     [Header("旋轉模式設定 (Rotate)")]
     [Tooltip("旋轉軸向：一般門填 (0,1,0)，馬桶蓋/寶箱通常填 (1,0,0) 或 (0,0,1)")]
-    public Vector3 rotationAxis = Vector3.up; // 💀 新增這行！預設為 Y 軸(0,1,0) 以相容舊的門
-    public float openAngle = 90f;    // 開門角度
+    [SerializeField] private Vector3 rotationAxis = Vector3.up; // 💀 新增這行！預設為 Y 軸(0,1,0) 以相容舊的門
+    [SerializeField] private float openAngle = 90f;    // 開門角度
 
     [Header("滑動模式設定 (Slide)")]
-    public Vector3 slideDirection = Vector3.back; // 滑動方向 (Local)
-    public float slideDistance = 0.5f;            // 拉出距離
+    [SerializeField] private Vector3 slideDirection = Vector3.back; // 滑動方向 (Local)
+    [SerializeField] private float slideDistance = 0.5f;            // 拉出距離
 
     [Header("音效 (選填)")]
-    public AudioSource audioSource;
-    public AudioClip openSound;
-    public AudioClip closeSound;
-    public AudioClip lockedSound;
+    [SerializeField] private AudioSource audioSource;
+    [SerializeField] private AudioClip openSound;
+    [SerializeField] private AudioClip closeSound;
+    [SerializeField] private AudioClip lockedSound;
 
     // --- 內部狀態變數 ---
     private float currentValue = 0f; // 0 = 關, 1 = 開

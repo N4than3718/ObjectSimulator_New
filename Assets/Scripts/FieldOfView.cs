@@ -5,15 +5,15 @@ using System.Collections.Generic;
 public class FieldOfView : MonoBehaviour
 {
     [Header("視野參數")]
-    public float viewRadius = 10f;
+    [SerializeField] private float viewRadius = 10f;
     [Range(0, 360)]
-    public float viewAngle = 90f;
+    [SerializeField] private float viewAngle = 90f;
     [Tooltip("眼睛的高度偏移量 (避免從腳底發射射線)")]
-    public Vector3 eyeOffset = new Vector3(0, 1.6f, 0); // 預設 1.6米高度
+    [SerializeField] private Vector3 eyeOffset = new Vector3(0, 1.6f, 0); // 預設 1.6米高度
 
     [Header("圖層遮罩")]
-    public LayerMask targetMask;
-    public LayerMask obstacleMask;
+    [SerializeField] private LayerMask targetMask;
+    [SerializeField] private LayerMask obstacleMask;
 
     [HideInInspector]
     public List<Transform> visibleTargets = new List<Transform>();

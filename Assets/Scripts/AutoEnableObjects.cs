@@ -6,7 +6,7 @@ public class AutoEnableObjects : MonoBehaviour
 {
     [Header("把那些你為了方便而關掉的物件拖進來")]
     [Tooltip("遊戲開始時，這些物件會被強制開啟 (SetActive True)")]
-    public GameObject[] targetObjects;
+    [SerializeField] private GameObject[] targetObjects;
 
     private List<Renderer> allRenderers = new List<Renderer>();
     private List<Collider> allColliders = new List<Collider>();

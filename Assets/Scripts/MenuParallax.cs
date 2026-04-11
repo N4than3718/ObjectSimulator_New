@@ -3,7 +3,7 @@ using UnityEngine.InputSystem;
 
 public class MenuParallax : MonoBehaviour
 {
-    public float offsetMultiplier = 15f; // 移動幅度，不要太大
+    [SerializeField] private float offsetMultiplier = 15f; // 移動幅度，不要太大
     private Vector3 startPos;
 
     void Start()

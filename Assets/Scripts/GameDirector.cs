@@ -14,19 +14,19 @@ public class GameDirector : MonoBehaviour
     public GameState CurrentState;
 
     [Header("UI References")]
-    public CanvasGroup gameOverPanel;
-    public CanvasGroup victoryPanel;
-    public CanvasGroup menuPanel;
+    [SerializeField] private CanvasGroup gameOverPanel;
+    [SerializeField] private CanvasGroup victoryPanel;
+    [SerializeField] private CanvasGroup menuPanel;
     [Tooltip("把所有選單裡的 Load 按鈕都拖進來")]
-    public UnityEngine.UI.Button[] loadButton;
+    [SerializeField] private UnityEngine.UI.Button[] loadButton;
     [Tooltip("主選單的場景名稱 (破關後回去用)")]
-    public string mainMenuSceneName = "MainMenu";
+    [SerializeField] private string mainMenuSceneName = "MainMenu";
 
     [Header("系統設定")]
-    public int targetFrameRate = 60;
-    public bool useVSync = false;
+    [SerializeField] private int targetFrameRate = 60;
+    [SerializeField] private bool useVSync = false;
 
-    public SpectatorController cameraScript;
+    private SpectatorController cameraScript;
     public bool IsPaused { get; private set; } = false;
 
     private void Awake()

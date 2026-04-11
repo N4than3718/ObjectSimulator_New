@@ -5153,10 +5153,10 @@ MonoBehaviour:
   - {fileID: 8300000, guid: 077e3f2d52d79a24098b56db390a8d0c, type: 3}
   - {fileID: 8300000, guid: b9c25b59d9a446c41bc0011aaad56317, type: 3}
   - {fileID: 8300000, guid: e86c5671fb2346f438b5f4f7737dc20d, type: 3}
-  investigateSound: {fileID: 0}
-  alertSound: {fileID: 0}
-  stunnedSound: {fileID: 0}
-  blindedSound: {fileID: 0}
+  investigateSound: {fileID: 8300000, guid: 6593768aae0b54142aae0a3499cc86da, type: 3}
+  alertSound: {fileID: 8300000, guid: 84f28161d94f47643a820e0f05319456, type: 3}
+  stunnedSound: {fileID: 8300000, guid: 3df0ca70dc63a4541a20d91dcbe29a2d, type: 3}
+  blindedSound: {fileID: 8300000, guid: 9da5ff340b27c5949abf6162aa9f2557, type: 3}
   currentState: 0
   patrolPoints:
   - {fileID: 0}

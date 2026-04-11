@@ -60,8 +60,8 @@ public class PlayerMovement : MonoBehaviour
     [Header("物理設定")]
     [Tooltip("未操控時的物理角阻力 (預設 0.05)")]
     [SerializeField] private float uncontrolledAngularDrag = 0.05f;
-    public float moveDrag = 0f; // 移動時的阻力 (設為 0，讓它滑順)
-    public float stopDrag = 10f; // 停止時的阻力 (設高一點，讓它急停)
+    [SerializeField] private float moveDrag = 0f; // 移動時的阻力 (設為 0，讓它滑順)
+    [SerializeField] private float stopDrag = 10f; // 停止時的阻力 (設高一點，讓它急停)
 
     [Header("跳躍與重力")]
     [SerializeField] private float jumpHeight = 1.5f;
@@ -94,7 +94,7 @@ public class PlayerMovement : MonoBehaviour
     private RaycastHit[] _highlightHits = new RaycastHit[10];
 
     [Tooltip("射線檢測的層級 (建議排除 Player 層)")]
-    public LayerMask interactionLayer = -1; // -1 代表 Everything (預設)
+    [SerializeField] private LayerMask interactionLayer = -1; // -1 代表 Everything (預設)
 
     private InputSystem_Actions playerActions => GameDirector.Instance.playerActions;
     private Vector2 moveInput;

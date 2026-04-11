@@ -10,8 +10,8 @@ public class NpcAI : MonoBehaviour
     public enum NpcState { Searching, Investigating, Alerted, Blinded, Stunned }
 
     [Header("Debug 強制撿拾")]
-    public bool forcePickupDebug = false;
-    public Transform debugPickupTarget;
+    [SerializeField] private bool forcePickupDebug = false;
+    [SerializeField] private Transform debugPickupTarget;
 
     [Header("Component References")]
     [SerializeField] private Animator anim;
@@ -20,9 +20,9 @@ public class NpcAI : MonoBehaviour
 
     [Header("IK 設定")]
     [Tooltip("指定右手骨骼底下的 'GrabSocket' 空物件")]
-    public Transform grabSocket;
+    [SerializeField] private Transform grabSocket;
     [Tooltip("Optional: 右手肘提示點，避免手臂穿插")]
-    public Transform rightElbowHint; // 改為 public 指定，比 FindRecursive 穩定
+    [SerializeField] private Transform rightElbowHint; // 改為 public 指定，比 FindRecursive 穩定
 
     [Header("UI 設定")] // <--- [新增]
     [SerializeField] private NpcStatusUI statusUiPrefab; // 拖曳剛剛做的 UI Prefab
@@ -44,7 +44,7 @@ public class NpcAI : MonoBehaviour
     [SerializeField] private NpcState currentState = NpcState.Searching;
 
     [Header("巡邏設定")]
-    public List<Transform> patrolPoints;
+    [SerializeField] private List<Transform> patrolPoints;
     private int currentPatrolIndex = 0;
 
     [Header("警戒值設定")]

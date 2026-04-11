@@ -5,7 +5,7 @@ public class MovementAnimator : MonoBehaviour
 {
     [Header("元件參考")]
     [Tooltip("要晃動的模型 Transform")]
-    public Transform modelTransform;
+    [SerializeField] private Transform modelTransform;
     private PlayerMovement playerMovement;
 
     [Header("晃動設定")]

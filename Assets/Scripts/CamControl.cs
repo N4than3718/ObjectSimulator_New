@@ -9,24 +9,24 @@ public class CamControl : MonoBehaviour
     public Transform FollowTarget;
 
     [Header("基礎設定")]
-    public float offsetZ = 2f;
-    public float defaultOffsetY = 0.8f; // 原本的 offsetY 改名為 default，這是理想高度
-    public float minOffsetY = 0.1f;     // 最低能降到多低 (避免貼地太近穿模)
+    [SerializeField] private float offsetZ = 2f;
+    [SerializeField] private float defaultOffsetY = 0.8f; // 原本的 offsetY 改名為 default，這是理想高度
+    [SerializeField] private float minOffsetY = 0.1f;     // 最低能降到多低 (避免貼地太近穿模)
 
     [Header("防穿牆與避障")]
-    public LayerMask obstacleLayer;      // 務必設定為 Default, Ground, Wall 等層級
-    public float checkRadius = 0.2f;     // 探測半徑 (建議設大一點，例如 0.2，避免攝影機穿幫)
-    public float wallClipPadding = 0.1f; // 撞到牆時，稍微把攝影機再往前推一點點，避免看到牆壁內部
+    [SerializeField] private LayerMask obstacleLayer;      // 務必設定為 Default, Ground, Wall 等層級
+    [SerializeField] private float checkRadius = 0.2f;     // 探測半徑 (建議設大一點，例如 0.2，避免攝影機穿幫)
+    [SerializeField] private float wallClipPadding = 0.1f; // 撞到牆時，稍微把攝影機再往前推一點點，避免看到牆壁內部
 
     [Header("平滑設定")]
-    public float heightSmoothTime = 0.1f;
-    public float rotateSpeed = 0.1f;
-    public float rotateLerp = 15f;
-    public float moveSmoothSpeed = 60f; // 用於位置跟隨的平滑度
+    [SerializeField] private float heightSmoothTime = 0.1f;
+    [SerializeField] private float rotateSpeed = 0.1f;
+    [SerializeField] private float rotateLerp = 15f;
+    [SerializeField] private float moveSmoothSpeed = 60f; // 用於位置跟隨的平滑度
 
     [Header("視角限制 (俯仰角)")]
-    public float pitchMin = -60f;
-    public float pitchMax = 85f;
+    [SerializeField] private float pitchMin = -60f;
+    [SerializeField] private float pitchMax = 85f;
 
     // --- 私有變數 ---
     private InputSystem_Actions playerActions;
