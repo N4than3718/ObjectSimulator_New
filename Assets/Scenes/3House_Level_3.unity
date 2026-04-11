@@ -26078,7 +26078,7 @@ PrefabInstance:
     - target: {fileID: 8627884456145559570, guid: 28a3230d609b20e40bb80e73e1c9d784, type: 3}
       propertyPath: statusUiPrefab
       value: 
-      objectReference: {fileID: 0}
+      objectReference: {fileID: 1886498465}
     - target: {fileID: 8627884456145559570, guid: 28a3230d609b20e40bb80e73e1c9d784, type: 3}
       propertyPath: patrolPoints.Array.size
       value: 7
@@ -48308,6 +48308,8 @@ MonoBehaviour:
   lightsToTurnOff: []
   burnedMaterial: {fileID: 2100000, guid: b8807a6e02a61104ca12d7d706e006bb, type: 2}
   sparkParticles: {fileID: 1681470384}
+  metalSmashSound: {fileID: 0}
+  powerDownSound: {fileID: 0}
   OnPowerBroken:
     m_PersistentCalls:
       m_Calls: []
@@ -50220,9 +50222,9 @@ SceneRoots:
   - {fileID: 280057144}
   - {fileID: 973813987}
   - {fileID: 1446458081}
-  - {fileID: 1817305021}
   - {fileID: 2044702617}
-  - {fileID: 2146830543}
   - {fileID: 1152323001}
-  - {fileID: 716817200}
   - {fileID: 1233853125}
+  - {fileID: 716817200}
+  - {fileID: 1817305021}
+  - {fileID: 2146830543}
