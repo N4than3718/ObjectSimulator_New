@@ -93,8 +93,6 @@ public class SpectatorController : MonoBehaviour
         HandleLook();       // Call the single HandleLook method
         HandleMovement();   // Call the single HandleMovement method
         HandleHighlight();  // Call the single HandleHighlight method
-
-        if (Time.timeScale <= 0f) Debug.LogError("[Spectator] Time.timeScale is 0! Game paused?");
     }
 
     private void HandleLook()
