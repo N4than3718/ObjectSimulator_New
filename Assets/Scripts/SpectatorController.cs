@@ -161,6 +161,7 @@ public class SpectatorController : MonoBehaviour
     private void OnSelectPerformed(InputAction.CallbackContext context)
     {
         if (this == null || teamManager == null) return;
+        if (IsInputPaused) return;
 
         if (currentlyTargetedObject != null)
         {
