@@ -24,7 +24,7 @@ public class GameDirector : MonoBehaviour
     [SerializeField] private int targetFrameRate = 60;
     [SerializeField] private bool useVSync = false;
 
-    private SpectatorController cameraScript;
+    [SerializeField] private SpectatorController cameraScript;
     public bool IsPaused { get; private set; } = false;
 
     private void Awake()
