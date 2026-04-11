@@ -7,12 +7,32 @@ public class ExtractionZone : MonoBehaviour
     [Tooltip("如果填 0，程式會自動抓取當前關卡編號。如果想手動強制解鎖特定關卡，請填入數字。")]
     [SerializeField] private int customNextLevel = 0;
 
+    [Header("音效設定 (Blingbling✨)")]
+    [Tooltip("用來播放瞬間過關音效的喇叭")]
+    [SerializeField] private AudioSource audioSource;
+    [Tooltip("你千辛萬苦找來的 Blingbling 音檔")]
+    [SerializeField] private AudioClip successSound;
+    [Tooltip("(選填) 撤離點原本持續發出聲響的喇叭，過關時會把它關掉")]
+    [SerializeField] private AudioSource idleBlingSource;
+
     private void OnTriggerEnter(Collider other)
     {
         // 1. 檢查進入的是不是玩家
         if (other.GetComponentInParent<PlayerMovement>() != null)
         {
             Debug.Log("[撤離點] 玩家成功抵達！準備結算...");
+
+            // ✨ 音效魔法 1：播放通關音效！
+            if (audioSource != null && successSound != null)
+            {
+                audioSource.PlayOneShot(successSound);
+            }
+
+            // ✨ 音效魔法 2：(選填) 關閉持續的引導聲，讓結算畫面更乾淨
+            if (idleBlingSource != null && idleBlingSource.isPlaying)
+            {
+                idleBlingSource.Stop();
+            }
 
             // 💀 防呆機制 1：檢查 DataManager 是否在片場
             if (DataManager.Instance != null)
