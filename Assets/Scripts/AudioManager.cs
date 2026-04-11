@@ -59,6 +59,7 @@ public class AudioManager : MonoBehaviour
     // 💡 招式 A：滑鼠按下時呼叫
     public void PlayClickDown()
     {
+        Debug.Log("🖱️ 滑鼠按下了！PlayClickDown 有被觸發！");
         if (uiSource != null && clickDownSound != null)
         {
             uiSource.PlayOneShot(clickDownSound);
