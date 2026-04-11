@@ -19,8 +19,6 @@ public class GameDirector : MonoBehaviour
     [SerializeField] private CanvasGroup menuPanel;
     [Tooltip("把所有選單裡的 Load 按鈕都拖進來")]
     [SerializeField] private UnityEngine.UI.Button[] loadButton;
-    [Tooltip("主選單的場景名稱 (破關後回去用)")]
-    [SerializeField] private string mainMenuSceneName = "MainMenu";
 
     [Header("系統設定")]
     [SerializeField] private int targetFrameRate = 60;
