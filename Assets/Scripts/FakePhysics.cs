@@ -48,6 +48,7 @@ public class FakePhysics : MonoBehaviour, IInteractable
     private Vector3 initialPosition;    // 初始位置
 
     private bool isOpen = false;     // 手動模式的開關狀態
+    private bool wasOpen;
     private int peopleInZone = 0;    // 觸發區人數計數器
 
     void Start()
@@ -105,6 +106,20 @@ public class FakePhysics : MonoBehaviour, IInteractable
         // 2. 平滑插值運算 (Lerp)
         // 使用 MoveTowards 或 Lerp 都可以，這裡用 Lerp 比較平滑
         currentValue = Mathf.Lerp(currentValue, targetValue, Time.deltaTime * speed);
+
+        // 💀 [新增] 自動音效偵測
+        bool isNowOpen = Mathf.Abs(currentValue) > 0.1f; // 目前門是不是開著的？
+
+        if (isNowOpen && !wasOpen) // 門從關變成開的一瞬間
+        {
+            PlaySound(openSound);
+        }
+        else if (!isNowOpen && wasOpen) // 門從開變成關的一瞬間
+        {
+            PlaySound(closeSound);
+        }
+
+        wasOpen = isNowOpen; // 紀錄狀態給下一幀用
 
         // 3. 應用變形 (Transform)
         ApplyMotion();
