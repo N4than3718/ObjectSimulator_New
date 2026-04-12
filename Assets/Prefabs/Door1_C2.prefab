@@ -42,9 +42,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 9168947699742077562}
-  - component: {fileID: 481785155702087494}
   - component: {fileID: 269483119357640962}
   - component: {fileID: 7971687865006595108}
+  - component: {fileID: 481785155702087494}
   m_Layer: 9
   m_Name: Door Physics Root
   m_TagString: Untagged
@@ -68,35 +68,6 @@ Transform:
   - {fileID: 860836350707724103}
   m_Father: {fileID: 456567300848984393}
   m_LocalEulerAnglesHint: {x: 0, y: 90, z: 0}
---- !u!114 &481785155702087494
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1198733445285363653}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 55f9c091b71772444a44a4178ff2260c, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::FakePhysics
-  motionType: 0
-  doorType: 0
-  doorVisuals: {fileID: 860836350707724103}
-  interactionPoint: {fileID: 4825214288381564970}
-  speed: 5
-  isLocked: 0
-  autoClose: 1
-  activationDistance: 0.5
-  openAwayFromPlayer: 1
-  rotationAxis: {x: 0, y: 1, z: 0}
-  openAngle: 90
-  slideDirection: {x: 0, y: 0, z: -1}
-  slideDistance: 0.5
-  audioSource: {fileID: 7971687865006595108}
-  openSound: {fileID: 8300000, guid: 1a45594596ebab24094ae1e08f261d7f, type: 3}
-  closeSound: {fileID: 8300000, guid: f135459abc91c6f4e865fc7974371c84, type: 3}
-  lockedSound: {fileID: 0}
 --- !u!65 &269483119357640962
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -140,7 +111,7 @@ AudioSource:
   Priority: 128
   DopplerLevel: 1
   MinDistance: 1
-  MaxDistance: 3.5
+  MaxDistance: 7.5
   Pan2D: 0
   rolloffMode: 1
   BypassEffects: 0
@@ -215,6 +186,35 @@ AudioSource:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
+--- !u!114 &481785155702087494
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1198733445285363653}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 55f9c091b71772444a44a4178ff2260c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::FakePhysics
+  motionType: 0
+  doorType: 0
+  doorVisuals: {fileID: 860836350707724103}
+  interactionPoint: {fileID: 4825214288381564970}
+  speed: 5
+  isLocked: 0
+  autoClose: 1
+  activationDistance: 0.5
+  openAwayFromPlayer: 1
+  rotationAxis: {x: 0, y: 1, z: 0}
+  openAngle: 90
+  slideDirection: {x: 0, y: 0, z: -1}
+  slideDistance: 0.5
+  audioSource: {fileID: 7971687865006595108}
+  openSound: {fileID: 8300000, guid: 1a45594596ebab24094ae1e08f261d7f, type: 3}
+  closeSound: {fileID: 8300000, guid: f135459abc91c6f4e865fc7974371c84, type: 3}
+  lockedSound: {fileID: 0}
 --- !u!1 &1656448404199046551
 GameObject:
   m_ObjectHideFlags: 0
