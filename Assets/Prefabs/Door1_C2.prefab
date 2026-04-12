@@ -93,7 +93,7 @@ MonoBehaviour:
   openAngle: 90
   slideDirection: {x: 0, y: 0, z: -1}
   slideDistance: 0.5
-  audioSource: {fileID: 0}
+  audioSource: {fileID: 7971687865006595108}
   openSound: {fileID: 8300000, guid: 1a45594596ebab24094ae1e08f261d7f, type: 3}
   closeSound: {fileID: 8300000, guid: f135459abc91c6f4e865fc7974371c84, type: 3}
   lockedSound: {fileID: 0}
