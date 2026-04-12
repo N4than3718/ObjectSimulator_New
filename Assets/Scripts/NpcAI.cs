@@ -103,6 +103,7 @@ public class NpcAI : MonoBehaviour
     private float timeSinceLastSighting = 0f;
     private Vector3 lastSightingPosition;
     private Transform threatTarget = null;
+    private bool isStateLocked = false;
 
     // 調查相關
     private Vector3? noiseInvestigationTarget = null;
@@ -480,6 +481,8 @@ public class NpcAI : MonoBehaviour
 
     private void InvestigatingState()
     {
+        if (isStateLocked) return;
+
         // 1. 視覺優先：如果調查途中看到東西在動，直接進入追擊！
         Transform movingTarget = CheckForMovingTargets();
         if (movingTarget != null)
@@ -677,12 +680,14 @@ public class NpcAI : MonoBehaviour
 
         if (blindTimer <= 0)
         {
+            immunityTimer = blindImmunityTime;
+
             if (blindSpotsEffect != null)
             {
                 blindSpotsEffect.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
             }
 
-            immunityTimer = blindImmunityTime;
+            isStateLocked = false; // 🔓 暈眩結束，解鎖！
             if (agent.enabled) agent.isStopped = false;
             Debug.Log("NPC: 視力恢復，進入警戒狀態！");
 
@@ -706,13 +711,10 @@ public class NpcAI : MonoBehaviour
         if (immunityTimer > 0f) return;
 
         // 2. 如果 "已經" 在 Blinded 狀態，不要重置計時器！(這是無限暈眩的主因)
-        if (currentState == NpcState.Blinded)
-        {
-            // 保持原本的 timer 繼續倒數，不執行任何動作
-            return;
-        }
+        if (isStateLocked || currentState == NpcState.Blinded) return;
 
         Debug.LogWarning("NPC: 啊！我的眼睛！(被致盲)");
+        isStateLocked = true; // 🔒 瞬間上鎖！
         if (LevelTimer.Instance != null) LevelTimer.Instance.AddViolenceCount();
         PlayVoice(blindedSound); // 🔊 加上這行：播放眼瞎慘叫
 
@@ -774,6 +776,7 @@ public class NpcAI : MonoBehaviour
     {
         Transform detectedMovingTarget = null;
         if (fov == null || fov.visibleTargets == null) return null;
+        if (isStateLocked) return null;
 
         foreach (Transform target in fov.visibleTargets)
         {
@@ -815,6 +818,7 @@ public class NpcAI : MonoBehaviour
     // 💀 新增：掃描身邊是否有靜止的目標
     private Transform CheckForStaticTargetNearby()
     {
+        if (isStateLocked) return null;
         // 使用 OverlapSphere 掃描 NPC 周圍的小範圍 (比 captureDistance 稍微大一點)
         Collider[] hitColliders = Physics.OverlapSphere(transform.position, captureDistance + 1.0f);
 
@@ -932,6 +936,7 @@ public class NpcAI : MonoBehaviour
 
         if (stunTimer <= 0)
         {
+            isStateLocked = false; // 🔓 暈眩結束，解鎖！
             if (agent.enabled) agent.isStopped = false;
             Debug.Log("NPC: 💢 從昏迷中醒來，誰砸我！(進入高度警戒)");
 
@@ -964,6 +969,7 @@ public class NpcAI : MonoBehaviour
         }
 
         Debug.Log($"[NpcAI] 💥 {gameObject.name} 被重物砸中！進入暈眩狀態 {duration} 秒！");
+        isStateLocked = true; // 🔒 瞬間上鎖！
         if (LevelTimer.Instance != null) LevelTimer.Instance.AddViolenceCount();
         PlayVoice(stunnedSound); // 🔊 加上這行：播放暈眩慘叫
 
