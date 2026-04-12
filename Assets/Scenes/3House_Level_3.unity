@@ -24492,6 +24492,10 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 1886498465}
     - target: {fileID: 8627884456145559570, guid: 28a3230d609b20e40bb80e73e1c9d784, type: 3}
+      propertyPath: hearingSensitivity
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 8627884456145559570, guid: 28a3230d609b20e40bb80e73e1c9d784, type: 3}
       propertyPath: 'patrolPoints.Array.data[0]'
       value: 
       objectReference: {fileID: 489705472}
@@ -26035,6 +26039,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: NPC (1)
       objectReference: {fileID: 0}
+    - target: {fileID: 4460996291151234457, guid: 28a3230d609b20e40bb80e73e1c9d784, type: 3}
+      propertyPath: viewRadius
+      value: 2.5
+      objectReference: {fileID: 0}
     - target: {fileID: 5600829561373809430, guid: 28a3230d609b20e40bb80e73e1c9d784, type: 3}
       propertyPath: m_LocalPosition.x
       value: 2.1600184
@@ -26079,6 +26087,10 @@ PrefabInstance:
       propertyPath: statusUiPrefab
       value: 
       objectReference: {fileID: 1886498465}
+    - target: {fileID: 8627884456145559570, guid: 28a3230d609b20e40bb80e73e1c9d784, type: 3}
+      propertyPath: hearingSensitivity
+      value: 2
+      objectReference: {fileID: 0}
     - target: {fileID: 8627884456145559570, guid: 28a3230d609b20e40bb80e73e1c9d784, type: 3}
       propertyPath: patrolPoints.Array.size
       value: 7
