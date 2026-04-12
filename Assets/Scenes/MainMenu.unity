@@ -1124,6 +1124,7 @@ GameObject:
   - component: {fileID: 1022227722}
   - component: {fileID: 1022227721}
   - component: {fileID: 1022227724}
+  - component: {fileID: 1022227725}
   m_Layer: 5
   m_Name: Btn_Quit
   m_TagString: Untagged
@@ -1267,6 +1268,18 @@ Animator:
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
   m_WriteDefaultValuesOnDisable: 0
+--- !u!114 &1022227725
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1022227719}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5c2d2d2e5f8d5124c885c61286dcbf61, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::UIButtonSound
 --- !u!1 &1188345618
 GameObject:
   m_ObjectHideFlags: 0
@@ -1591,6 +1604,7 @@ GameObject:
   - component: {fileID: 2124206082}
   - component: {fileID: 2124206081}
   - component: {fileID: 2124206084}
+  - component: {fileID: 2124206085}
   m_Layer: 5
   m_Name: Btn_Start
   m_TagString: Untagged
@@ -1734,6 +1748,18 @@ Animator:
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
   m_WriteDefaultValuesOnDisable: 0
+--- !u!114 &2124206085
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2124206079}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5c2d2d2e5f8d5124c885c61286dcbf61, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::UIButtonSound
 --- !u!1001 &1101194970822214854
 PrefabInstance:
   m_ObjectHideFlags: 0
