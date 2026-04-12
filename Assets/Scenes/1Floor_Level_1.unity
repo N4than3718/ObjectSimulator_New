@@ -32648,6 +32648,10 @@ PrefabInstance:
       propertyPath: myCharacterCamera
       value: 
       objectReference: {fileID: 1746449004}
+    - target: {fileID: 1441788837318454500, guid: 902bbaa23553af74fa8cbe88f080f12d, type: 3}
+      propertyPath: aimCamera
+      value: 
+      objectReference: {fileID: 1746449003}
     - target: {fileID: 3566633784792933625, guid: 902bbaa23553af74fa8cbe88f080f12d, type: 3}
       propertyPath: m_LocalPosition.x
       value: 1
