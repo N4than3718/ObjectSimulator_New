@@ -5185,7 +5185,7 @@ MonoBehaviour:
   aiUpdateInterval: 0.2
   eyeTransform: {fileID: 7465108290314437110}
   blindRecoveryTime: 3
-  blindImmunityTime: 2
+  blindImmunityTime: 3
   currentAlertLevel: 0
 --- !u!114 &3717772440389107441
 MonoBehaviour:
