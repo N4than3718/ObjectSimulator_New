@@ -563,6 +563,16 @@ public class NpcAI : MonoBehaviour
         investigationTimer += aiUpdateInterval; // 使用 AI Update 的間隔來計時 (注意：這裡比較粗略)
         // 為了更精準的計時，你可以改成在 Update() 裡累加 Time.deltaTime，但這裡先維持架構一致
 
+        // 💀 [核心修改]：看看腳下有沒有東西！
+        Transform staticTarget = CheckForStaticTargetNearby();
+        if (staticTarget != null)
+        {
+            Debug.Log($"NPC: 抓到你了！躲在這裡以為我看不見？({staticTarget.name})");
+            EnterAlertedState(staticTarget);
+            noiseInvestigationTarget = null;
+            return;
+        }
+
         // --- 2. 時間到，結束調查 ---
         if (investigationTimer >= investigateWaitTime)
         {
@@ -800,6 +810,28 @@ public class NpcAI : MonoBehaviour
         }
 
         return detectedMovingTarget;
+    }
+
+    // 💀 新增：掃描身邊是否有靜止的目標
+    private Transform CheckForStaticTargetNearby()
+    {
+        // 使用 OverlapSphere 掃描 NPC 周圍的小範圍 (比 captureDistance 稍微大一點)
+        Collider[] hitColliders = Physics.OverlapSphere(transform.position, captureDistance + 1.0f);
+
+        foreach (var hit in hitColliders)
+        {
+            // 如果抓到了 Tag 為 Player 的物件 (鬧鐘也有這個 Tag)
+            if (hit.CompareTag("Player"))
+            {
+                // 確保中間沒有牆壁阻擋
+                Vector3 direction = hit.transform.position - transform.position;
+                if (!Physics.Raycast(transform.position + Vector3.up, direction, direction.magnitude, LayerMask.GetMask("Default"))) // 假設障礙物在 Default 層
+                {
+                    return hit.transform;
+                }
+            }
+        }
+        return null;
     }
 
     public void HearNoise(Vector3 position, float range, float intensity)
