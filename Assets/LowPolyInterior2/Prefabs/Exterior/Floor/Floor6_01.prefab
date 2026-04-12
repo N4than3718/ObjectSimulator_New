@@ -12,9 +12,9 @@ GameObject:
   - component: {fileID: 3463301669487609826}
   - component: {fileID: 3463301669486511394}
   - component: {fileID: 438376506718937204}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Floor6_01
-  m_TagString: Untagged
+  m_TagString: Wood
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -89,6 +89,7 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
 --- !u!65 &438376506718937204
 BoxCollider:
