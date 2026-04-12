@@ -481,8 +481,6 @@ public class NpcAI : MonoBehaviour
 
     private void InvestigatingState()
     {
-        if (isStateLocked) return;
-
         // 1. 視覺優先：如果調查途中看到東西在動，直接進入追擊！
         Transform movingTarget = CheckForMovingTargets();
         if (movingTarget != null)
@@ -841,6 +839,7 @@ public class NpcAI : MonoBehaviour
     public void HearNoise(Vector3 position, float range, float intensity)
     {
         if (currentState == NpcState.Stunned) return;
+        if (isStateLocked) return;
 
         // 1. 計算距離衰減 (可選，這裡先簡化)
         float distance = Vector3.Distance(transform.position, position);
