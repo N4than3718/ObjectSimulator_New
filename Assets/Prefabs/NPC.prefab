@@ -5153,6 +5153,24 @@ MonoBehaviour:
   - {fileID: 8300000, guid: 077e3f2d52d79a24098b56db390a8d0c, type: 3}
   - {fileID: 8300000, guid: b9c25b59d9a446c41bc0011aaad56317, type: 3}
   - {fileID: 8300000, guid: e86c5671fb2346f438b5f4f7737dc20d, type: 3}
+  woodImpacts:
+  - {fileID: 8300000, guid: c894f3ae2d72ae642982fe1087ab76f7, type: 3}
+  - {fileID: 8300000, guid: c0b83b58f8d9d944cbd00ec4cd5fc5ab, type: 3}
+  - {fileID: 8300000, guid: 4924533f401fef243a79333ce4b4b4bc, type: 3}
+  - {fileID: 8300000, guid: 90df93683f76231479fa92debcea04ee, type: 3}
+  - {fileID: 8300000, guid: 603be55f769175b48a4bf29e10951548, type: 3}
+  - {fileID: 8300000, guid: ddef26a73f47bc641b6a48eb3d361b6d, type: 3}
+  - {fileID: 8300000, guid: 39cefb351334bc64bb86e148daafb741, type: 3}
+  - {fileID: 8300000, guid: de6bdaa0e83e2df48b4cac4879892b03, type: 3}
+  - {fileID: 8300000, guid: 1c1e3679988e0ad41bb580a3c6756aa7, type: 3}
+  - {fileID: 8300000, guid: d72e0120361a9a24fbec393c662da44f, type: 3}
+  - {fileID: 8300000, guid: 0d793608db9a28041ba867da8e25e535, type: 3}
+  - {fileID: 8300000, guid: e4f573213d96c5748a9d08612df77cd3, type: 3}
+  - {fileID: 8300000, guid: b4cbe38f1cef48448a5a05317bdbc431, type: 3}
+  - {fileID: 8300000, guid: 19c6942da2b8c3d4db037ce99ed14580, type: 3}
+  - {fileID: 8300000, guid: edb6f17193829d846b6d0ea3284258e3, type: 3}
+  carpetImpacts: []
+  tileImpacts: []
   investigateSound: {fileID: 8300000, guid: 6593768aae0b54142aae0a3499cc86da, type: 3}
   alertSound: {fileID: 8300000, guid: 84f28161d94f47643a820e0f05319456, type: 3}
   stunnedSound: {fileID: 8300000, guid: 3df0ca70dc63a4541a20d91dcbe29a2d, type: 3}
