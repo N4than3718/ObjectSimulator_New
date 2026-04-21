@@ -2323,6 +2323,7 @@ GameObject:
   - component: {fileID: 4132964599341133739}
   - component: {fileID: 1393505722195382920}
   - component: {fileID: 6574869078397181740}
+  - component: {fileID: 891605553931383620}
   m_Layer: 5
   m_Name: HUD Canvas
   m_TagString: Untagged
@@ -2438,6 +2439,19 @@ MonoBehaviour:
   cooldownFillImage: {fileID: 2032661179150109819}
   defaultIcon: {fileID: 0}
   fillSpeed: 2
+--- !u!114 &891605553931383620
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4037056817075223716}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: dd0b2929d8a6c2145bf17e49461cfa1a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MissionManager
+  missionText: {fileID: 9185392016588344622}
 --- !u!1 &4174076705159319161
 GameObject:
   m_ObjectHideFlags: 0
@@ -4177,7 +4191,7 @@ MonoBehaviour:
   m_VertexBufferAutoSizeReduction: 0
   m_useMaxVisibleDescender: 1
   m_pageToDisplay: 1
-  m_margin: {x: 0, y: 0, z: 0, w: 0}
+  m_margin: {x: 0, y: 0, z: -280.17612, w: -416.92316}
   m_isUsingLegacyAnimationComponent: 0
   m_isVolumetricText: 0
   m_hasFontAssetChanged: 0

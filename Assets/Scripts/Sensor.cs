@@ -27,7 +27,7 @@ public class Sensor : MonoBehaviour
 
             if (MissionManager.Instance != null)
             {
-                MissionManager.Instance.AddProgress(1);
+                MissionManager.Instance.AddProgress(targetItemName, 1);
             }
 
             // 💀 寫入跨關卡事件：記錄門禁卡已經推下來了 (給第三關用)

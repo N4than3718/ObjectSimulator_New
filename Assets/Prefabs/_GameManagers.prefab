@@ -15,11 +15,11 @@ GameObject:
   - component: {fileID: 1146909144363012398}
   - component: {fileID: 5521167509986094707}
   - component: {fileID: 5226474707751087568}
-  - component: {fileID: 2689503287069239380}
   - component: {fileID: 738407011049909185}
   - component: {fileID: 2346434492100113362}
   - component: {fileID: 7411875071195610530}
   - component: {fileID: 2536385890661285200}
+  - component: {fileID: 5057492072772529677}
   m_Layer: 0
   m_Name: _GameManagers
   m_TagString: Untagged
@@ -281,21 +281,6 @@ MonoBehaviour:
   initialPoolSize: 20
   heightOffset: 0.1
   objectSpawnCooldown: 0.5
---- !u!114 &2689503287069239380
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 481608723532702770}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: dd0b2929d8a6c2145bf17e49461cfa1a, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::MissionManager
-  missionText: {fileID: 0}
-  missionDescription: "\u628A\u9470\u5319\u63A8\u5230\u9580\u53E3"
-  targetAmount: 1
 --- !u!114 &738407011049909185
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -357,3 +342,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 21129f00ff49105498da585608c087f5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ObjectRegistry
+--- !u!114 &5057492072772529677
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 481608723532702770}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7fb37ea2ff8993744a4e30fe02657c4e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::LevelObjectiveSetup
+  levelMissions: []

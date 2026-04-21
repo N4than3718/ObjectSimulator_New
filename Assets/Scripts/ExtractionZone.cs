@@ -15,6 +15,8 @@ public class ExtractionZone : MonoBehaviour
     [Tooltip("(選填) 撤離點原本持續發出聲響的喇叭，過關時會把它關掉")]
     [SerializeField] private AudioSource idleBlingSource;
 
+    private string targetTag = "Player";
+
     private void OnTriggerEnter(Collider other)
     {
         // 1. 檢查進入的是不是玩家
@@ -32,6 +34,11 @@ public class ExtractionZone : MonoBehaviour
             if (idleBlingSource != null && idleBlingSource.isPlaying)
             {
                 idleBlingSource.Stop();
+            }
+
+            if (MissionManager.Instance != null)
+            {
+                MissionManager.Instance.AddProgress(targetTag, 1);
             }
 
             // 💀 防呆機制 1：檢查 DataManager 是否在片場

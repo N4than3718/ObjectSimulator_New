@@ -718,7 +718,7 @@ MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 738407011049909185, guid: b80ea018927f14c46b4d962368e7c28f, type: 3}
   m_PrefabInstance: {fileID: 603701151}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
+  m_GameObject: {fileID: 603701152}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 93f086e4c12137f418c550948f926242, type: 3}
@@ -729,7 +729,7 @@ MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 5571139817965544163, guid: b80ea018927f14c46b4d962368e7c28f, type: 3}
   m_PrefabInstance: {fileID: 603701151}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
+  m_GameObject: {fileID: 603701152}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 64f18a8dbd598ef4c8d8cf24c7f83188, type: 3}
@@ -885,6 +885,34 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 5057492072772529677, guid: b80ea018927f14c46b4d962368e7c28f, type: 3}
+      propertyPath: levelMissions.Array.size
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 5057492072772529677, guid: b80ea018927f14c46b4d962368e7c28f, type: 3}
+      propertyPath: levelMissions.Array.data[0].missionID
+      value: PowerBroken
+      objectReference: {fileID: 0}
+    - target: {fileID: 5057492072772529677, guid: b80ea018927f14c46b4d962368e7c28f, type: 3}
+      propertyPath: levelMissions.Array.data[1].missionID
+      value: Player
+      objectReference: {fileID: 0}
+    - target: {fileID: 5057492072772529677, guid: b80ea018927f14c46b4d962368e7c28f, type: 3}
+      propertyPath: levelMissions.Array.data[0].description
+      value: "\u7834\u58DE\u96FB\u7BB1"
+      objectReference: {fileID: 0}
+    - target: {fileID: 5057492072772529677, guid: b80ea018927f14c46b4d962368e7c28f, type: 3}
+      propertyPath: levelMissions.Array.data[1].description
+      value: "\u900F\u904E\"\u7279\u6B8A\u7BA1\u9053\"\u524D\u5F80\u4E00\u6A13"
+      objectReference: {fileID: 0}
+    - target: {fileID: 5057492072772529677, guid: b80ea018927f14c46b4d962368e7c28f, type: 3}
+      propertyPath: levelMissions.Array.data[0].targetAmount
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5057492072772529677, guid: b80ea018927f14c46b4d962368e7c28f, type: 3}
+      propertyPath: levelMissions.Array.data[1].targetAmount
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 5521167509986094707, guid: b80ea018927f14c46b4d962368e7c28f, type: 3}
       propertyPath: indicatorContainer
       value: 
@@ -898,6 +926,11 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: b80ea018927f14c46b4d962368e7c28f, type: 3}
+--- !u!1 &603701152 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 481608723532702770, guid: b80ea018927f14c46b4d962368e7c28f, type: 3}
+  m_PrefabInstance: {fileID: 603701151}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &629737308
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -3045,9 +3078,41 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 1523306140}
     - target: {fileID: 4385524641705966192, guid: 12c268c13449c7b4dbfb2871566e02d9, type: 3}
+      propertyPath: OnPowerBroken.m_PersistentCalls.m_Calls.Array.size
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4385524641705966192, guid: 12c268c13449c7b4dbfb2871566e02d9, type: 3}
+      propertyPath: OnPowerBroken.m_PersistentCalls.m_Calls.Array.data[1].m_Mode
+      value: 4
+      objectReference: {fileID: 0}
+    - target: {fileID: 4385524641705966192, guid: 12c268c13449c7b4dbfb2871566e02d9, type: 3}
       propertyPath: OnPowerBroken.m_PersistentCalls.m_Calls.Array.data[0].m_Target
       value: 
       objectReference: {fileID: 1159072134}
+    - target: {fileID: 4385524641705966192, guid: 12c268c13449c7b4dbfb2871566e02d9, type: 3}
+      propertyPath: OnPowerBroken.m_PersistentCalls.m_Calls.Array.data[1].m_Target
+      value: 
+      objectReference: {fileID: 603701152}
+    - target: {fileID: 4385524641705966192, guid: 12c268c13449c7b4dbfb2871566e02d9, type: 3}
+      propertyPath: OnPowerBroken.m_PersistentCalls.m_Calls.Array.data[1].m_CallState
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 4385524641705966192, guid: 12c268c13449c7b4dbfb2871566e02d9, type: 3}
+      propertyPath: OnPowerBroken.m_PersistentCalls.m_Calls.Array.data[1].m_MethodName
+      value: 
+      objectReference: {fileID: 0}
+    - target: {fileID: 4385524641705966192, guid: 12c268c13449c7b4dbfb2871566e02d9, type: 3}
+      propertyPath: OnPowerBroken.m_PersistentCalls.m_Calls.Array.data[1].m_TargetAssemblyTypeName
+      value: UnityEngine.Light, UnityEngine
+      objectReference: {fileID: 0}
+    - target: {fileID: 4385524641705966192, guid: 12c268c13449c7b4dbfb2871566e02d9, type: 3}
+      propertyPath: OnPowerBroken.m_PersistentCalls.m_Calls.Array.data[1].m_Arguments.m_FloatArgument
+      value: 0.4
+      objectReference: {fileID: 0}
+    - target: {fileID: 4385524641705966192, guid: 12c268c13449c7b4dbfb2871566e02d9, type: 3}
+      propertyPath: OnPowerBroken.m_PersistentCalls.m_Calls.Array.data[1].m_Arguments.m_ObjectArgumentAssemblyTypeName
+      value: UnityEngine.Object, UnityEngine
+      objectReference: {fileID: 0}
     - target: {fileID: 6292860664943606843, guid: 12c268c13449c7b4dbfb2871566e02d9, type: 3}
       propertyPath: m_Name
       value: Power Box

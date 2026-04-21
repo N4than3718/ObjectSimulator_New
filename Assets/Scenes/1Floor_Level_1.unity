@@ -33077,6 +33077,34 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 5057492072772529677, guid: b80ea018927f14c46b4d962368e7c28f, type: 3}
+      propertyPath: levelMissions.Array.size
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 5057492072772529677, guid: b80ea018927f14c46b4d962368e7c28f, type: 3}
+      propertyPath: levelMissions.Array.data[0].missionID
+      value: KeyDropped
+      objectReference: {fileID: 0}
+    - target: {fileID: 5057492072772529677, guid: b80ea018927f14c46b4d962368e7c28f, type: 3}
+      propertyPath: levelMissions.Array.data[1].missionID
+      value: Player
+      objectReference: {fileID: 0}
+    - target: {fileID: 5057492072772529677, guid: b80ea018927f14c46b4d962368e7c28f, type: 3}
+      propertyPath: levelMissions.Array.data[0].description
+      value: "\u628A\u9470\u5319\u63A8\u5230\u9580\u53E3"
+      objectReference: {fileID: 0}
+    - target: {fileID: 5057492072772529677, guid: b80ea018927f14c46b4d962368e7c28f, type: 3}
+      propertyPath: levelMissions.Array.data[1].description
+      value: "\u524D\u5F80\u4E8C\u6A13"
+      objectReference: {fileID: 0}
+    - target: {fileID: 5057492072772529677, guid: b80ea018927f14c46b4d962368e7c28f, type: 3}
+      propertyPath: levelMissions.Array.data[0].targetAmount
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5057492072772529677, guid: b80ea018927f14c46b4d962368e7c28f, type: 3}
+      propertyPath: levelMissions.Array.data[1].targetAmount
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 5521167509986094707, guid: b80ea018927f14c46b4d962368e7c28f, type: 3}
       propertyPath: indicatorContainer
       value: 
@@ -33548,8 +33576,12 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 1464291472}
     - target: {fileID: 9185392016588344622, guid: 889f6adf50ff56e4387d1807746d5aaa, type: 3}
+      propertyPath: m_margin.w
+      value: -349.1537
+      objectReference: {fileID: 0}
+    - target: {fileID: 9185392016588344622, guid: 889f6adf50ff56e4387d1807746d5aaa, type: 3}
       propertyPath: m_margin.z
-      value: -222.20016
+      value: -224.99026
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

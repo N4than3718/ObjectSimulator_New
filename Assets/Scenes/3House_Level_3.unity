@@ -4468,6 +4468,22 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 5057492072772529677, guid: b80ea018927f14c46b4d962368e7c28f, type: 3}
+      propertyPath: levelMissions.Array.size
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5057492072772529677, guid: b80ea018927f14c46b4d962368e7c28f, type: 3}
+      propertyPath: levelMissions.Array.data[0].missionID
+      value: Player
+      objectReference: {fileID: 0}
+    - target: {fileID: 5057492072772529677, guid: b80ea018927f14c46b4d962368e7c28f, type: 3}
+      propertyPath: levelMissions.Array.data[0].description
+      value: "\u9003\u51FA\u751F\u5929\uFF01\uFF01\uFF01"
+      objectReference: {fileID: 0}
+    - target: {fileID: 5057492072772529677, guid: b80ea018927f14c46b4d962368e7c28f, type: 3}
+      propertyPath: levelMissions.Array.data[0].targetAmount
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 5521167509986094707, guid: b80ea018927f14c46b4d962368e7c28f, type: 3}
       propertyPath: indicatorContainer
       value: 
