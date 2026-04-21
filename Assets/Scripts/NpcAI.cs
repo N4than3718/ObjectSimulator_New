@@ -22,7 +22,7 @@ public class NpcAI : MonoBehaviour
     [Tooltip("指定右手骨骼底下的 'GrabSocket' 空物件")]
     [SerializeField] private Transform grabSocket;
     [Tooltip("Optional: 右手肘提示點，避免手臂穿插")]
-    [SerializeField] private Transform rightElbowHint; // 改為 public 指定，比 FindRecursive 穩定
+    [SerializeField] private Transform rightElbowHint; // 改為指定，比 FindRecursive 穩定
 
     [Header("UI 設定")] // <--- [新增]
     [SerializeField] private NpcStatusUI statusUiPrefab; // 拖曳剛剛做的 UI Prefab
@@ -33,6 +33,11 @@ public class NpcAI : MonoBehaviour
     [SerializeField] private AudioSource audioSource;
     [Tooltip("把你的 10 個腳步聲全拖進這裡！")]
     [SerializeField] private AudioClip[] footstepSounds;
+
+    [Header("材質附加聲 (疊加上去的環境質感)")]
+    [SerializeField] private AudioClip[] woodImpacts;   // 木頭的叩叩聲
+    [SerializeField] private AudioClip[] carpetImpacts; // 地毯的摩擦/悶響聲
+    [SerializeField] private AudioClip[] tileImpacts;   // 磁磚的清脆聲
 
     [Header("語音與反應音效")]
     [SerializeField] private AudioClip investigateSound; // "咦？什麼聲音？"
@@ -996,16 +1001,41 @@ public class NpcAI : MonoBehaviour
     // 💀 1. 隨機腳步聲播放器 (專門給 Animator 動畫事件呼叫)
     public void PlayFootstepSound()
     {
-        if (audioSource != null && footstepSounds != null && footstepSounds.Length > 0)
-        {
-            // 隨機挑選一個音檔 (0 到 陣列長度)
-            int randomIndex = UnityEngine.Random.Range(0, footstepSounds.Length);
+        if (audioSource == null) return;
 
-            // 💀 聽覺果汁：讓音高在 0.9 到 1.1 之間隨機微調，打破機械感！
+        // --- 第一層：播放基底腳步聲 (鞋子本身的聲音，永遠都會播) ---
+        if (footstepSounds != null && footstepSounds.Length > 0)
+        {
+            int baseIndex = UnityEngine.Random.Range(0, footstepSounds.Length);
+
+            // 隨機微調音高，打破機械感
             audioSource.pitch = UnityEngine.Random.Range(0.9f, 1.1f);
 
-            // 播放！
-            audioSource.PlayOneShot(footstepSounds[randomIndex]);
+            // 播放基底聲音 (音量 1.0)
+            audioSource.PlayOneShot(footstepSounds[baseIndex], 1.0f);
+        }
+
+        // --- 第二層：雷射掃描材質並疊加質感聲音 ---
+        if (Physics.Raycast(transform.position + Vector3.up * 0.1f, Vector3.down, out RaycastHit hit, 1.0f))
+        {
+            AudioClip[] textureSounds = null;
+            string groundTag = hit.collider.tag;
+
+            // 根據地板 Tag 選擇要疊加的材質聲音
+            if (groundTag == "Wood") textureSounds = woodImpacts;
+            else if (groundTag == "Carpet") textureSounds = carpetImpacts;
+            else if (groundTag == "Tile") textureSounds = tileImpacts;
+
+            // 如果有對應的材質聲音，就疊加播放！
+            if (textureSounds != null && textureSounds.Length > 0)
+            {
+                int texIndex = UnityEngine.Random.Range(0, textureSounds.Length);
+
+                // 💀 Game Juice 混音技巧：
+                // 材質聲音通常只是「點綴」，所以我們把它的音量稍微調小 (例如 0.6f)
+                // 這樣才不會喧賓奪主，蓋過守衛原本沉重的腳步感
+                audioSource.PlayOneShot(textureSounds[texIndex], 0.6f);
+            }
         }
     }
 
