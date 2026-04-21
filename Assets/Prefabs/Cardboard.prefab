@@ -20,6 +20,7 @@ GameObject:
   - component: {fileID: 606901365535104878}
   - component: {fileID: 1210133438181861324}
   - component: {fileID: 4075494703143299206}
+  - component: {fileID: -1063845408733177458}
   m_Layer: 6
   m_Name: Cardboard
   m_TagString: Player
@@ -293,7 +294,6 @@ MonoBehaviour:
   radialMenuIcon: {fileID: 21300000, guid: 1fa10a85b0ccbe74b9ff54e3e7eaae55, type: 3}
   myCharacterCamera: {fileID: 0}
   myFollowTarget: {fileID: 180751867521748039}
-  currentCardboard: {fileID: 8340288002746832406}
   jumpSound: {fileID: 8300000, guid: 6c6851817749c6f4389fe031b749df24, type: 3}
   jumpSoundVelocityThreshold: 0.5
   footstepSounds: []
@@ -375,6 +375,39 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cd22d5a07198b8644a3ebe0ebfa1ddd5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerInteract
+--- !u!114 &-1063845408733177458
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 359308935021936815}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9375408fd7a4ecc44932cd5bdb06b171, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerObjectAudio
+  stepDistance: 1
+  minVelocity: 0.5
+  woodSounds:
+  - {fileID: 8300000, guid: c894f3ae2d72ae642982fe1087ab76f7, type: 3}
+  - {fileID: 8300000, guid: c0b83b58f8d9d944cbd00ec4cd5fc5ab, type: 3}
+  - {fileID: 8300000, guid: 4924533f401fef243a79333ce4b4b4bc, type: 3}
+  - {fileID: 8300000, guid: 90df93683f76231479fa92debcea04ee, type: 3}
+  - {fileID: 8300000, guid: 603be55f769175b48a4bf29e10951548, type: 3}
+  - {fileID: 8300000, guid: ddef26a73f47bc641b6a48eb3d361b6d, type: 3}
+  - {fileID: 8300000, guid: 39cefb351334bc64bb86e148daafb741, type: 3}
+  - {fileID: 8300000, guid: de6bdaa0e83e2df48b4cac4879892b03, type: 3}
+  - {fileID: 8300000, guid: 1c1e3679988e0ad41bb580a3c6756aa7, type: 3}
+  - {fileID: 8300000, guid: d72e0120361a9a24fbec393c662da44f, type: 3}
+  - {fileID: 8300000, guid: 0d793608db9a28041ba867da8e25e535, type: 3}
+  - {fileID: 8300000, guid: e4f573213d96c5748a9d08612df77cd3, type: 3}
+  - {fileID: 8300000, guid: b4cbe38f1cef48448a5a05317bdbc431, type: 3}
+  - {fileID: 8300000, guid: 19c6942da2b8c3d4db037ce99ed14580, type: 3}
+  - {fileID: 8300000, guid: edb6f17193829d846b6d0ea3284258e3, type: 3}
+  carpetSounds: []
+  tileSounds: []
+  defaultSounds: []
 --- !u!1 &4204580529001440182
 GameObject:
   m_ObjectHideFlags: 0
