@@ -33033,6 +33033,10 @@ PrefabInstance:
       propertyPath: 'targetObjects.Array.data[1]'
       value: 
       objectReference: {fileID: 278519258}
+    - target: {fileID: 2689503287069239380, guid: b80ea018927f14c46b4d962368e7c28f, type: 3}
+      propertyPath: missionText
+      value: 
+      objectReference: {fileID: 9105675446076500760}
     - target: {fileID: 3212559918213024205, guid: b80ea018927f14c46b4d962368e7c28f, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
@@ -33543,11 +33547,26 @@ PrefabInstance:
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Target
       value: 
       objectReference: {fileID: 1464291472}
+    - target: {fileID: 9185392016588344622, guid: 889f6adf50ff56e4387d1807746d5aaa, type: 3}
+      propertyPath: m_margin.z
+      value: -222.20016
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 889f6adf50ff56e4387d1807746d5aaa, type: 3}
+--- !u!114 &9105675446076500760 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 9185392016588344622, guid: 889f6adf50ff56e4387d1807746d5aaa, type: 3}
+  m_PrefabInstance: {fileID: 9105675446076500759}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.TextMeshPro::TMPro.TextMeshProUGUI
 --- !u!1001 &9177154498308635361
 PrefabInstance:
   m_ObjectHideFlags: 0

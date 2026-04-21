@@ -25,6 +25,11 @@ public class Sensor : MonoBehaviour
             // 觸發開門事件
             OnSensorTriggered.Invoke();
 
+            if (MissionManager.Instance != null)
+            {
+                MissionManager.Instance.AddProgress(1);
+            }
+
             // 💀 寫入跨關卡事件：記錄門禁卡已經推下來了 (給第三關用)
             if (DataManager.Instance != null)
             {
