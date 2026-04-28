@@ -686,6 +686,38 @@ public class PlayerMovement : MonoBehaviour
             float newWidth = Mathf.Lerp(minOutlineWidth, maxOutlineWidth, t);
             currentlyTargetedPlayerObject.SetOutlineWidth(newWidth);
         }
+
+        if (CurrentTargetedObject != null)
+        {
+            // 💀 1. 檢查是不是互動物件 (門、抽屜)
+            IInteractable interactable = CurrentTargetedObject.GetComponentInParent<IInteractable>();
+            if (interactable != null)
+            {
+                // 如果是，去問 FakePhysics 該顯示什麼文字 ("開啟" 或 "關閉" 或 "鎖住了")
+                string action = interactable.GetInteractionPrompt();
+                if (InteractionPromptUI.Instance != null)
+                    InteractionPromptUI.Instance.ShowPrompt($"[F] {action}");
+                return;
+            }
+
+            // 💀 2. 檢查是不是可附身物件 (大槌、鬧鐘)
+            // (注意：如果你現在已經附身在物件上，可能不能對著別人按 T，這取決於你的遊戲設計)
+            PlayerMovement targetMovement = CurrentTargetedObject.GetComponentInParent<PlayerMovement>();
+            if (targetMovement != null)
+            {
+                if (InteractionPromptUI.Instance != null)
+                    InteractionPromptUI.Instance.ShowPrompt("[T] 加入隊伍");
+                return;
+            }
+
+            // 如果都不是
+            if (InteractionPromptUI.Instance != null) InteractionPromptUI.Instance.HidePrompt();
+        }
+        else
+        {
+            // 如果沒對準任何東西
+            if (InteractionPromptUI.Instance != null) InteractionPromptUI.Instance.HidePrompt();
+        }
     }
 
     /// <summary>

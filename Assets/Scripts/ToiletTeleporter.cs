@@ -28,6 +28,8 @@ public class ToiletTeleporter : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
+        if (destination = null) return;
+
         PlayerMovement playerScript = other.GetComponentInParent<PlayerMovement>();
 
         // 💀 關鍵修改：必須「不是沖水中」且「不是冷卻中」才能觸發！

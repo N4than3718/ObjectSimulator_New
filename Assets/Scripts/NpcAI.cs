@@ -830,6 +830,16 @@ public class NpcAI : MonoBehaviour
             // 如果抓到了 Tag 為 Player 的物件 (鬧鐘也有這個 Tag)
             if (hit.CompareTag("Player"))
             {
+                // 💀 [核心修正]：檢查這個物品現在「有沒有被玩家附身」？
+                PlayerMovement pm = hit.GetComponentInParent<PlayerMovement>();
+
+                // 如果找不到 PlayerMovement，或者它根本沒被附身 (enabled = false)
+                // 那這就只是一個普通的道具 (例如丟在地上的鬧鐘)，守衛不該對它 Game Over！
+                if (pm == null || !pm.enabled)
+                {
+                    continue; // 無視這個空殼，繼續檢查下一個！
+                }
+
                 // 確保中間沒有牆壁阻擋
                 Vector3 direction = hit.transform.position - transform.position;
                 if (!Physics.Raycast(transform.position + Vector3.up, direction, direction.magnitude, LayerMask.GetMask("Default"))) // 假設障礙物在 Default 層

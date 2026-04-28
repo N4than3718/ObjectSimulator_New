@@ -29,8 +29,8 @@ public class SpectatorController : MonoBehaviour
     private float yaw;
     private float pitch;
     public bool IsInputPaused { get; set; } = false;
-
     private HighlightableObject currentlyTargetedObject;
+    private bool hasMoved = false;
 
     // --- Keep only ONE definition for each method ---
 
@@ -110,6 +110,11 @@ public class SpectatorController : MonoBehaviour
         float ascendInput = inputActions.Spectator.Ascend.ReadValue<float>();
         float descendInput = inputActions.Spectator.Descend.ReadValue<float>();
 
+        if (moveInput.sqrMagnitude > 0.01f || Mathf.Abs(ascendInput) > 0.01f || Mathf.Abs(descendInput) > 0.01f)
+        {
+            hasMoved = true;
+        }
+
         Vector3 horizontalMove = (transform.forward * moveInput.y + transform.right * moveInput.x);
         Vector3 verticalMove = Vector3.up * (ascendInput - descendInput);
         Vector3 finalMove = (horizontalMove + verticalMove).normalized; // Use normalized
@@ -155,6 +160,37 @@ public class SpectatorController : MonoBehaviour
             float t = Mathf.InverseLerp(0, maxDistanceForOutline, hitDistance);
             float newWidth = Mathf.Lerp(minOutlineWidth, maxOutlineWidth, t);
             currentlyTargetedObject.SetOutlineWidth(newWidth);
+
+            var targetMovement = currentlyTargetedObject.GetComponentInParent<PlayerMovement>();
+            if (targetMovement != null)
+            {
+                if (InteractionPromptUI.Instance != null)
+                    InteractionPromptUI.Instance.ShowPrompt("[左鍵] 附身");
+            }
+            else
+            {
+                ShowDefaultOrHide();
+            }
+        }
+        else
+        {
+            ShowDefaultOrHide();
+        }
+    }
+
+    private void ShowDefaultOrHide()
+    {
+        if (InteractionPromptUI.Instance == null) return;
+
+        if (!hasMoved)
+        {
+            // 如果還沒移動過，保持顯示教學
+            InteractionPromptUI.Instance.ShowPrompt("WASD 移動 ｜ 瞄準物品按 [左鍵] 附身");
+        }
+        else
+        {
+            // 如果已經移動過了，就乖乖隱藏
+            InteractionPromptUI.Instance.HidePrompt();
         }
     }
 

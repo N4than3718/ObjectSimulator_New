@@ -26,6 +26,10 @@ public class PlayerInteract : MonoBehaviour
 
     private void OnInteractPerformed(InputAction.CallbackContext context)
     {
+        if (playerMovement == null) return;
+
+        if (!playerMovement.enabled) return;
+
         // 1. 直接問 PlayerMovement：我們現在高亮誰？
         GameObject target = playerMovement.CurrentTargetedObject;
 
