@@ -8,6 +8,13 @@ public class DataManager : MonoBehaviour
     private const string KEY_REACHED_LEVEL = "ReachedLevel";
     private const string KEY_BEST_TIME_PREFIX = "BestTime_Level_";
 
+    // --- 跨關卡玩家狀態繼承 (無縫傳送) ---
+    private const string KEY_PLAYER_PREFAB = "SavedPlayerPrefab";
+    private const string KEY_POS_X = "SavedPosX";
+    private const string KEY_POS_Y = "SavedPosY";
+    private const string KEY_POS_Z = "SavedPosZ";
+    private const string KEY_ROT_Y = "SavedRotY";
+
     private void Awake()
     {
         if (Instance == null)
@@ -80,6 +87,52 @@ public class DataManager : MonoBehaviour
         PlayerPrefs.DeleteKey("Event_KeyDropped");
         PlayerPrefs.DeleteKey("Event_PowerBroken");
         // ... 有幾個事件就刪幾個
+    }
+
+    // 💀 儲存通關時的狀態
+    public void SavePlayerState(string prefabName, Vector3 position, Quaternion rotation)
+    {
+        // 為了避免 "(Clone)" 字眼干擾，我們先把它清掉
+        string cleanName = prefabName.Replace("(Clone)", "").Trim();
+
+        PlayerPrefs.SetString(KEY_PLAYER_PREFAB, cleanName);
+        PlayerPrefs.SetFloat(KEY_POS_X, position.x);
+        PlayerPrefs.SetFloat(KEY_POS_Y, position.y);
+        PlayerPrefs.SetFloat(KEY_POS_Z, position.z);
+        PlayerPrefs.SetFloat(KEY_ROT_Y, rotation.eulerAngles.y); // 通常記錄 Y 軸旋轉就夠了
+        PlayerPrefs.Save();
+
+        Debug.Log($"[DataManager] 已記錄玩家肉體: {cleanName}，位置: {position}");
+    }
+
+    // 💀 檢查是否有暫存的玩家狀態
+    public bool HasSavedPlayerState()
+    {
+        return PlayerPrefs.HasKey(KEY_PLAYER_PREFAB);
+    }
+
+    // 💀 讀取狀態的方法們
+    public string GetSavedPlayerPrefab() => PlayerPrefs.GetString(KEY_PLAYER_PREFAB);
+
+    public Vector3 GetSavedPosition()
+    {
+        return new Vector3(
+            PlayerPrefs.GetFloat(KEY_POS_X),
+            PlayerPrefs.GetFloat(KEY_POS_Y),
+            PlayerPrefs.GetFloat(KEY_POS_Z)
+        );
+    }
+
+    public Quaternion GetSavedRotation()
+    {
+        return Quaternion.Euler(0, PlayerPrefs.GetFloat(KEY_ROT_Y), 0);
+    }
+
+    // 💀 清除暫存 (例如玩家死亡重來，或是回到主選單時需要呼叫)
+    public void ClearSavedPlayerState()
+    {
+        PlayerPrefs.DeleteKey(KEY_PLAYER_PREFAB);
+        PlayerPrefs.Save();
     }
 
     // 💀 Coder: 開發者工具，按一個鍵重置所有存檔
