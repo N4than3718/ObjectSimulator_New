@@ -1945,6 +1945,37 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 92576b7f27feb5349b8fe3e5c79ba40d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CamControl
+--- !u!1 &1320902491
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1320902492}
+  m_Layer: 0
+  m_Name: SpawnPoint
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1320902492
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1320902491}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -5.619, y: 3.6, z: -0.706}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1393088969 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 3166382910403495349, guid: 2c76398f539675042ab1269e88ea43ed, type: 3}
@@ -3538,3 +3569,4 @@ SceneRoots:
   - {fileID: 471239894}
   - {fileID: 1908655395}
   - {fileID: 1225110030}
+  - {fileID: 1320902492}
