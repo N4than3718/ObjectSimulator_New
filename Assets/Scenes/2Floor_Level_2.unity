@@ -903,7 +903,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5057492072772529677, guid: b80ea018927f14c46b4d962368e7c28f, type: 3}
       propertyPath: levelMissions.Array.data[1].description
-      value: "\u900F\u904E\"\u7279\u6B8A\u7BA1\u9053\"\u524D\u5F80\u4E00\u6A13"
+      value: "\u4E58\u5750\"\u7279\u6B8A\u7BA1\u9053\"(\u53EF\u9078)\uFF5C\u524D\u5F80\u4E00\u6A13"
       objectReference: {fileID: 0}
     - target: {fileID: 5057492072772529677, guid: b80ea018927f14c46b4d962368e7c28f, type: 3}
       propertyPath: levelMissions.Array.data[0].targetAmount
