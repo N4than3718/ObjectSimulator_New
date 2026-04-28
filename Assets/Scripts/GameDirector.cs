@@ -221,6 +221,19 @@ public void TriggerVictory()
     {
         Debug.Log("Game Director: Next Level...");
 
+        // 💀 核心邏輯：抓取現在正在操控的物件！
+        if (PlayerMovement.Current != null && DataManager.Instance != null)
+        {
+            Transform playerT = PlayerMovement.Current.transform;
+
+            // 把名字跟座標丟給 DataManager
+            DataManager.Instance.SavePlayerState(
+                playerT.gameObject.name,
+                playerT.position,
+                playerT.rotation
+            );
+        }
+
         if (GameSceneManager.Instance != null)
         {
             GameSceneManager.Instance.LoadNextLevel();
