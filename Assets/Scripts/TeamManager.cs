@@ -279,9 +279,65 @@ public class TeamManager : MonoBehaviour
         }
         // ------------------------------------
 
-        // 作業 3: [不變] 進入觀察者模式
-        EnterSpectatorMode();
-        Debug.Log("--- TeamManager: Reset Complete, Spectator Mode Active ---");
+        // =================================================================
+        // 作業 3: [智慧開場決策] 檢查是否有跨關卡的繼承物件
+        // =================================================================
+        bool hasPossessedSavedObject = false;
+
+        // 1. 去 DataManager 查檔案，看玩家上一關是用什麼
+        if (DataManager.Instance != null && DataManager.Instance.HasSavedPlayerState())
+        {
+            string savedName = DataManager.Instance.GetSavedPlayerPrefab();
+            PlayerMovement targetCharacter = null;
+
+            // 2. 從剛剛「作業1」找到的所有角色中，精準比對名字！
+            foreach (var characterScript in allCharacterScripts)
+            {
+                if (characterScript.gameObject.name.Trim() == savedName)
+                {
+                    targetCharacter = characterScript;
+                    break;
+                }
+            }
+
+            if (targetCharacter != null)
+            {
+                Debug.Log($"[TeamManager] 偵測到跨關卡存檔！即將繼承並附身: {savedName}");
+
+                // 3. 尋找場景中的起點 (利用名字尋找空物件)
+                GameObject spawnPoint = GameObject.Find("SpawnPoint");
+                if (spawnPoint != null)
+                {
+                    // 處理剛體物理，避免瞬間移動的物理暴衝
+                    Rigidbody rb = targetCharacter.GetComponent<Rigidbody>();
+                    if (rb != null) rb.isKinematic = true;
+
+                    targetCharacter.transform.position = spawnPoint.transform.position;
+                    targetCharacter.transform.rotation = spawnPoint.transform.rotation;
+
+                    if (rb != null) rb.isKinematic = false;
+                    Debug.Log($"[TeamManager] 已將 {savedName} 傳送至 SpawnPoint 座標。");
+                }
+
+                // 4. 正式加入隊伍，並且強制附身！(傳入 true 代表立刻控制)
+                TryAddCharacterToTeam(targetCharacter.gameObject, true);
+                hasPossessedSavedObject = true;
+
+                // 讀取完畢，清除暫存，避免重玩這關時又被干擾
+                DataManager.Instance.ClearSavedPlayerState();
+            }
+        }
+
+        // 5. 如果沒有讀取到存檔，或是這關找不到上一關的物件，才進入原本的「觀察者模式」
+        if (!hasPossessedSavedObject)
+        {
+            EnterSpectatorMode();
+            Debug.Log("--- TeamManager: Reset Complete, Spectator Mode Active ---");
+        }
+        else
+        {
+            Debug.Log("--- TeamManager: Reset Complete, Seamless Transition Active ---");
+        }
     }
 
     // --- PossessCharacter ---
