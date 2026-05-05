@@ -6,6 +6,9 @@ TagManager:
   tags:
   - NPC
   - Cam
+  - Wood
+  - Carpet
+  - Tile
   layers:
   - Default
   - TransparentFX
@@ -18,7 +21,7 @@ TagManager:
   - Ground
   - Door
   - Wall
-  - 
+  - Showcase3D
   - 
   - 
   - 
